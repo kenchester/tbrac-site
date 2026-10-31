@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { getAccessToken } from "@/lib/auth-client";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 export interface ChatMessage {
   id: string;
@@ -36,8 +36,8 @@ export function useChat(assessmentId: string, language: string = "en") {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Not authenticated");
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
 
       // Build message history for API (exclude the empty streaming assistant msg)
       const history = [...messages, userMsg].map((m) => ({
@@ -49,7 +49,7 @@ export function useChat(assessmentId: string, language: string = "en") {
       const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

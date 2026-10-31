@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,10 +34,18 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const { session, loading, updatePassword } = useAuth();
+  const { updatePassword } = useAuth();
+  // Better Auth redirects here with ?token=... (or ?error=INVALID_TOKEN).
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    setToken(new URLSearchParams(window.location.search).get("token"));
+    setLoading(false);
+  }, []);
 
   const form = useForm<ResetPasswordForm>({
     resolver: zodResolver(resetPasswordSchema),
@@ -48,7 +56,7 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await updatePassword(data.password);
+      await updatePassword(data.password, token!);
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update password");
@@ -98,7 +106,7 @@ export default function ResetPasswordPage() {
                 <p className="text-sm text-muted-foreground text-center py-4">
                   Verifying your reset link…
                 </p>
-              ) : !session ? (
+              ) : !token ? (
                 <div className="space-y-4">
                   <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                     <p className="text-sm text-destructive">

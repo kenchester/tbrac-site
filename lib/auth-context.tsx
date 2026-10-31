@@ -1,8 +1,11 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { Session, User } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+import { createContext, useContext } from 'react'
+import { authClient, clearAccessToken } from './auth-client'
+
+type SessionData = NonNullable<ReturnType<typeof authClient.useSession>['data']>
+type User = SessionData['user']
+type Session = SessionData['session']
 
 interface AuthContextType {
   user: User | null
@@ -12,78 +15,55 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string, redirectTo: string) => Promise<void>
-  updatePassword: (password: string) => Promise<void>
+  updatePassword: (password: string, token: string) => Promise<void>
   isAuthenticated: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Failed to get auth session:', error.message)
-      }
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    }).catch(() => {
-      setLoading(false)
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+  const { data, isPending } = authClient.useSession()
+  const user = data?.user ?? null
+  const session = data?.session ?? null
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) throw error
+    clearAccessToken()
+    const { error } = await authClient.signIn.email({ email, password })
+    if (error) throw new Error(error.message || 'Failed to sign in')
   }
 
   const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
+    clearAccessToken()
+    const { error } = await authClient.signUp.email({
       email,
       password,
+      name: email,
     })
-    if (error) throw error
-    if (!data.session) {
-      throw new Error("Please disable email confirmation in Supabase dashboard (Authentication → Providers → Email → Confirm email: off), then try again.")
-    }
+    if (error) throw new Error(error.message || 'Failed to create account')
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    clearAccessToken()
+    const { error } = await authClient.signOut()
+    if (error) throw new Error(error.message || 'Failed to sign out')
   }
 
-  // Sends a password-recovery email. The link returns the user to `redirectTo`
-  // with a recovery session active, where updatePassword can be called.
+  // Sends a password-reset email. The link returns the user to `redirectTo`
+  // with a `token` query param, which updatePassword exchanges.
   const resetPassword = async (email: string, redirectTo: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await authClient.requestPasswordReset({
+      email,
       redirectTo,
     })
-    if (error) throw error
+    if (error) throw new Error(error.message || 'Failed to send reset email')
   }
 
-  const updatePassword = async (password: string) => {
-    const { error } = await supabase.auth.updateUser({ password })
-    if (error) throw error
+  const updatePassword = async (password: string, token: string) => {
+    const { error } = await authClient.resetPassword({
+      newPassword: password,
+      token,
+    })
+    if (error) throw new Error(error.message || 'Failed to update password')
   }
 
   return (
@@ -91,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         session,
-        loading,
+        loading: isPending,
         signIn,
         signUp,
         signOut,

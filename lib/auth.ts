@@ -1,0 +1,45 @@
+import { betterAuth } from "better-auth"
+import { jwt } from "better-auth/plugins"
+import { nextCookies } from "better-auth/next-js"
+import { Pool } from "pg"
+import { Resend } from "resend"
+
+const baseURL = process.env.BETTER_AUTH_URL
+
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null
+
+export const auth = betterAuth({
+  baseURL,
+  database: new Pool({ connectionString: process.env.DATABASE_URL }),
+  advanced: {
+    // FastAPI parses the JWT `sub` as a UUID (customers.user_id etc.)
+    database: { generateId: "uuid" },
+  },
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+    sendResetPassword: async ({ user, url }) => {
+      if (!resend) {
+        // Local dev without Resend: surface the link in the server log.
+        console.log(`[auth] Password reset link for ${user.email}: ${url}`)
+        return
+      }
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || "TBRAC <no-reply@tbrac.org>",
+        to: user.email,
+        subject: "Reset your TBRAC password",
+        text: `Use this link to choose a new password:\n\n${url}\n\nIf you didn't request this, you can ignore this email.`,
+      })
+    },
+  },
+  plugins: [
+    jwt({
+      // python-jose (FastAPI) can't verify the default EdDSA keys.
+      jwks: { keyPairConfig: { alg: "ES256" } },
+      jwt: { issuer: baseURL, audience: baseURL },
+    }),
+    nextCookies(),
+  ],
+})

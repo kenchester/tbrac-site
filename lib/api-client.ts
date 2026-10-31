@@ -1,4 +1,5 @@
-import { supabase } from "./supabase";
+import { upload as blobUpload } from "@vercel/blob/client";
+import { getAccessToken } from "./auth-client";
 import type {
   Customer,
   CustomerCreate,
@@ -17,8 +18,8 @@ import type {
   SaveModuleAnswersRequest,
 } from "./api-types";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+// Same origin by default: next.config.mjs rewrites /api/v1/* to the FastAPI project.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 export class APIError extends Error {
   constructor(
@@ -32,16 +33,14 @@ export class APIError extends Error {
 }
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const token = await getAccessToken();
 
-  if (!session?.access_token) {
+  if (!token) {
     throw new APIError("Not authenticated", 401);
   }
 
   return {
-    Authorization: `Bearer ${session.access_token}`,
+    Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
 }
@@ -101,6 +100,58 @@ async function authenticatedRequest<T>(
   });
 }
 
+async function sha256Hex(file: File): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// Files go straight from the browser to private Vercel Blob storage (Vercel
+// functions cap request bodies at 4.5MB), then get registered with the API.
+async function uploadDocuments(
+  customerId: string,
+  files: File[],
+  assessmentModuleId?: string,
+): Promise<DocumentUploadResponse[]> {
+  const results: DocumentUploadResponse[] = [];
+  for (const file of files) {
+    const fileHash = await sha256Hex(file);
+    const pathname = `documents/${customerId}/${fileHash}`;
+
+    try {
+      await blobUpload(pathname, file, {
+        access: "private",
+        handleUploadUrl: "/api/blob/upload",
+        contentType: file.type,
+      });
+    } catch (error) {
+      throw new APIError(
+        error instanceof Error ? error.message : "Upload failed",
+        0,
+      );
+    }
+
+    results.push(
+      await authenticatedRequest<DocumentUploadResponse>(
+        `/api/v1/customers/${customerId}/documents`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            pathname,
+            filename: file.name,
+            content_type: file.type,
+            size: file.size,
+            file_hash: fileHash,
+            assessment_module_id: assessmentModuleId ?? null,
+          }),
+        },
+      ),
+    );
+  }
+  return results;
+}
+
 export const api = {
   // Health checks (no auth required)
   health: () => apiRequest<{ message: string }>("/health"),
@@ -108,7 +159,6 @@ export const api = {
   healthReady: () =>
     apiRequest<{
       database: string;
-      storage: string;
       overall: string;
     }>("/health/ready"),
 
@@ -179,26 +229,8 @@ export const api = {
     get: (id: string) =>
       authenticatedRequest<Document>(`/api/v1/documents/${id}`),
 
-    upload: async (customerId: string, files: File[]) => {
-      const authHeaders = await getAuthHeaders();
-      const formData = new FormData();
-
-      files.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      return apiRequest<DocumentUploadResponse[]>(
-        `/api/v1/customers/${customerId}/documents`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: authHeaders.Authorization,
-            // Don't set Content-Type for FormData - browser sets it with boundary
-          },
-          body: formData,
-        },
-      );
-    },
+    upload: (customerId: string, files: File[]) =>
+      uploadDocuments(customerId, files),
 
     getDownloadUrl: (id: string) =>
       authenticatedRequest<DocumentDownloadResponse>(
@@ -211,7 +243,7 @@ export const api = {
           `/api/v1/documents/${id}/download`,
         );
 
-      // Fetch the actual file from the signed URL
+      // Same-origin site route that streams the private blob (session cookie auth)
       const response = await fetch(download_url);
       if (!response.ok) {
         throw new APIError("Failed to download file", response.status);
@@ -225,10 +257,9 @@ export const api = {
         body: JSON.stringify({ document_type: documentType }),
       }),
 
+    // Site route: deletes the API record, then the Blob file.
     delete: (id: string) =>
-      authenticatedRequest<void>(`/api/v1/documents/${id}`, {
-        method: "DELETE",
-      }),
+      apiRequest<void>(`/api/documents/${id}/file`, { method: "DELETE" }),
   },
 
   // Assessments
@@ -309,21 +340,6 @@ export const api = {
       customerId: string,
       files: File[],
       assessmentModuleId?: string,
-    ) => {
-      const authHeaders = await getAuthHeaders();
-      const formData = new FormData();
-      files.forEach((file) => formData.append("files", file));
-      if (assessmentModuleId) {
-        formData.append("assessment_module_id", assessmentModuleId);
-      }
-      return apiRequest<DocumentUploadResponse[]>(
-        `/api/v1/customers/${customerId}/documents`,
-        {
-          method: "POST",
-          headers: { Authorization: (authHeaders as Record<string, string>).Authorization },
-          body: formData,
-        },
-      );
-    },
+    ) => uploadDocuments(customerId, files, assessmentModuleId),
   },
 };
