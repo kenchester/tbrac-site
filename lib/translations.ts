@@ -11,7 +11,7 @@ export const translations = {
     evaluatorAccess: "Evaluator Access",
 
     // Homepage Hero
-    trustedBy: "Trusted by governments and enterprises worldwide",
+    trustedBy: "Built on US regulatory and screening sources",
     heroTitle: "Get Your Company's Trans-Border Risk Assessment and Certification (TBRAC) Multivariable Report",
     heroDescription:
       "The first formalized assessment for US market entry. Prevent issues before they occur and provide assurance to local partners.",
@@ -100,7 +100,7 @@ export const translations = {
     expectStep2Desc: "Receive immediate feedback on your risk profile with a comprehensive 0-100 score.",
     expectStep3Title: "Expert Review & Final Report",
     expectStep3Desc:
-      "Our evaluators will review your responses, supporting data you provide, and any publicly available information about your company to provide a detailed certification report.",
+      "Our evaluators will review your responses, supporting data you provide, and any publicly available information about your company to provide a detailed independent assessment report.",
 
     // Assessment Form
     category: "Category",
@@ -169,7 +169,7 @@ export const translations = {
     // Results Page
     preliminaryResultsTitle: "Preliminary Results and Next Steps",
     preliminaryResultsBody:
-      "Your assessment has been submitted for expert review to receive a certified assessment. Our evaluators will analyze your responses, ask for proof when needed, and provide a comprehensive certification report within 5-7 business days that you can purchase and present to all relevant parties and authorities. You may download the draft report at any time.",
+      "Your self-assessment is complete. Its results are indicative only: they are based on your own answers and have not been verified. If you request an independent assessment, our evaluators will verify your answers against supporting documents and official US sources and prepare a dated assessment report. You may download your self-assessment summary at any time.",
     reportWillBeSentTo: "Report will be sent to:",
     downloadReports: "Download Reports",
     overallTBRACScore: "Overall TBRAC Score",
@@ -216,7 +216,7 @@ export const translations = {
       "In an era of increasing geopolitical complexity, the need for standardized risk assessment has never been greater. High-profile cases like TikTok have demonstrated the challenges that arise when risk evaluation is conducted reactively rather than proactively. TBRAC provides a framework for addressing these concerns before they escalate.",
     aboutApproach: "Our Approach",
     aboutApproachText:
-      "TBRAC utilizes a multi-variable assessment model that evaluates companies across 10 key risk categories. Our evaluators analyze responses, supporting documentation, and publicly available information to generate comprehensive certification reports that can be presented to regulatory authorities at local, state, and federal levels.",
+      "TBRAC utilizes a multi-variable assessment model that evaluates companies across 10 key risk categories. Our evaluators analyze responses, supporting documentation, and publicly available information to prepare dated, evidence-based assessment reports. A TBRAC report is an independent risk opinion; it is not a government approval, certification or guarantee.",
     aboutTeam: "Built by Experts",
     aboutTeamText:
       "The TBRAC methodology was built by domain experts in cross-border business, data security, and regulatory compliance. This expertise ensures that our assessments address the real concerns of government stakeholders while providing actionable insights for companies.",
@@ -239,7 +239,7 @@ export const translations = {
     contactPageTitle: "Contact Us",
     contactPageSubtitle: "Get in Touch with Our Team",
     contactInstructions:
-      "For questions about TBRAC assessments, certification reports, or general inquiries, please contact us at:",
+      "For questions about TBRAC assessments, assessment reports, or general inquiries, please contact us at:",
     contactEmail: "evaluations@tbrac.org",
     contactResponseTime: "We typically respond within 1-2 business days.",
     contactOffice: "Office Location",
@@ -302,7 +302,7 @@ export const translations = {
       "By using the TBRAC assessment system, you agree to these Terms of Service. Please read them carefully.",
     termsUse: "Use of Services",
     termsUseText:
-      "TBRAC assessments are provided for informational purposes and to facilitate communication with government stakeholders. While we strive for accuracy, TBRAC reports do not guarantee regulatory approval or market entry success.",
+      "TBRAC assessments are provided for informational purposes. Self-assessment results are based solely on information you provide and are not verified. TBRAC reports are risk opinions as of a stated date; they are not a certification, guarantee or warranty of any kind, are not endorsed by any government agency, and do not guarantee regulatory approval or market entry success.",
     termsAccuracy: "Accuracy of Information",
     termsAccuracyText:
       "You agree to provide accurate and complete information in your assessment. Providing false or misleading information may result in inaccurate reports and potential legal consequences.",
@@ -491,6 +491,16 @@ export const translations = {
     assessmentInProgress: "In Progress",
     overallRiskScore: "Overall Risk Score",
     higherScoreHigherRisk: "Higher score = higher risk",
+    selfAssessmentNotice:
+      "Indicative self-assessment: based only on your own answers and not verified by TBRAC. This is not an independent assessment, certification or government approval, and should not be presented as one.",
+    redFlagsTitle: "Red flags",
+    redFlagsIntro: "These answers override the score. A hard flag sets the tier to Very High; a soft flag sets it to at least High.",
+    redFlagHard: "Hard",
+    redFlagSoft: "Soft",
+    tierLow: "Low Risk",
+    tierMedium: "Medium Risk",
+    tierHigh: "High Risk",
+    tierVeryHigh: "Very High Risk",
     riskTier: "Risk Tier",
 
     // Risk tiers
@@ -540,7 +550,7 @@ export const translations = {
     evaluatorAccess: "评估员访问",
 
     // Homepage Hero
-    trustedBy: "受到全球政府和企业的信赖",
+    trustedBy: "依托美国监管与筛查数据来源",
     heroTitle: "获取您公司的跨境风险评估与认证（TBRAC）多变量报告",
     heroDescription:
       "首个正式的美国市场进入评估体系。在问题发生之前预防，并为当地合作伙伴提供信心保证。",
@@ -624,7 +634,7 @@ export const translations = {
     expectStep2Desc: "通过全面的0-100分制立即了解您的风险概况反馈。",
     expectStep3Title: "专家审查与最终报告",
     expectStep3Desc:
-      "我们的评估员将审查您的回答、您提供的支持数据以及任何关于您公司的公开信息，以提供详细的认证报告。",
+      "我们的评估员将审查您的回答、您提供的支持数据以及任何关于您公司的公开信息，以提供详细的独立评估报告。",
 
     // Assessment Form
     category: "类别",
@@ -692,7 +702,7 @@ export const translations = {
     // Results Page
     preliminaryResultsTitle: "初步结果和下一步",
     preliminaryResultsBody:
-      "您的评估已提交给专家审查以获得认证评估。我们的评估员将分析您的回答，在需要时索取证明，并在5-7个工作日内提供一份全面的认证报告，您可以购买并向所有相关方和当局提交。您可以随时下载草稿报告。",
+      "您的自我评估已完成。结果仅供参考：它基于您自己的回答，未经核实。如您申请独立评估，我们的评估员将依据证明文件和美国官方来源核实您的回答，并出具注明日期的评估报告。您可以随时下载自我评估摘要。",
     reportWillBeSentTo: "报告将发送至：",
     downloadReports: "下载报告",
     overallTBRACScore: "整体TBRAC分数",
@@ -738,7 +748,7 @@ export const translations = {
       "在地缘政治日益复杂的时代，标准化风险评估的需求从未如此迫切。TikTok等高调案例表明，当风险评估是被动而非主动进行时会出现的挑战。TBRAC提供了一个在问题升级之前解决这些担忧的框架。",
     aboutApproach: "我们的方法",
     aboutApproachText:
-      "TBRAC采用多变量评估模型，从10个关键风险类别评估公司。我们的评估员分析回答、支持文件和公开可用信息，生成可向地方、州和联邦级监管机构提交的综合认证报告。",
+      "TBRAC采用多变量评估模型，从10个关键风险类别评估公司。我们的评估员分析回答、支持文件和公开可用信息，出具注明日期、以证据为基础的评估报告。TBRAC报告是独立的风险意见，并非政府批准、认证或担保。",
     aboutTeam: "专家构建",
     aboutTeamText:
       "TBRAC方法论由跨境商业、数据安全和监管合规方面的领域专家构建。这一专业知识确保我们的评估能够解决政府利益相关者的实际关切，同时为公司提供可行的见解。",
@@ -760,7 +770,7 @@ export const translations = {
     // Contact Page
     contactPageTitle: "联系我们",
     contactPageSubtitle: "与我们的团队取得联系",
-    contactInstructions: "如有关于TBRAC评估、认证报告或一般咨询的问题，请通过以下方式联系我们：",
+    contactInstructions: "如有关于TBRAC评估、评估报告或一般咨询的问题，请通过以下方式联系我们：",
     contactEmail: "evaluations@tbrac.org",
     contactResponseTime: "我们通常在1-2个工作日内回复。",
     contactOffice: "办公地点",
@@ -822,7 +832,7 @@ export const translations = {
     termsIntro: "使用TBRAC评估系统即表示您同意这些服务条款。请仔细阅读。",
     termsUse: "服务使用",
     termsUseText:
-      "TBRAC评估仅供参考，旨在促进与政府利益相关者的沟通。虽然我们力求准确，但TBRAC报告不保证监管批准或市场进入成功。",
+      "TBRAC评估仅供参考。自我评估结果完全基于您提供的信息，未经核实。TBRAC报告是截至特定日期的风险意见，并非任何形式的认证、担保或保证，未获任何政府机构认可，也不保证监管批准或市场进入成功。",
     termsAccuracy: "信息准确性",
     termsAccuracyText:
       "您同意在评估中提供准确完整的信息。提供虚假或误导性信息可能导致报告不准确并可能产生法律后果。",
@@ -886,6 +896,16 @@ export const translations = {
     assessmentInProgress: "进行中",
     overallRiskScore: "综合风险评分",
     higherScoreHigherRisk: "分数越高，风险越大",
+    selfAssessmentNotice:
+      "仅供参考的自我评估：完全基于您自己的回答，未经TBRAC核实。这不是独立评估、认证或政府批准，不应作为此类文件出示。",
+    redFlagsTitle: "风险警示",
+    redFlagsIntro: "以下回答优先于分数。严重警示会将风险等级设为极高；一般警示会将风险等级至少设为高。",
+    redFlagHard: "严重",
+    redFlagSoft: "一般",
+    tierLow: "低风险",
+    tierMedium: "中等风险",
+    tierHigh: "高风险",
+    tierVeryHigh: "极高风险",
     riskTier: "风险等级",
 
     // Risk tiers

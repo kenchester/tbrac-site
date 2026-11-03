@@ -143,7 +143,15 @@ export interface PaginatedResponse<T> {
 // Assessment types
 export type AssessmentStatus = "in_progress" | "completed" | "submitted";
 export type ModuleStatus = "not_started" | "in_progress" | "completed";
-export type RiskTier = "Low" | "Medium" | "High" | "Very High";
+export type RiskTier = "low" | "medium" | "high" | "very_high";
+
+/** An answer that triggers a red-flag gate (backend services/red_flags.py). */
+export interface RedFlag {
+  question_id: string;
+  module_key: string;
+  severity: "hard" | "soft";
+  label: string;
+}
 
 export interface AssessmentModuleSummary {
   id: string;
@@ -170,6 +178,7 @@ export interface Assessment {
   risk_tier: RiskTier | null;
   version: number;
   modules: AssessmentModuleSummary[];
+  red_flags?: RedFlag[];
   submitted_at: string | null;
   created_at: string;
   updated_at: string;

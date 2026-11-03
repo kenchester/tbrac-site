@@ -92,6 +92,10 @@ export default function CaseStudiesPage() {
           <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto">
             How companies use TBRAC to identify risk early, remediate strategically, and enter the US market with confidence.
           </p>
+          <p className="mt-4 text-sm text-primary-foreground/75 max-w-2xl mx-auto">
+            Client names and identifying details have been changed to protect confidentiality. Outcomes reflect each client&apos;s
+            own remediation and decisions by the relevant authorities; past results do not guarantee future outcomes.
+          </p>
         </div>
       </section>
 

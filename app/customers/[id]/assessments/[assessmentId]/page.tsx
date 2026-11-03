@@ -7,7 +7,7 @@ import { PortalHeader } from "@/components/portal-header";
 import { useCustomer } from "@/hooks/use-customers";
 import { useAssessment, useSubmitAssessment } from "@/hooks/use-assessments";
 import { useApiToast } from "@/hooks/use-api-toast";
-import { ASSESSMENT_MODULES } from "@/lib/assessment-data";
+import { ASSESSMENT_MODULES, getModuleByKey } from "@/lib/assessment-data";
 import type { AssessmentModuleSummary, RiskTier } from "@/lib/api-types";
 import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
@@ -40,20 +40,19 @@ interface PageProps {
   params: Promise<{ id: string; assessmentId: string }>;
 }
 
-function RiskTierBadge({ tier }: { tier: RiskTier | null }) {
-  // Note: t() is not available here (outside component), so we use a prop
+const TIER_STYLE: Record<RiskTier, { className: string; key: string }> = {
+  low: { className: "bg-green-50 text-green-700 border-green-200", key: "tierLow" },
+  medium: { className: "bg-yellow-50 text-yellow-700 border-yellow-200", key: "tierMedium" },
+  high: { className: "bg-orange-50 text-orange-700 border-orange-200", key: "tierHigh" },
+  very_high: { className: "bg-red-50 text-red-700 border-red-200", key: "tierVeryHigh" },
+};
+
+function RiskTierBadge({ tier, t }: { tier: RiskTier | null; t: (key: string) => string }) {
   if (!tier) return <Badge variant="outline">Not scored</Badge>;
-  const config: Record<string, { className: string }> = {
-    Low:         { className: "bg-green-50 text-green-700 border-green-200" },
-    Medium:      { className: "bg-yellow-50 text-yellow-700 border-yellow-200" },
-    High:        { className: "bg-orange-50 text-orange-700 border-orange-200" },
-    "Very High": { className: "bg-red-50 text-red-700 border-red-200" },
-    Very_High:   { className: "bg-red-50 text-red-700 border-red-200" },
-  };
-  const style = config[tier] ?? { className: "" };
+  const style = TIER_STYLE[tier];
   return (
-    <Badge variant="outline" className={style.className}>
-      {tier} Risk
+    <Badge variant="outline" className={style?.className ?? ""}>
+      {style ? t(style.key) : tier}
     </Badge>
   );
 }
@@ -228,9 +227,34 @@ function AssessmentDashboardContent({ params }: PageProps) {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground mb-1">{t("riskTier")}</p>
-                    <RiskTierBadge tier={assessment.risk_tier} />
+                    <RiskTierBadge tier={assessment.risk_tier} t={t} />
                   </div>
                 </div>
+                {assessment.red_flags && assessment.red_flags.length > 0 && (
+                  <div className="mt-4 rounded-md border border-red-300 bg-red-50 px-4 py-3">
+                    <p className="text-sm font-semibold text-red-800">{t("redFlagsTitle")}</p>
+                    <p className="mt-1 text-xs text-red-700">{t("redFlagsIntro")}</p>
+                    <ul className="mt-2 space-y-1.5">
+                      {assessment.red_flags.map((f) => {
+                        const q = getModuleByKey(f.module_key)?.questions.find((x) => x.id === f.question_id);
+                        return (
+                          <li key={f.question_id} className="flex gap-2 text-sm text-red-900">
+                            <Badge
+                              variant="outline"
+                              className={f.severity === "hard" ? "border-red-400 text-red-700" : "border-orange-400 text-orange-700"}
+                            >
+                              {t(f.severity === "hard" ? "redFlagHard" : "redFlagSoft")}
+                            </Badge>
+                            <span>{q ? (language === "zh" ? q.text_zh : q.text) : f.label}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+                <p className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                  {t("selfAssessmentNotice")}
+                </p>
               </CardContent>
             </Card>
           )}

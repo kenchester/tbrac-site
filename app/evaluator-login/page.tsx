@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Header } from "@/components/header";
@@ -27,6 +27,13 @@ export default function EvaluatorLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Redirected here by the /evaluator gate after signing in without access.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("denied")) {
+      setError("This account does not have evaluator access.");
+    }
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -34,6 +41,12 @@ export default function EvaluatorLoginPage() {
 
     try {
       await signIn(email, password);
+      const res = await fetch("/api/evaluator/access", { cache: "no-store" });
+      const { evaluator } = res.ok ? await res.json() : { evaluator: false };
+      if (!evaluator) {
+        setError("This account does not have evaluator access.");
+        return;
+      }
       router.push("/evaluator/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
