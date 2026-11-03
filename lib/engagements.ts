@@ -60,7 +60,7 @@ export interface EngagementDetail extends EngagementSummary {
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
-export interface ScreenHit { query: string; listed_name: string; matched_on: string; strength: "match" | "possible"; score: number | null; scope: string | null }
+export interface ScreenHit { query: string; listed_name: string; matched_on: string; strength: "match" | "possible"; score: number | null; scope: string | null; gate?: string }
 export interface ScreenResult {
   list: string; title: string; source_url: string; as_of: string | null; retrieved_at: string | null;
   gate: string; indicator: string; hits: ScreenHit[]; category_entries: string[]; note: string | null;

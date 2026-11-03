@@ -216,7 +216,10 @@ function ScreeningPanel({ eng, reload }: { eng: EngagementDetail; reload: () => 
                           <td className="px-3 py-2">{h.query}</td>
                           <td className="px-3 py-2">→ {h.listed_name}{h.matched_on !== h.listed_name && <div className="text-xs text-muted-foreground">matched on “{h.matched_on}”</div>}
                             {h.scope && <div className="text-xs text-muted-foreground">{h.scope}</div>}</td>
-                          <td className="px-3 py-2"><Badge variant="outline">{h.strength === "match" ? "Name match" : "Possible match"}</Badge></td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <Badge variant="outline">{h.strength === "match" ? "Name match" : "Possible match"}</Badge>
+                            {h.gate && <Badge variant="outline" className="ml-1">Red line {h.gate}</Badge>}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
