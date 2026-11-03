@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { KeyRound, Lock, CheckCircle2 } from "lucide-react";
 
 const resetPasswordSchema = z
@@ -144,8 +145,7 @@ export default function ResetPasswordPage() {
                             <FormControl>
                               <div className="relative">
                                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  type="password"
+                                <PasswordInput
                                   placeholder="••••••••"
                                   className="pl-10"
                                   {...field}
@@ -165,8 +165,7 @@ export default function ResetPasswordPage() {
                             <FormControl>
                               <div className="relative">
                                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  type="password"
+                                <PasswordInput
                                   placeholder="••••••••"
                                   className="pl-10"
                                   {...field}
