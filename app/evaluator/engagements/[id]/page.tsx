@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   engagementsApi, STAGES, stageLabel, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
-  type Outlook, type ScreenResponse, type StatutoryFinding,
+  type AuditEntry, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
 
 const LOCKED = new Set(["issued", "withdrawn", "expired"]);
@@ -80,6 +80,10 @@ function RatingPanel({ eng, m }: { eng: EngagementDetail; m: Methodology }) {
             )}
           </>
         )}
+        <div className={`rounded-md border px-3 py-2 ${eng.committee_status.approved ? "border-green-300 bg-green-50 text-green-900" : "border-slate-200 bg-slate-50"}`}>
+          <p className="font-medium">Committee</p>
+          <p className="text-xs">{eng.committee_status.reason}</p>
+        </div>
         <p className="text-xs text-muted-foreground">
           Working view for analysts. Reports show tiers and confidence only, never point scores.
         </p>
@@ -635,6 +639,131 @@ function ReportInputs({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: En
   );
 }
 
+// ------------------------------------------------------------------ committee
+function Committee({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [decision, setDecision] = useState<"approve" | "return">("approve");
+  const [members, setMembers] = useState("");
+  const [rationale, setRationale] = useState("");
+  const [dissent, setDissent] = useState("");
+  const [msg, setMsg] = useState("");
+  const locked = LOCKED.has(eng.stage);
+  const submit = async () => {
+    setMsg("");
+    try {
+      onSaved(await engagementsApi.committee(eng.id, {
+        decision, rationale, dissent: dissent || null,
+        members: members.split(",").map((s) => s.trim()).filter(Boolean),
+      }));
+      setRationale(""); setDissent(""); setMsg("Decision recorded.");
+    } catch (e) { setMsg(errMsg(e)); }
+  };
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="pt-6 space-y-2 text-sm">
+          <p><span className="font-medium">Status:</span> {eng.committee_status.reason}.</p>
+          <p className="text-muted-foreground">
+            The chair records the decision. The lead analyst ({eng.lead_analyst ?? "—"}) can neither chair nor vote.
+            Any change to scores, red lines, entities, evidence or weights after an approval makes it stale, and issuing then needs a new decision.
+          </p>
+        </CardContent>
+      </Card>
+      {!locked && (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Record a decision (you are the chair)</CardTitle></CardHeader>
+          <CardContent className="grid gap-3">
+            <div className="flex flex-wrap gap-4 text-sm">
+              {(["approve", "return"] as const).map((d) => (
+                <label key={d} className="flex items-center gap-2">
+                  <input type="radio" name="decision" checked={decision === d} onChange={() => setDecision(d)} />
+                  {d === "approve" ? `Approve the current rating (${eng.rating.tier ?? "incomplete"}, ${eng.rating.confidence ?? "—"} confidence)` : "Return to the analyst"}
+                </label>
+              ))}
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="members">Other committee members (evaluator emails, comma-separated)</Label>
+              <Input id="members" value={members} onChange={(e) => setMembers(e.target.value)} placeholder="name@example.com" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="rationale">Rationale (required)</Label>
+              <Textarea id="rationale" rows={3} value={rationale} onChange={(e) => setRationale(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="dissent">Dissent, if any</Label>
+              <Textarea id="dissent" rows={2} value={dissent} onChange={(e) => setDissent(e.target.value)} />
+            </div>
+            <div className="flex items-center gap-3">
+              <Button onClick={submit} disabled={rationale.trim().length < 10}>Record decision</Button>
+              {msg && <span className="text-sm text-muted-foreground">{msg}</span>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Decisions</CardTitle></CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {eng.committee_decisions.length === 0 && <p className="text-muted-foreground">None yet.</p>}
+          {[...eng.committee_decisions].reverse().map((d) => (
+            <div key={d.id} className="rounded-md border p-3 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className={d.decision === "approve" ? "border-green-400 text-green-700" : "border-orange-400 text-orange-700"}>
+                  {d.decision === "approve" ? "Approved" : "Returned"}
+                </Badge>
+                <span>{new Date(d.decided_at).toLocaleString()}</span>
+                <span className="text-muted-foreground">rating seen: {d.tier ?? "—"} · {d.confidence ?? "—"}</span>
+              </div>
+              <p><span className="font-medium">Chair:</span> {d.chair} · <span className="font-medium">Members:</span> {d.members.join(", ")}</p>
+              <p>{d.rationale}</p>
+              {d.dissent && <p className="text-orange-800"><span className="font-medium">Dissent:</span> {d.dissent}</p>}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ audit trail
+function AuditTrail({ eng }: { eng: EngagementDetail }) {
+  const [rows, setRows] = useState<AuditEntry[] | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => { engagementsApi.audit(eng.id).then(setRows).catch((e) => setError(errMsg(e))); }, [eng.id, eng.updated_at, eng.indicator_scores.length, eng.gate_results.length, eng.evidence.length]);
+  const show = (v: unknown) => (v == null ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v));
+  const diff = (r: AuditEntry) => {
+    const keys = Object.keys(r.new ?? {});
+    return keys.map((k) => {
+      const o = r.old?.[k];
+      const n = r.new[k];
+      if (r.old && JSON.stringify(o) === JSON.stringify(n)) return null;
+      return <div key={k}><span className="font-mono text-xs">{k}</span>: {r.old ? <><s className="text-muted-foreground">{show(o)}</s> → </> : null}{show(n)}</div>;
+    });
+  };
+  return (
+    <Card>
+      <CardContent className="p-0 overflow-x-auto">
+        {error && <p className="p-4 text-sm text-red-600">{error}</p>}
+        <table className="w-full text-sm">
+          <thead className="border-b text-left text-muted-foreground">
+            <tr>{["When", "Who", "Action", "Item", "Change"].map((h) => <th key={h} className="px-3 py-2 font-medium">{h}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y align-top">
+            {rows === null && !error && <tr><td colSpan={5} className="px-3 py-4 text-muted-foreground">Loading…</td></tr>}
+            {rows?.map((r, i) => (
+              <tr key={i}>
+                <td className="px-3 py-2 whitespace-nowrap">{new Date(r.at).toLocaleString()}</td>
+                <td className="px-3 py-2">{r.actor ?? "—"}</td>
+                <td className="px-3 py-2 font-mono text-xs">{r.action}</td>
+                <td className="px-3 py-2">{r.target ?? "—"}</td>
+                <td className="px-3 py-2 break-all">{diff(r)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -680,7 +809,11 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   <TabsTrigger value="gates">Red lines</TabsTrigger>
                   <TabsTrigger value="indicators">Indicators</TabsTrigger>
                   <TabsTrigger value="report">Report</TabsTrigger>
+                  <TabsTrigger value="committee">Committee</TabsTrigger>
+                  <TabsTrigger value="audit">Audit trail</TabsTrigger>
                 </TabsList>
+                <TabsContent value="committee"><Committee eng={eng} onSaved={setEng} /></TabsContent>
+                <TabsContent value="audit"><AuditTrail eng={eng} /></TabsContent>
                 <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="overview"><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>

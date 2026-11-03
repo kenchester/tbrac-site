@@ -176,6 +176,19 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 : <p className="text-sm text-slate-500">None recorded.</p>}
             </Section>
 
+            <Section title="Rating committee">
+              {(() => {
+                const d = [...eng.committee_decisions].reverse().find((x) => x.decision === "approve");
+                return d ? (
+                  <div className="space-y-1 text-sm">
+                    <p>Approved {fmt(d.decided_at)} by a committee of {d.members.length} (chair: {d.chair}). The lead analyst did not vote.</p>
+                    <p><span className="font-semibold">Rationale:</span> {d.rationale}</p>
+                    {d.dissent && <p><span className="font-semibold">Dissent recorded:</span> {d.dissent}</p>}
+                  </div>
+                ) : <p className="text-sm text-slate-500">No committee approval recorded.</p>;
+              })()}
+            </Section>
+
             <Section title="Subject's response">
               <p className="whitespace-pre-wrap text-sm">{eng.subject_reply || "No response recorded."}</p>
             </Section>

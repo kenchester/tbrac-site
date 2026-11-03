@@ -53,10 +53,16 @@ export interface StatutoryFinding {
   jurisdiction: string; test: string; result: "meets" | "does_not_meet" | "not_determined"; basis: string | null;
 }
 export type Outlook = "stable" | "positive" | "negative";
+export interface CommitteeDecision {
+  id: string; decision: "approve" | "return"; chair: string; members: string[]; rationale: string;
+  dissent: string | null; decided_at: string; tier: string | null; confidence: string | null;
+}
+export interface AuditEntry { at: string; actor: string | null; target: string | null; action: string; old: Record<string, unknown> | null; new: Record<string, unknown> }
 export interface EngagementDetail extends EngagementSummary {
   project_description: string | null; relying_parties: string[]; overlay: Record<string, number>;
   outlook: Outlook | null; statutory_findings: StatutoryFinding[]; conditions: string[];
   subject_reply: string | null; rating_snapshot: Rating | null;
+  committee_decisions: CommitteeDecision[]; committee_status: { approved: boolean; reason: string };
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
@@ -95,6 +101,9 @@ export const engagementsApi = {
     authenticatedRequest<void>(`${base}/engagements/${id}/evidence/${evidenceId}`, { method: "DELETE" }),
   scoreIndicator: (id: string, code: string, body: Omit<IndicatorScore, "code" | "scored_by" | "updated_at">) =>
     authenticatedRequest<IndicatorScore>(`${base}/engagements/${id}/indicators/${code}`, json("PUT", body)),
+  committee: (id: string, body: { decision: "approve" | "return"; members: string[]; rationale: string; dissent?: string | null }) =>
+    authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/committee`, json("POST", body)),
+  audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>
     authenticatedRequest<GateResult>(`${base}/engagements/${id}/gates/${code}`, json("PUT", body)),
