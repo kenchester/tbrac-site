@@ -85,7 +85,7 @@ async function apiRequest<T>(
   }
 }
 
-async function authenticatedRequest<T>(
+export async function authenticatedRequest<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {

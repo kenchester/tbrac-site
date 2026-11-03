@@ -3,7 +3,6 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { authClient } from "@/lib/auth-client";
 import { Header } from "@/components/header";
@@ -21,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import { Shield, Lock, User } from "lucide-react";
 
 export default function EvaluatorLoginPage() {
-  const router = useRouter();
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,7 +69,9 @@ export default function EvaluatorLoginPage() {
         }
         return;
       }
-      router.push("/evaluator/dashboard");
+      // Full navigation so the page starts with the new session (a client-side push
+      // raced the auth context and bounced evaluators into company onboarding).
+      window.location.assign("/evaluator/engagements");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
