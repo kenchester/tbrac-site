@@ -19,6 +19,8 @@ export interface Methodology {
   gates: Record<string, { kind: "hard" | "soft"; name: string; cap?: string; indicators: string[] }>;
   evidence_grades: Grade[];
   validity_months: number;
+  /** Appendix C anchors: written description of each level 0-4, plus expected evidence. */
+  anchors: Record<string, { name: string; evidence: string | null; levels: Record<string, string> }>;
 }
 
 export interface Entity {
@@ -47,8 +49,14 @@ export interface EngagementSummary {
   methodology_version: string; lead_analyst: string | null; issued_at: string | null; valid_until: string | null;
   created_at: string; updated_at: string;
 }
+export interface StatutoryFinding {
+  jurisdiction: string; test: string; result: "meets" | "does_not_meet" | "not_determined"; basis: string | null;
+}
+export type Outlook = "stable" | "positive" | "negative";
 export interface EngagementDetail extends EngagementSummary {
   project_description: string | null; relying_parties: string[]; overlay: Record<string, number>;
+  outlook: Outlook | null; statutory_findings: StatutoryFinding[]; conditions: string[];
+  subject_reply: string | null; rating_snapshot: Rating | null;
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
@@ -67,7 +75,8 @@ export const engagementsApi = {
     project_description?: string; relying_parties?: string[];
   }) => authenticatedRequest<EngagementDetail>(`${base}/engagements`, json("POST", body)),
   update: (id: string, body: Partial<Pick<EngagementDetail,
-    "stage" | "project_description" | "relying_parties" | "overlay" | "engagement_type" | "track" | "lead_analyst">>) =>
+    "stage" | "project_description" | "relying_parties" | "overlay" | "engagement_type" | "track" | "lead_analyst"
+    | "outlook" | "statutory_findings" | "conditions" | "subject_reply">>) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}`, json("PATCH", body)),
   addEntity: (id: string, body: Partial<Entity> & { name: string; role: string }) =>
     authenticatedRequest<Entity>(`${base}/engagements/${id}/entities`, json("POST", body)),

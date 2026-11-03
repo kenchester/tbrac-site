@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   engagementsApi, STAGES, stageLabel, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
+  type Outlook, type StatutoryFinding,
 } from "@/lib/engagements";
 
 const LOCKED = new Set(["issued", "withdrawn", "expired"]);
@@ -360,7 +361,9 @@ function GateRow({ eng, code, spec, onSaved }: {
 }
 
 // ------------------------------------------------------------------ indicators
-function IndicatorRow({ eng, code, name, onSaved }: { eng: EngagementDetail; code: string; name: string; onSaved: () => void }) {
+function IndicatorRow({ eng, code, name, anchor, onSaved }: {
+  eng: EngagementDetail; code: string; name: string; anchor?: Methodology["anchors"][string]; onSaved: () => void;
+}) {
   const cur = eng.indicator_scores.find((s) => s.code === code);
   const init = (s?: IndicatorScore) => ({
     inherent: s ? String(s.inherent_level) : "", residual: s?.residual_level != null ? String(s.residual_level) : "",
@@ -369,6 +372,7 @@ function IndicatorRow({ eng, code, name, onSaved }: { eng: EngagementDetail; cod
   });
   const [f, setF] = useState(init(cur));
   const [open, setOpen] = useState(false);
+  const [guide, setGuide] = useState(false);
   const [msg, setMsg] = useState("");
   const locked = LOCKED.has(eng.stage);
   useEffect(() => setF(init(cur)), [cur?.updated_at]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -399,10 +403,31 @@ function IndicatorRow({ eng, code, name, onSaved }: { eng: EngagementDetail; cod
           <option value="">Evidence…</option>
           {GRADES.map((g) => <option key={g} value={g}>{GRADE_HINT[g]}</option>)}
         </select>
+        <Button variant="ghost" size="sm" onClick={() => setGuide((v) => !v)} aria-expanded={guide}>{guide ? "Hide guide" : "Scoring guide"}</Button>
         <Button variant="ghost" size="sm" onClick={() => setOpen((v) => !v)}>{open ? "Less" : "Mitigation & notes"}</Button>
         {!locked && <Button size="sm" onClick={save} disabled={f.inherent === "" || !f.grade}>Save</Button>}
         {cur ? <Badge variant="outline">Saved</Badge> : <Badge variant="outline" className="text-muted-foreground">Not scored</Badge>}
       </div>
+      {anchor && f.inherent !== "" && !guide && (
+        <p className="mt-2 pl-12 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Level {f.inherent}:</span> {anchor.levels[f.inherent]}
+          {f.grade === "E4" && <span className="text-red-700"> · E4 evidence scores level 4 regardless.</span>}
+        </p>
+      )}
+      {anchor && guide && (
+        <div className="mt-3 ml-12 rounded-md border bg-muted/40 p-3 text-sm space-y-2">
+          {anchor.evidence && <p><span className="font-medium">Evidence:</span> {anchor.evidence}</p>}
+          <ol className="space-y-1.5">
+            {["0", "1", "2", "3", "4"].map((l) => (
+              <li key={l} className={`flex gap-2 rounded px-1 ${f.inherent === l ? "bg-primary/10" : ""}`}>
+                <span className="font-mono w-16 shrink-0 whitespace-nowrap">Level {l}</span>
+                <span>{anchor.levels[l]}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="text-xs text-muted-foreground">Assign the lowest level whose description is fully met. “→” notes the red line that also applies.</p>
+        </div>
+      )}
       {open && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2 pl-12">
           <Input aria-label={`${code} mitigation`} className="sm:col-span-2" placeholder="Mitigation (what lowers the level, and the agreement condition that enforces it)"
@@ -425,6 +450,112 @@ function IndicatorRow({ eng, code, name, onSaved }: { eng: EngagementDetail; cod
       )}
       {msg && <p className="mt-2 pl-12 text-sm text-red-600">{msg}</p>}
       {cur && <p className="mt-1 pl-12 text-xs text-muted-foreground">Last saved by {cur.scored_by}, {new Date(cur.updated_at).toLocaleString()}</p>}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ report inputs
+function ReportInputs({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [outlook, setOutlook] = useState<Outlook | "">(eng.outlook ?? "");
+  const [conditions, setConditions] = useState(eng.conditions.join("\n"));
+  const [reply, setReply] = useState(eng.subject_reply ?? "");
+  const [findings, setFindings] = useState<StatutoryFinding[]>(eng.statutory_findings);
+  const [nf, setNf] = useState<StatutoryFinding>({ jurisdiction: "", test: "", result: "not_determined", basis: "" });
+  const [msg, setMsg] = useState("");
+  const locked = LOCKED.has(eng.stage);
+  const RESULT: Record<StatutoryFinding["result"], string> = { meets: "Meets definition", does_not_meet: "Does not meet definition", not_determined: "Not determined" };
+
+  const save = async (fs = findings) => {
+    setMsg("");
+    try {
+      onSaved(await engagementsApi.update(eng.id, {
+        outlook: (outlook || null) as Outlook | null,
+        conditions: conditions.split("\n").map((s) => s.trim()).filter(Boolean),
+        subject_reply: reply || null,
+        statutory_findings: fs,
+      }));
+      setMsg("Saved.");
+    } catch (e) { setMsg(errMsg(e)); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="pt-6 flex flex-wrap items-center gap-3">
+          <Button asChild variant="outline"><Link href={`/evaluator/engagements/${eng.id}/report`}>Open restricted report</Link></Button>
+          <Button asChild variant="outline"><Link href={`/evaluator/engagements/${eng.id}/report?view=public`}>Open public summary</Link></Button>
+          <span className="text-sm text-muted-foreground">
+            {eng.rating_snapshot ? "Reports show the rating frozen at issue." : "Not issued: reports are marked DRAFT and show the live rating."}
+          </span>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-6 grid gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="outlook">Outlook (12–24 months; required to issue)</Label>
+            <select id="outlook" className={sel} value={outlook} disabled={locked} onChange={(e) => setOutlook(e.target.value as Outlook)}>
+              <option value="">Not set</option>
+              <option value="stable">Stable</option>
+              <option value="positive">Positive</option>
+              <option value="negative">Negative</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="conditions">Recommended agreement conditions (§8.5), one per line</Label>
+            <Textarea id="conditions" rows={5} disabled={locked} value={conditions} onChange={(e) => setConditions(e.target.value)}
+              placeholder={"Change-of-control notice within 10 business days, triggering re-assessment\nUS-only data residency with US-side audit rights"} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reply">Subject&apos;s right-of-reply response (Stage 6)</Label>
+            <Textarea id="reply" rows={3} disabled={locked} value={reply} onChange={(e) => setReply(e.target.value)} />
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={() => save()} disabled={locked}>Save report inputs</Button>
+            {msg && <span className="text-sm text-muted-foreground">{msg}</span>}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Statutory eligibility (§8.3)</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">One row per relying jurisdiction&apos;s test. Legal determinations should cite the counsel opinion relied on. A favorable tier never overrides a statutory bar.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b text-left text-muted-foreground">
+                <tr>{["Jurisdiction", "Test", "Result", "Basis", ""].map((h, i) => <th key={i} className="px-2 py-2 font-medium">{h}</th>)}</tr>
+              </thead>
+              <tbody className="divide-y">
+                {findings.length === 0 && <tr><td colSpan={5} className="px-2 py-3 text-muted-foreground">No findings recorded.</td></tr>}
+                {findings.map((f, i) => (
+                  <tr key={i}>
+                    <td className="px-2 py-2">{f.jurisdiction}</td><td className="px-2 py-2">{f.test}</td>
+                    <td className="px-2 py-2">{RESULT[f.result]}</td><td className="px-2 py-2">{f.basis ?? "—"}</td>
+                    <td className="px-2 py-2 text-right">
+                      {!locked && <Button variant="ghost" size="sm" onClick={() => { const fs = findings.filter((_, j) => j !== i); setFindings(fs); save(fs); }}>Remove</Button>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!locked && (
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <Input aria-label="Jurisdiction" placeholder="Jurisdiction" value={nf.jurisdiction} onChange={(e) => setNf({ ...nf, jurisdiction: e.target.value })} />
+              <Input aria-label="Test" placeholder="Statutory test / definition" value={nf.test} onChange={(e) => setNf({ ...nf, test: e.target.value })} />
+              <select aria-label="Result" className={sel} value={nf.result} onChange={(e) => setNf({ ...nf, result: e.target.value as StatutoryFinding["result"] })}>
+                {Object.entries(RESULT).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+              <Input aria-label="Basis" placeholder="Basis (counsel opinion, evidence)" value={nf.basis ?? ""} onChange={(e) => setNf({ ...nf, basis: e.target.value })} />
+              <div className="sm:col-span-2 lg:col-span-4">
+                <Button variant="outline" disabled={!nf.jurisdiction || !nf.test}
+                  onClick={() => { const fs = [...findings, { ...nf, basis: nf.basis || null }]; setFindings(fs); setNf({ jurisdiction: "", test: "", result: "not_determined", basis: "" }); save(fs); }}>
+                  Add finding
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -473,7 +604,9 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   <TabsTrigger value="evidence">Evidence ({eng.evidence.length})</TabsTrigger>
                   <TabsTrigger value="gates">Red lines</TabsTrigger>
                   <TabsTrigger value="indicators">Indicators</TabsTrigger>
+                  <TabsTrigger value="report">Report</TabsTrigger>
                 </TabsList>
+                <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="overview"><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="evidence"><EvidenceTab eng={eng} reload={reload} /></TabsContent>
@@ -505,7 +638,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                       </CardHeader>
                       <CardContent>
                         {Object.entries(m.indicators).filter(([c]) => c.startsWith(d + ".")).map(([c, ind]) => (
-                          <IndicatorRow key={c} eng={eng} code={c} name={ind.name} onSaved={reload} />
+                          <IndicatorRow key={c} eng={eng} code={c} name={ind.name} anchor={m.anchors?.[c]} onSaved={reload} />
                         ))}
                       </CardContent>
                     </Card>
