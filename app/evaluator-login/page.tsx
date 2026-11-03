@@ -5,6 +5,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { authClient } from "@/lib/auth-client";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,11 +27,29 @@ export default function EvaluatorLoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+
+  const UNVERIFIED_MSG =
+    "This account is approved for evaluator access, but its email address isn't verified yet. Send yourself a verification email, open the link, then sign in again.";
+
+  const sendVerification = async () => {
+    setError("");
+    const { error: err } = await authClient.sendVerificationEmail({
+      email,
+      callbackURL: "/evaluator/dashboard",
+    });
+    if (err) setError(err.message || "Could not send the verification email.");
+    else setVerificationSent(true);
+  };
 
   // Redirected here by the /evaluator gate after signing in without access.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("denied")) {
-      setError("This account does not have evaluator access.");
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("denied")) setError("This account does not have evaluator access.");
+    if (q.get("unverified")) {
+      setNeedsVerification(true);
+      setError(UNVERIFIED_MSG);
     }
   }, []);
 
@@ -42,9 +61,14 @@ export default function EvaluatorLoginPage() {
     try {
       await signIn(email, password);
       const res = await fetch("/api/evaluator/access", { cache: "no-store" });
-      const { evaluator } = res.ok ? await res.json() : { evaluator: false };
-      if (!evaluator) {
-        setError("This account does not have evaluator access.");
+      const access = res.ok ? await res.json() : { evaluator: false };
+      if (!access.evaluator) {
+        if (access.allowlisted && !access.emailVerified) {
+          setNeedsVerification(true);
+          setError(UNVERIFIED_MSG);
+        } else {
+          setError("This account does not have evaluator access.");
+        }
         return;
       }
       router.push("/evaluator/dashboard");
@@ -85,6 +109,14 @@ export default function EvaluatorLoginPage() {
                 {error && (
                   <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
                     {error}
+                  </div>
+                )}
+                {needsVerification && (
+                  <div className="space-y-2">
+                    <Button type="button" variant="outline" className="w-full" onClick={sendVerification} disabled={!email || verificationSent}>
+                      {verificationSent ? "Verification email sent — check your inbox" : "Send verification email"}
+                    </Button>
+                    {!email && <p className="text-xs text-muted-foreground">Enter your email address above first.</p>}
                   </div>
                 )}
                 <div className="space-y-2">

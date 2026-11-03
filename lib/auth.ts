@@ -17,6 +17,24 @@ export const auth = betterAuth({
     // FastAPI parses the JWT `sub` as a UUID (customers.user_id etc.)
     database: { generateId: "uuid" },
   },
+  // Verification emails prove address ownership. Company sign-in does not require
+  // it yet, but evaluator access does (lib/evaluators.ts, API core/evaluators.py).
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      if (!resend) {
+        console.log(`[auth] Email verification link for ${user.email}: ${url}`)
+        return
+      }
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || "TBRAC <no-reply@tbrac.org>",
+        to: user.email,
+        subject: "Confirm your TBRAC email address",
+        text: `Please confirm your email address by opening this link:\n\n${url}\n\nIf you didn't create a TBRAC account, you can ignore this email.`,
+      })
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,

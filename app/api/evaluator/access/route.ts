@@ -1,10 +1,14 @@
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { isEvaluatorEmail } from "@/lib/evaluators"
+import { isEvaluator, isEvaluatorEmail } from "@/lib/evaluators"
 
 // Lets the evaluator login page tell non-evaluators why they can't proceed.
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() })
-  return NextResponse.json({ evaluator: isEvaluatorEmail(session?.user.email) })
+  return NextResponse.json({
+    evaluator: isEvaluator(session?.user),
+    allowlisted: isEvaluatorEmail(session?.user.email),
+    emailVerified: !!session?.user.emailVerified,
+  })
 }
