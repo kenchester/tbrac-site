@@ -60,6 +60,13 @@ export interface EngagementDetail extends EngagementSummary {
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
+export interface ScreenHit { query: string; listed_name: string; matched_on: string; strength: "match" | "possible"; score: number | null; scope: string | null }
+export interface ScreenResult {
+  list: string; title: string; source_url: string; as_of: string | null; retrieved_at: string | null;
+  gate: string; indicator: string; hits: ScreenHit[]; category_entries: string[]; note: string | null;
+}
+export interface ScreenResponse { screened_names: string[]; screened_at: string; csl: "ok" | "error" | "not_configured"; results: ScreenResult[] }
+
 const base = "/api/v1";
 const json = (method: string, body: unknown) => ({ method, body: JSON.stringify(body) });
 
@@ -88,6 +95,7 @@ export const engagementsApi = {
     authenticatedRequest<void>(`${base}/engagements/${id}/evidence/${evidenceId}`, { method: "DELETE" }),
   scoreIndicator: (id: string, code: string, body: Omit<IndicatorScore, "code" | "scored_by" | "updated_at">) =>
     authenticatedRequest<IndicatorScore>(`${base}/engagements/${id}/indicators/${code}`, json("PUT", body)),
+  screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>
     authenticatedRequest<GateResult>(`${base}/engagements/${id}/gates/${code}`, json("PUT", body)),
 };

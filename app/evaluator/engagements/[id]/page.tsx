@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   engagementsApi, STAGES, stageLabel, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
-  type Outlook, type StatutoryFinding,
+  type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
 
 const LOCKED = new Set(["issued", "withdrawn", "expired"]);
@@ -166,6 +166,77 @@ function Overview({ eng, m, onSaved }: { eng: EngagementDetail; m: Methodology; 
 }
 
 // ------------------------------------------------------------------ entities
+function ScreeningPanel({ eng, reload }: { eng: EngagementDetail; reload: () => void }) {
+  const [res, setRes] = useState<ScreenResponse | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const locked = LOCKED.has(eng.stage);
+  const run = async () => {
+    setBusy(true); setMsg("");
+    try { setRes(await engagementsApi.screen(eng.id)); reload(); }
+    catch (e) { setMsg(errMsg(e)); }
+    finally { setBusy(false); }
+  };
+  return (
+    <Card>
+      <CardHeader className="pb-2"><CardTitle className="text-base">Screening against US lists</CardTitle></CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button onClick={run} disabled={busy || locked || eng.entities.length === 0}>{busy ? "Screening…" : "Screen all entities"}</Button>
+          <span className="text-muted-foreground">
+            Checks every name in the entity map. Each run is saved to the evidence register with the list versions used.
+            Hits are candidates: confirm them, then record the red line yourself.
+          </span>
+        </div>
+        {msg && <p className="text-red-600">{msg}</p>}
+        {res && (
+          <div className="space-y-4">
+            {res.csl === "not_configured" && (
+              <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900">
+                The Consolidated Screening List (SDN, Entity List, MEU and others) was not checked: no trade.gov API key is configured.
+                Red lines H1, H2 and H6 need a separate screen until it is.
+              </p>
+            )}
+            {res.csl === "error" && <p className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-red-800">The Consolidated Screening List query failed; see its result below.</p>}
+            {res.results.map((r) => (
+              <div key={r.list} className="rounded-md border">
+                <div className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-3 py-2">
+                  <span className="font-medium">{r.title}</span>
+                  <span className="text-xs text-muted-foreground">as of {r.as_of ?? "—"}</span>
+                  <Badge variant="outline" className={r.hits.length ? "border-red-400 text-red-700" : "border-green-400 text-green-700"}>
+                    {r.hits.length ? `${r.hits.length} candidate hit${r.hits.length > 1 ? "s" : ""}` : "No hits"}
+                  </Badge>
+                  <span className="ml-auto text-xs text-muted-foreground">Informs red line {r.gate} · indicator {r.indicator}</span>
+                </div>
+                {r.hits.length > 0 && (
+                  <table className="w-full">
+                    <tbody className="divide-y">
+                      {r.hits.map((h, i) => (
+                        <tr key={i} className="align-top">
+                          <td className="px-3 py-2">{h.query}</td>
+                          <td className="px-3 py-2">→ {h.listed_name}{h.matched_on !== h.listed_name && <div className="text-xs text-muted-foreground">matched on “{h.matched_on}”</div>}
+                            {h.scope && <div className="text-xs text-muted-foreground">{h.scope}</div>}</td>
+                          <td className="px-3 py-2"><Badge variant="outline">{h.strength === "match" ? "Name match" : "Possible match"}</Badge></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+                {r.category_entries.length > 0 && (
+                  <div className="px-3 py-2 text-xs text-muted-foreground">
+                    Also check by product category (not name-searchable): {r.category_entries.join(" · ")}
+                  </div>
+                )}
+                {r.note && <div className="px-3 py-2 text-xs text-muted-foreground">{r.note}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function Entities({ eng, reload }: { eng: EngagementDetail; reload: () => void }) {
   const blank = { name: "", name_zh: "", role: "owner", parent_id: "", jurisdiction: "", registry_id: "", ownership_pct: "", is_state_linked: false, notes: "" };
   const [f, setF] = useState(blank);
@@ -214,6 +285,7 @@ function Entities({ eng, reload }: { eng: EngagementDetail; reload: () => void }
           </table>
         </CardContent>
       </Card>
+      <ScreeningPanel eng={eng} reload={reload} />
       {!locked && (
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">Add entity</CardTitle></CardHeader>
