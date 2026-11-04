@@ -11,7 +11,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<{ twoFactor: boolean }>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string, redirectTo: string) => Promise<void>
@@ -26,10 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const user = data?.user ?? null
   const session = data?.session ?? null
 
+  /** Resolves to { twoFactor: true } when the account needs its authenticator code to finish signing in. */
   const signIn = async (email: string, password: string) => {
     clearAccessToken()
-    const { error } = await authClient.signIn.email({ email, password })
+    const { data, error } = await authClient.signIn.email({ email, password })
     if (error) throw new Error(error.message || 'Failed to sign in')
+    return { twoFactor: Boolean((data as { twoFactorRedirect?: boolean } | null)?.twoFactorRedirect) }
   }
 
   const signUp = async (email: string, password: string) => {

@@ -27,6 +27,9 @@ export default function EvaluatorLoginPage() {
   const [error, setError] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [codeStep, setCodeStep] = useState(false);
+  const [code, setCode] = useState("");
+  const [useBackup, setUseBackup] = useState(false);
 
   const UNVERIFIED_MSG =
     "This account is approved for evaluator access, but its email address isn't verified yet. Send yourself a verification email, open the link, then sign in again.";
@@ -51,15 +54,14 @@ export default function EvaluatorLoginPage() {
     }
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      await signIn(email, password);
+  // After the password (and, when enabled, the authenticator code): decide where to go.
+  const afterSignIn = async () => {
       const res = await fetch("/api/evaluator/access", { cache: "no-store" });
       const access = res.ok ? await res.json() : { evaluator: false };
+      if (access.needsTwoFactorSetup) {
+        window.location.assign("/evaluator-login/two-factor");
+        return;
+      }
       if (!access.evaluator) {
         if (access.allowlisted && !access.emailVerified) {
           setNeedsVerification(true);
@@ -72,6 +74,24 @@ export default function EvaluatorLoginPage() {
       // Full navigation so the page starts with the new session (a client-side push
       // raced the auth context and bounced evaluators into company onboarding).
       window.location.assign("/evaluator/engagements");
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    try {
+      if (codeStep) {
+        const { error: err } = useBackup
+          ? await authClient.twoFactor.verifyBackupCode({ code: code.trim() })
+          : await authClient.twoFactor.verifyTotp({ code: code.replace(/\s/g, "") });
+        if (err) { setError(err.message || "That code didn't work. Try the current code from your authenticator app."); return; }
+        await afterSignIn();
+        return;
+      }
+      const { twoFactor } = await signIn(email, password);
+      if (twoFactor) { setCodeStep(true); return; }
+      await afterSignIn();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
@@ -119,6 +139,17 @@ export default function EvaluatorLoginPage() {
                     {!email && <p className="text-xs text-muted-foreground">Enter your email address above first.</p>}
                   </div>
                 )}
+                {codeStep ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="code">{useBackup ? "Backup code" : "6-digit code from your authenticator app"}</Label>
+                    <Input id="code" inputMode={useBackup ? "text" : "numeric"} autoComplete="one-time-code" autoFocus value={code}
+                      onChange={(e) => setCode(e.target.value)} placeholder={useBackup ? "xxxxx-xxxxx" : "123456"} required />
+                    <button type="button" className="text-xs text-primary hover:underline" onClick={() => { setUseBackup(!useBackup); setCode(""); }}>
+                      {useBackup ? "Use the authenticator app instead" : "Lost your phone? Use a backup code"}
+                    </button>
+                  </div>
+                ) : (
+                <>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
@@ -150,8 +181,10 @@ export default function EvaluatorLoginPage() {
                   </div>
                 </div>
 
+                </>
+                )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign In"}
+                  {isLoading ? "Signing in..." : codeStep ? "Verify" : "Sign In"}
                 </Button>
               </form>
             </CardContent>

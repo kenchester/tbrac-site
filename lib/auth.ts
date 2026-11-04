@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth"
-import { jwt } from "better-auth/plugins"
+import { jwt, twoFactor } from "better-auth/plugins"
 import { nextCookies } from "better-auth/next-js"
 import { Pool } from "pg"
 import { Resend } from "resend"
@@ -59,8 +59,18 @@ export const auth = betterAuth({
     jwt({
       // python-jose (FastAPI) can't verify the default EdDSA keys.
       jwks: { keyPairConfig: { alg: "ES256" } },
-      jwt: { issuer: baseURL, audience: baseURL },
+      jwt: {
+        issuer: baseURL,
+        audience: baseURL,
+        // Only what the API needs. twoFactorEnabled lets the API require a second factor for evaluators.
+        definePayload: ({ user }) => ({
+          email: user.email, emailVerified: user.emailVerified, name: user.name,
+          twoFactorEnabled: Boolean((user as { twoFactorEnabled?: boolean }).twoFactorEnabled),
+        }),
+      },
     }),
+    // TOTP (authenticator app) second factor; required for evaluators (lib/evaluators.ts, API core/evaluators.py).
+    twoFactor({ issuer: "TBRAC" }),
     nextCookies(),
   ],
 })

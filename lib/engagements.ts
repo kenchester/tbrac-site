@@ -262,6 +262,7 @@ export const engagementsApi = {
     return body as { to: string };
   },
   intake: (id: string) => authenticatedRequest<Intake>(`${base}/engagements/${id}/intake`),
+  documentAccess: (docId: string) => authenticatedRequest<{ at: string; actor: string | null; action: string }[]>(`${base}/documents/${docId}/access-log`),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>

@@ -14,7 +14,19 @@ export function isEvaluatorEmail(email: string | null | undefined): boolean {
   return allowed.includes(email.trim().toLowerCase())
 }
 
-/** Allowlisted AND the address has been verified by email link. */
-export function isEvaluator(user: { email?: string | null; emailVerified?: boolean | null } | null | undefined): boolean {
-  return !!user?.emailVerified && isEvaluatorEmail(user.email)
+type MaybeUser = { email?: string | null; emailVerified?: boolean | null; twoFactorEnabled?: boolean | null } | null | undefined
+
+const require2fa = () => process.env.EVALUATOR_REQUIRE_2FA !== "false"
+
+/** Allowlisted and verified, but without the required second factor yet. */
+export function needsTwoFactorSetup(user: MaybeUser): boolean {
+  return !!user?.emailVerified && isEvaluatorEmail(user.email) && require2fa() && !user.twoFactorEnabled
+}
+
+/**
+ * Allowlisted, verified by email link, and (because evaluators see confidential company
+ * documents) signed in with a second factor. Mirrors the API's evaluator_session_ok.
+ */
+export function isEvaluator(user: MaybeUser): boolean {
+  return !!user?.emailVerified && isEvaluatorEmail(user.email) && (!require2fa() || !!user.twoFactorEnabled)
 }

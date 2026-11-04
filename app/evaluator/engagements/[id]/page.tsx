@@ -1510,6 +1510,7 @@ function Documents({ eng, reload }: { eng: EngagementDetail; reload: () => void 
                 </p>
                 {d.text_problem && <p className="text-xs text-amber-800">{d.text_problem}{!d.ocr && " Try OCR scan."}</p>}
                 {d.ocr && !d.text_problem && <p className="text-xs text-muted-foreground">Text read by OCR: check quotes against the scan itself.</p>}
+                <AccessLog docId={d.id} />
               </div>
               <div className="flex flex-wrap gap-2">
                 <a className="inline-flex h-8 items-center rounded-md border px-3 text-xs hover:bg-muted" href={`/api/documents/${d.id}/file`} target="_blank" rel="noreferrer">Open file</a>
@@ -1727,6 +1728,24 @@ function IntakePanel({ eng }: { eng: EngagementDetail }) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// ------------------------------------------------------------------ confidential document access log
+function AccessLog({ docId }: { docId: string }) {
+  const [rows, setRows] = useState<{ at: string; actor: string | null; action: string }[] | null>(null);
+  const [open, setOpen] = useState(false);
+  const load = () => { setOpen(!open); if (!rows) engagementsApi.documentAccess(docId).then(setRows).catch(() => setRows([])); };
+  return (
+    <div className="text-xs">
+      <button type="button" className="text-muted-foreground hover:underline" onClick={load}>{open ? "Hide access log" : "Who has opened this document"}</button>
+      {open && rows && (
+        <ul className="mt-1 space-y-0.5 text-muted-foreground">
+          {rows.length === 0 && <li>No evaluator access recorded.</li>}
+          {rows.map((r, i) => <li key={i}>{new Date(r.at).toLocaleString()} · {r.actor ?? "—"}</li>)}
+        </ul>
+      )}
+    </div>
   );
 }
 

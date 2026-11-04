@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { isEvaluator } from "@/lib/evaluators"
 import { backendFetch } from "@/lib/server-api"
+import { matchesType } from "@/lib/file-signature"
 
 export const maxDuration = 300
 type Params = { params: Promise<{ id: string; docId: string }> }
@@ -47,6 +48,9 @@ export async function POST(_request: Request, { params }: Params) {
   const blob = await get(doc.file_path, { access: "private" })
   if (!blob?.stream) return NextResponse.json({ detail: "File not found in storage" }, { status: 404 })
   const bytes = Buffer.from(await readAll(blob.stream))
+  if (!matchesType(bytes, doc.mime_type)) {
+    return NextResponse.json({ detail: "The file's content does not match its declared type; it was not read" }, { status: 422 })
+  }
 
   const pages: Buffer[] = []
   try {

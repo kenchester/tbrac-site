@@ -25,7 +25,7 @@ function Wordmark() {
       <span className="flex h-9 w-9 items-center justify-center rounded-sm text-sm font-bold tracking-tight text-white" style={{ background: NAVY }}>TB</span>
       <span className="leading-tight">
         <span className="block text-[15px] font-bold tracking-[0.18em] text-slate-900">TBRAC</span>
-        <span className="block text-[11px] text-slate-500">Trans-Border Risk Assessment</span>
+        <span className="block text-[11px] text-slate-500">Trans-Border Risk Assessment and Certification</span>
       </span>
     </Link>
   );
