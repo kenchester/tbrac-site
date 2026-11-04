@@ -503,6 +503,18 @@ function IndicatorRow({ eng, code, name, anchor, onSaved }: {
             </span>
           );
         })()}
+        {(() => {
+          const ai = eng.ai?.scoring?.suggestions?.[code];
+          if (!ai) return null;
+          const far = cur && ai.level != null && Math.abs(cur.inherent_level - ai.level) >= 2;
+          return (
+            <button type="button" onClick={() => setOpen(true)}
+              className={`rounded border px-1.5 py-0.5 text-xs ${far ? "border-amber-400 bg-amber-50 text-amber-800" : "border-slate-200 text-muted-foreground"}`}
+              title={`${ai.reasons}${ai.missing ? ` · Missing: ${ai.missing}` : ""}`}>
+              AI: {ai.level == null ? "no level" : `L${ai.level}`} · ≤{ai.max_grade}
+            </button>
+          );
+        })()}
         {cur ? <Badge variant="outline">Saved</Badge> : <Badge variant="outline" className="text-muted-foreground">Not scored</Badge>}
       </div>
       {anchor && f.inherent !== "" && !guide && (
@@ -525,6 +537,15 @@ function IndicatorRow({ eng, code, name, anchor, onSaved }: {
           <p className="text-xs text-muted-foreground">Assign the lowest level whose description is fully met. “→” notes the red line that also applies.</p>
         </div>
       )}
+      {open && eng.ai?.scoring?.suggestions?.[code] && (() => {
+        const ai = eng.ai.scoring!.suggestions[code];
+        return (
+          <div className="mt-3 ml-12 rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700">
+            <span className="font-medium">AI suggestion (blind, advisory):</span> {ai.level == null ? "evidence does not support a level" : `Level ${ai.level}`}, evidence up to {ai.max_grade}, {ai.confidence} confidence. {ai.reasons}
+            {ai.missing && <> <span className="font-medium">Would settle it:</span> {ai.missing}</>}
+          </div>
+        );
+      })()}
       {open && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2 pl-12">
           <Input aria-label={`${code} mitigation`} className="sm:col-span-2" placeholder="Mitigation (what lowers the level, and the agreement condition that enforces it)"
@@ -1153,6 +1174,7 @@ function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
   const [f, setF] = useState({
     letter: eng.engagement_letter_signed_at?.slice(0, 10) ?? "", ref: eng.engagement_letter_ref ?? "",
     fee: eng.fee_amount != null ? String(eng.fee_amount) : "", currency: eng.fee_currency, status: eng.fee_status,
+    ai: eng.ai_processing_allowed,
   });
   const [letters, setLetters] = useState<RelianceLetter[]>(eng.reliance_letters);
   const [statements, setStatements] = useState<Record<string, string> | null>(null);
@@ -1169,6 +1191,7 @@ function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
   const saveAcceptance = () => save({
     engagement_letter_signed_at: f.letter ? new Date(f.letter).toISOString() : null, engagement_letter_ref: f.ref || null,
     fee_amount: f.fee === "" ? null : Number(f.fee), fee_currency: f.currency || "USD", fee_status: f.status,
+    ai_processing_allowed: f.ai,
   }, "Acceptance record saved.");
   const declare = async () => {
     setError(""); setMsg("");
@@ -1201,6 +1224,10 @@ function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
               </select>
             </div>
           </div>
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" className="mt-1" checked={f.ai} onChange={(e) => setF({ ...f, ai: e.target.checked })} />
+            <span>The engagement letter includes the Subject&apos;s consent to processing by the AI sub-processor (§5.6, §12.1). Required before AI assistance can run.</span>
+          </label>
           <p className="text-xs text-muted-foreground">Fees are flat, published and independent of the outcome. They must be paid or escrowed before the committee decides. Analysts never discuss fees with the Subject.</p>
           <Button size="sm" onClick={saveAcceptance}>Save</Button>
         </CardContent>
@@ -1340,6 +1367,64 @@ function RightOfReply({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: En
   );
 }
 
+// ------------------------------------------------------------------ AI assistance (§5.6)
+function AiAssist({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [busy, setBusy] = useState<"" | "blind_scoring" | "consistency">("");
+  const [error, setError] = useState("");
+  const run = async (kind: "blind_scoring" | "consistency") => {
+    setBusy(kind); setError("");
+    try { onSaved(await engagementsApi.aiReview(eng.id, kind)); } catch (e) { setError(errMsg(e)); } finally { setBusy(""); }
+  };
+  const sc = eng.ai?.scoring, cons = eng.ai?.consistency;
+  const SEV: Record<string, string> = { high: "text-red-700", medium: "text-amber-700", low: "text-slate-600" };
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">AI assistance <span className="text-xs font-normal text-muted-foreground">· advisory only (§5.6)</span></CardTitle>
+        <p className="text-sm text-muted-foreground">
+          The blind review reads only the anchors and the evidence register, never your levels or rationale, and suggests a level for each indicator.
+          The consistency check reads your scorecard and lists contradictions. Neither changes anything; every run is logged, and the committee sees large differences.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {!eng.ai_processing_allowed && <p className="rounded-md bg-amber-50 p-2 text-amber-900">Record the Subject&apos;s consent to AI processing on the Acceptance tab first.</p>}
+        {error && <p className="text-red-600">{error}</p>}
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" disabled={!!busy || !eng.ai_processing_allowed} onClick={() => run("blind_scoring")}>
+            {busy === "blind_scoring" ? "Reviewing 7 domains…" : "Run blind scoring review"}
+          </Button>
+          <Button size="sm" variant="outline" disabled={!!busy || !eng.ai_processing_allowed || !eng.indicator_scores.length} onClick={() => run("consistency")}>
+            {busy === "consistency" ? "Checking…" : "Check scorecard consistency"}
+          </Button>
+        </div>
+        {sc && (
+          <div>
+            <p className="text-muted-foreground">Blind review {new Date(sc.run_at).toLocaleString()} · {sc.model} · by {sc.by}
+              {sc.stale_changes > 0 && <span className="text-amber-700"> · {sc.stale_changes} change(s) since; run again</span>}</p>
+            {sc.divergences.length > 0
+              ? <p className="text-amber-800">Differences of 2+ levels (address them in your rationale): {sc.divergences.map((d) => `${d.code} you ${d.analyst} / AI ${d.ai}`).join(" · ")}</p>
+              : <p className="text-green-700">No indicator differs from the AI reading by 2 or more levels.</p>}
+            <p className="text-xs text-muted-foreground">Each indicator shows the AI reading next to your score; click it for the reasons.</p>
+          </div>
+        )}
+        {cons && (
+          <div className="space-y-1">
+            <p className="text-muted-foreground">Consistency check {new Date(cons.run_at).toLocaleString()} · {cons.model}
+              {cons.stale_changes > 0 && <span className="text-amber-700"> · {cons.stale_changes} change(s) since</span>}</p>
+            {cons.issues.length === 0 ? <p className="text-green-700">No contradictions found.</p> : (
+              <ul className="space-y-1">
+                {cons.issues.map((i, k) => (
+                  <li key={k} className={SEV[i.severity]}><span className="font-mono text-xs">{i.codes.join(" ")}</span> {i.issue}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -1419,6 +1504,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   </Card>
                 </TabsContent>
                 <TabsContent value="indicators" className="space-y-4">
+                  <AiAssist eng={eng} onSaved={setEng} />
                   <p className="text-sm text-muted-foreground">
                     Score each indicator against the written anchors in Methodology Appendix C. E4 evidence always scores level 4.
                     A mitigation may lower a level by at most 2, and only if its evidence is E1–E2 and it is enforceable.

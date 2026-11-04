@@ -54,6 +54,13 @@ export interface StatutoryFinding {
   jurisdiction: string; test: string; result: "meets" | "does_not_meet" | "not_determined"; basis: string | null;
 }
 export type Outlook = "stable" | "positive" | "negative";
+export interface AiSuggestion { level: number | null; max_grade: Grade; reasons: string; missing: string; confidence: "low" | "medium" | "high" }
+export interface AiSummary {
+  scoring?: { run_at: string; model: string; by: string; suggestions: Record<string, AiSuggestion>; stale_changes: number;
+    divergences: { code: string; analyst: number; ai: number }[] };
+  consistency?: { run_at: string; model: string; by: string; stale_changes: number;
+    issues: { codes: string[]; issue: string; severity: "high" | "medium" | "low" }[] };
+}
 export interface ExternalMember { name: string; affiliation: string; independence_confirmed: boolean }
 export interface CommitteeDecision {
   id: string; decision: "approve" | "return"; chair: string; members: string[]; rationale: string;
@@ -73,6 +80,7 @@ export interface EngagementDetail extends EngagementSummary {
   declarations: Declaration[]; signoffs: Signoff[]; readiness: ReadinessCheck[];
   grade_support: Record<string, { items: number; independent: number; best: Grade }>;
   report_number: string | null; report_fingerprint: string | null;
+  ai_processing_allowed: boolean; ai: AiSummary;
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
@@ -141,7 +149,7 @@ export const engagementsApi = {
   update: (id: string, body: Partial<Pick<EngagementDetail,
     "stage" | "project_description" | "relying_parties" | "overlay" | "engagement_type" | "track" | "lead_analyst"
     | "outlook" | "statutory_findings" | "conditions" | "subject_reply" | "engagement_letter_signed_at" | "engagement_letter_ref"
-    | "fee_amount" | "fee_currency" | "fee_status" | "reliance_letters">>) =>
+    | "fee_amount" | "fee_currency" | "fee_status" | "reliance_letters" | "ai_processing_allowed">>) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}`, json("PATCH", body)),
   addEntity: (id: string, body: Partial<Entity> & { name: string; role: string }) =>
     authenticatedRequest<Entity>(`${base}/engagements/${id}/entities`, json("POST", body)),
@@ -186,6 +194,8 @@ export const engagementsApi = {
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/signoffs`, json("POST", body)),
   shareForReply: (id: string, days?: number) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/reply/share`, json("POST", days ? { days } : {})),
+  aiReview: (id: string, kind: "blind_scoring" | "consistency") =>
+    authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/ai-review`, json("POST", { kind })),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>
