@@ -25,3 +25,18 @@ export const documentRequestsApi = {
 };
 
 export const needsResponse = (r: CompanyRequest) => r.status === "open" || r.status === "returned";
+
+export interface DraftFindings {
+  engagement_id: string; shared_at: string; due_at: string; open: boolean; response: string | null; received_at: string | null;
+  findings: {
+    entities: { name: string; name_zh: string | null; role: string; held_by: string | null; ownership_pct: number | null;
+      jurisdiction: string | null; registry_id: string | null; state_linked: boolean }[];
+    findings: { topic: string; finding: string }[];
+    sources: { description: string; source: string | null; date: string | null }[];
+  };
+}
+export const draftFindingsApi = {
+  list: (customerId: string) => authenticatedRequest<DraftFindings[]>(`/api/v1/customers/${customerId}/draft-findings`),
+  respond: (engagementId: string, response: string) =>
+    authenticatedRequest<{ received_at: string }>(`/api/v1/draft-findings/${engagementId}/respond`, post({ response })),
+};

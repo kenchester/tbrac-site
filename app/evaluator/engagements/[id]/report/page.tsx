@@ -194,12 +194,25 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     <p>Approved {fmt(d.decided_at)} by a committee of {d.members.length} (chair: {d.chair}). The lead analyst did not vote.</p>
                     <p><span className="font-semibold">Rationale:</span> {d.rationale}</p>
                     {d.dissent && <p><span className="font-semibold">Dissent recorded:</span> {d.dissent}</p>}
+                    {(() => {
+                      const sec = [...eng.signoffs].reverse().find((x) => x.kind === "second_review");
+                      const cr = [...eng.signoffs].reverse().find((x) => x.kind === "counsel_review");
+                      return <>
+                        {sec && <p>Independent second review by {sec.signed_by} on {fmt(sec.signed_at)}.</p>}
+                        {cr && <p>Counsel review by {cr.counsel_name} on {fmt(cr.signed_at)}.</p>}
+                        <p>Independence declarations on file: {eng.declarations.filter((x) => x.cleared).length}.</p>
+                      </>;
+                    })()}
                   </div>
                 ) : <p className="text-sm text-slate-500">No committee approval recorded.</p>;
               })()}
             </Section>
 
             <Section title="Subject's response">
+              {eng.reply_shared_at && (
+                <p className="text-sm text-slate-600">Draft factual findings were shared with the Subject on {fmt(eng.reply_shared_at)} with a response due {fmt(eng.reply_due_at)}.
+                  {eng.reply_received_at ? ` Response received ${fmt(eng.reply_received_at)}.` : " No response was received."}</p>
+              )}
               <p className="whitespace-pre-wrap text-sm">{eng.subject_reply || "No response recorded."}</p>
             </Section>
 

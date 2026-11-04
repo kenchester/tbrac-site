@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventRow } from "@/components/monitoring-event-row";
 import {
   engagementsApi, PRE_ISSUE_STAGES, stageLabel,
-  type MonitoringConfig, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
+  type MonitoringConfig, type FeeStatus, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
   type AuditEntry, type DocRequest, type RequestTemplate, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
@@ -492,6 +492,17 @@ function IndicatorRow({ eng, code, name, anchor, onSaved }: {
         <Button variant="ghost" size="sm" onClick={() => setGuide((v) => !v)} aria-expanded={guide}>{guide ? "Hide guide" : "Scoring guide"}</Button>
         <Button variant="ghost" size="sm" onClick={() => setOpen((v) => !v)}>{open ? "Less" : "Mitigation & notes"}</Button>
         {!locked && <Button size="sm" onClick={save} disabled={f.inherent === "" || !f.grade}>Save</Button>}
+        {(() => {
+          const sup = eng.grade_support?.[code];
+          if (!sup) return null;
+          const over = f.grade && Number(f.grade[1]) < Number(sup.best[1]);
+          return (
+            <span className={`text-xs ${over ? "text-red-600 font-medium" : "text-muted-foreground"}`}
+              title="§5.3: E1 needs 2+ linked evidence items incl. one not authored by the Subject; E2 needs one independent item; E3 any evidence.">
+              evidence {sup.items} ({sup.independent} indep.) → up to {sup.best}
+            </span>
+          );
+        })()}
         {cur ? <Badge variant="outline">Saved</Badge> : <Badge variant="outline" className="text-muted-foreground">Not scored</Badge>}
       </div>
       {anchor && f.inherent !== "" && !guide && (
@@ -1083,6 +1094,229 @@ function Monitoring({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
   );
 }
 
+// ------------------------------------------------------------------ readiness (§4, §11)
+function Readiness({ checks }: { checks: ReadinessCheck[] }) {
+  const groups: [string, ReadinessCheck["blocks"]][] = [["Before committee approval", "committee"], ["Before issue", "issue"], ["Warnings", "warning"]];
+  const open = checks.filter((c) => !c.ok && c.blocks !== "warning").length;
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Readiness {open ? <span className="text-sm font-normal text-amber-700">· {open} to do</span> : <span className="text-sm font-normal text-green-700">· ready</span>}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {groups.map(([title, kind]) => {
+          const rows = checks.filter((c) => c.blocks === kind);
+          if (!rows.length) return null;
+          return (
+            <div key={kind} className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+              {rows.map((c) => (
+                <div key={c.key} className="flex gap-2 text-sm">
+                  <span className={c.ok ? "text-green-600" : kind === "warning" ? "text-amber-600" : "text-red-600"}>{c.ok ? "✓" : kind === "warning" ? "!" : "✗"}</span>
+                  <div><p className="leading-snug">{c.label}</p><p className="text-xs text-muted-foreground">{c.detail}</p></div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ------------------------------------------------------------------ acceptance (Stage 0)
+const FEE_STATUSES: FeeStatus[] = ["none", "quoted", "invoiced", "escrowed", "paid"];
+function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [f, setF] = useState({
+    letter: eng.engagement_letter_signed_at?.slice(0, 10) ?? "", ref: eng.engagement_letter_ref ?? "",
+    fee: eng.fee_amount != null ? String(eng.fee_amount) : "", currency: eng.fee_currency, status: eng.fee_status,
+  });
+  const [letters, setLetters] = useState<RelianceLetter[]>(eng.reliance_letters);
+  const [statements, setStatements] = useState<Record<string, string> | null>(null);
+  const [mine, setMine] = useState<Record<string, boolean>>({});
+  const [disclosure, setDisclosure] = useState("");
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => { engagementsApi.independenceStatements().then(setStatements).catch(() => {}); }, []);
+
+  const save = async (body: Parameters<typeof engagementsApi.update>[1], done: string) => {
+    setError(""); setMsg("");
+    try { onSaved(await engagementsApi.update(eng.id, body)); setMsg(done); } catch (e) { setError(errMsg(e)); }
+  };
+  const saveAcceptance = () => save({
+    engagement_letter_signed_at: f.letter ? new Date(f.letter).toISOString() : null, engagement_letter_ref: f.ref || null,
+    fee_amount: f.fee === "" ? null : Number(f.fee), fee_currency: f.currency || "USD", fee_status: f.status,
+  }, "Acceptance record saved.");
+  const declare = async () => {
+    setError(""); setMsg("");
+    try { onSaved(await engagementsApi.declare(eng.id, { statements: mine, disclosure: disclosure || undefined })); setMsg("Declaration filed."); }
+    catch (e) { setError(errMsg(e)); }
+  };
+  const parties = Array.from(new Set([...eng.relying_parties, ...letters.map((l) => l.relying_party)]));
+  const letterFor = (p: string) => letters.find((l) => l.relying_party === p) ?? { relying_party: p };
+  const setLetter = (p: string, patch: Partial<RelianceLetter>) =>
+    setLetters([...letters.filter((l) => l.relying_party !== p), { ...letterFor(p), ...patch }]);
+
+  return (
+    <div className="space-y-4">
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {msg && <p className="text-sm text-green-700">{msg}</p>}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Engagement letter and fee (§11, §12.1)</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1"><Label>Engagement letter signed on</Label><Input type="date" value={f.letter} onChange={(e) => setF({ ...f, letter: e.target.value })} /></div>
+            <div className="space-y-1"><Label>Letter reference / file</Label><Input value={f.ref} onChange={(e) => setF({ ...f, ref: e.target.value })} placeholder="e.g. EL-2026-014, signed PDF in Drive" /></div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1"><Label>Flat fee</Label><Input type="number" min="0" value={f.fee} onChange={(e) => setF({ ...f, fee: e.target.value })} /></div>
+            <div className="space-y-1"><Label>Currency</Label><Input maxLength={3} value={f.currency} onChange={(e) => setF({ ...f, currency: e.target.value.toUpperCase() })} /></div>
+            <div className="space-y-1">
+              <Label>Fee status</Label>
+              <select className={`${sel} w-full`} value={f.status} onChange={(e) => setF({ ...f, status: e.target.value as FeeStatus })}>
+                {FEE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Fees are flat, published and independent of the outcome. They must be paid or escrowed before the committee decides. Analysts never discuss fees with the Subject.</p>
+          <Button size="sm" onClick={saveAcceptance}>Save</Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Independence declarations (§11)</CardTitle>
+          <p className="text-sm text-muted-foreground">Everyone who works on or decides this engagement files one: the lead, the second reviewer and every committee member.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {eng.declarations.length === 0 && <p className="text-sm text-muted-foreground">None filed yet.</p>}
+          {eng.declarations.map((d) => (
+            <p key={d.evaluator} className="text-sm">
+              <span className={d.cleared ? "text-green-700" : "text-red-700"}>{d.cleared ? "✓ Cleared" : "✗ Not cleared"}</span> · {d.evaluator} · {new Date(d.declared_at).toLocaleDateString()}
+              {d.disclosure && <span className="text-muted-foreground"> · Disclosed: {d.disclosure}</span>}
+            </p>
+          ))}
+          {statements && (
+            <div className="rounded-md border p-3 space-y-2">
+              <p className="text-sm font-medium">File my declaration</p>
+              {Object.entries(statements).map(([k, v]) => (
+                <label key={k} className="flex items-start gap-2 text-sm">
+                  <input type="checkbox" className="mt-1" checked={!!mine[k]} onChange={(e) => setMine({ ...mine, [k]: e.target.checked })} />{v}
+                </label>
+              ))}
+              <Textarea placeholder="Anything to disclose (if you can't affirm a statement, explain here)" value={disclosure} onChange={(e) => setDisclosure(e.target.value)} />
+              <Button size="sm" onClick={declare}>File declaration</Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Reliance letters (§3.1, §12.2)</CardTitle>
+          <p className="text-sm text-muted-foreground">On the subject-engaged track, release the report to a Relying Party only after it countersigns a reliance letter.</p>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {parties.length === 0 && <p className="text-sm text-muted-foreground">No Relying Parties named (Overview tab).</p>}
+          {parties.map((p) => {
+            const l = letterFor(p);
+            return (
+              <div key={p} className="grid gap-2 sm:grid-cols-[1fr_1fr_160px] items-end">
+                <div className="text-sm font-medium">{p}</div>
+                <Input placeholder="Signed by (name, title)" value={l.signer ?? ""} onChange={(e) => setLetter(p, { signer: e.target.value })} />
+                <Input type="date" value={l.countersigned_at?.slice(0, 10) ?? ""} onChange={(e) => setLetter(p, { countersigned_at: e.target.value ? new Date(e.target.value).toISOString() : null })} />
+              </div>
+            );
+          })}
+          {parties.length > 0 && <Button size="sm" variant="outline" onClick={() => save({ reliance_letters: letters }, "Reliance letters saved.")}>Save reliance letters</Button>}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ second review & counsel review
+function Signoffs({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [kind, setKind] = useState<"second_review" | "counsel_review">("second_review");
+  const [note, setNote] = useState("");
+  const [counsel, setCounsel] = useState("");
+  const [error, setError] = useState("");
+  const locked = LOCKED.has(eng.stage);
+  const submit = async () => {
+    setError("");
+    try { onSaved(await engagementsApi.signoff(eng.id, { kind, note, counsel_name: kind === "counsel_review" ? counsel : undefined })); setNote(""); }
+    catch (e) { setError(errMsg(e)); }
+  };
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Second review and counsel review</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          The second reviewer (not the lead, and not the committee chair) checks the evidence and scoring. Any rating change afterwards needs a new sign-off.
+          Counsel reviews every T3/T4 report before issue.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {eng.signoffs.length === 0 && <p className="text-sm text-muted-foreground">No sign-offs yet.</p>}
+        {eng.signoffs.map((x) => (
+          <p key={x.id} className="text-sm">
+            <b>{x.kind === "second_review" ? "Second review" : `Counsel review (${x.counsel_name})`}</b> · {x.signed_by} · {new Date(x.signed_at).toLocaleString()} · rating seen {x.tier ?? "—"}
+            <span className="block text-muted-foreground">{x.note}</span>
+          </p>
+        ))}
+        {!locked && (
+          <div className="space-y-2 rounded-md border p-3">
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <select className={sel} value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
+              <option value="second_review">I completed the second review</option>
+              <option value="counsel_review">Record counsel&apos;s review</option>
+            </select>
+            {kind === "counsel_review" && <Input placeholder="Counsel's name and firm" value={counsel} onChange={(e) => setCounsel(e.target.value)} />}
+            <Textarea placeholder="What was checked, and any points raised" value={note} onChange={(e) => setNote(e.target.value)} />
+            <Button size="sm" disabled={note.trim().length < 10} onClick={submit}>Sign off</Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ------------------------------------------------------------------ right of reply (Stage 6)
+function RightOfReply({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [days, setDays] = useState("14");
+  const [error, setError] = useState("");
+  const locked = LOCKED.has(eng.stage);
+  const share = async () => {
+    setError("");
+    try { onSaved(await engagementsApi.shareForReply(eng.id, Number(days))); } catch (e) { setError(errMsg(e)); }
+  };
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Right of reply (§4 Stage 6)</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Shares the draft factual findings with the Subject in its portal: the entity map, your written findings (indicator rationales) and independent sources.
+          Never the levels, grades, red lines or rating. The response appears in the report.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {error && <p className="text-red-600">{error}</p>}
+        {eng.reply_shared_at ? (
+          <p>Shared {new Date(eng.reply_shared_at).toLocaleDateString()} · response due {eng.reply_due_at ? new Date(eng.reply_due_at).toLocaleDateString() : "—"} ·{" "}
+            {eng.reply_received_at ? <span className="text-green-700">received {new Date(eng.reply_received_at).toLocaleString()} from {eng.reply_submitted_by}</span> : "awaiting response"}</p>
+        ) : <p className="text-muted-foreground">Not shared yet. Write rationales on the Indicators tab first: they are the findings the Subject sees.</p>}
+        {eng.reply_received_at && eng.subject_reply && <p className="whitespace-pre-wrap rounded-md bg-muted/50 p-3">{eng.subject_reply}</p>}
+        {!locked && (
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="space-y-1"><Label>Days to respond</Label><Input className="w-24" type="number" min="5" max="60" value={days} onChange={(e) => setDays(e.target.value)} /></div>
+            <Button size="sm" variant={eng.reply_shared_at ? "outline" : "default"} onClick={share}>{eng.reply_shared_at ? "Share updated findings" : "Share draft findings"}</Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -1123,17 +1357,21 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
               <Tabs defaultValue="indicators">
                 <TabsList className="flex-wrap h-auto">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="acceptance">Acceptance</TabsTrigger>
                   <TabsTrigger value="entities">Entity map ({eng.entities.length})</TabsTrigger>
                   <TabsTrigger value="requests">Document requests</TabsTrigger>
                   <TabsTrigger value="evidence">Evidence ({eng.evidence.length})</TabsTrigger>
                   <TabsTrigger value="gates">Red lines</TabsTrigger>
                   <TabsTrigger value="indicators">Indicators</TabsTrigger>
+                  <TabsTrigger value="reply">Right of reply</TabsTrigger>
                   <TabsTrigger value="report">Report</TabsTrigger>
                   <TabsTrigger value="committee">Committee</TabsTrigger>
                   <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
                   <TabsTrigger value="audit">Audit trail</TabsTrigger>
                 </TabsList>
-                <TabsContent value="committee"><Committee eng={eng} onSaved={setEng} /></TabsContent>
+                <TabsContent value="committee" className="space-y-4"><Signoffs eng={eng} onSaved={setEng} /><Committee eng={eng} onSaved={setEng} /></TabsContent>
+                <TabsContent value="acceptance"><Acceptance eng={eng} onSaved={setEng} /></TabsContent>
+                <TabsContent value="reply"><RightOfReply eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="audit"><AuditTrail eng={eng} /></TabsContent>
                 <TabsContent value="monitoring"><Monitoring eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
@@ -1176,7 +1414,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   ))}
                 </TabsContent>
               </Tabs>
-              <div className="lg:sticky lg:top-6 self-start"><RatingPanel eng={eng} m={m} /></div>
+              <div className="lg:sticky lg:top-6 self-start space-y-4"><RatingPanel eng={eng} m={m} /><Readiness checks={eng.readiness} /></div>
             </div>
           </>
         )}

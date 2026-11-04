@@ -86,7 +86,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
-import { documentRequestsApi, needsResponse } from "@/lib/document-requests";
+import { documentRequestsApi, draftFindingsApi, needsResponse } from "@/lib/document-requests";
 import { RequestAssessmentCard } from "@/components/request-assessment-card";
 
 interface PageProps {
@@ -117,6 +117,10 @@ function CustomerDetailContent({ params }: PageProps) {
       const all = d.engagements.filter((e) => !e.closed).flatMap((e) => e.requests);
       setRequests({ total: all.length, open: all.filter(needsResponse).length });
     }).catch(() => setRequests(null));
+  }, [resolvedParams.id]);
+  const [drafts, setDrafts] = useState(0);
+  useEffect(() => {
+    draftFindingsApi.list(resolvedParams.id).then((d) => setDrafts(d.filter((x) => x.open && !x.received_at).length)).catch(() => {});
   }, [resolvedParams.id]);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -449,6 +453,17 @@ function CustomerDetailContent({ params }: PageProps) {
               )}
             </CardContent>
           </Card>
+
+          {drafts > 0 && (
+            <Card className="border-amber-300">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-3">
+                  <div><CardTitle>{t("rrDashCard")}</CardTitle><CardDescription>{t("rrDashDesc")}</CardDescription></div>
+                  <Button size="sm" onClick={() => router.push(`/customers/${resolvedParams.id}/findings`)}>{t("rrView")}</Button>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
 
           {requests && requests.total > 0 && (
             <Card className={requests.open ? "border-amber-300" : ""}>

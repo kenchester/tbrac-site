@@ -64,6 +64,11 @@ export interface EngagementDetail extends EngagementSummary {
   subject_reply: string | null; rating_snapshot: Rating | null;
   committee_decisions: CommitteeDecision[]; committee_status: { approved: boolean; reason: string };
   review_started_at: string | null; review_due_at: string | null; review_reason: string | null; last_monitored_at: string | null;
+  engagement_letter_signed_at: string | null; engagement_letter_ref: string | null;
+  fee_amount: number | null; fee_currency: string; fee_status: FeeStatus; reliance_letters: RelianceLetter[];
+  reply_shared_at: string | null; reply_due_at: string | null; reply_received_at: string | null; reply_submitted_by: string | null;
+  declarations: Declaration[]; signoffs: Signoff[]; readiness: ReadinessCheck[];
+  grade_support: Record<string, { items: number; independent: number; best: Grade }>;
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
@@ -92,6 +97,12 @@ export const REQUEST_STATUS_CLASS: Record<RequestStatus, string> = {
   open: "bg-slate-100 text-slate-700", submitted: "bg-blue-100 text-blue-800", accepted: "bg-green-100 text-green-800",
   returned: "bg-amber-100 text-amber-800", refused: "bg-red-100 text-red-800", waived: "bg-slate-100 text-slate-500",
 };
+
+export type FeeStatus = "none" | "quoted" | "invoiced" | "escrowed" | "paid";
+export interface RelianceLetter { relying_party: string; signer?: string | null; countersigned_at?: string | null; ref?: string | null }
+export interface Declaration { evaluator: string; cleared: boolean; disclosure: string | null; statements: Record<string, boolean>; declared_at: string }
+export interface Signoff { id: string; kind: "second_review" | "counsel_review"; signed_by: string; counsel_name: string | null; note: string; signed_at: string; tier: string | null }
+export interface ReadinessCheck { key: string; label: string; ok: boolean; detail: string; blocks: "committee" | "issue" | "warning" }
 
 export interface MonitoringEvent {
   id: string; engagement_id: string; kind: string; severity: "info" | "warning" | "critical"; message: string;
@@ -125,7 +136,8 @@ export const engagementsApi = {
   }) => authenticatedRequest<EngagementDetail>(`${base}/engagements`, json("POST", body)),
   update: (id: string, body: Partial<Pick<EngagementDetail,
     "stage" | "project_description" | "relying_parties" | "overlay" | "engagement_type" | "track" | "lead_analyst"
-    | "outlook" | "statutory_findings" | "conditions" | "subject_reply">>) =>
+    | "outlook" | "statutory_findings" | "conditions" | "subject_reply" | "engagement_letter_signed_at" | "engagement_letter_ref"
+    | "fee_amount" | "fee_currency" | "fee_status" | "reliance_letters">>) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}`, json("PATCH", body)),
   addEntity: (id: string, body: Partial<Entity> & { name: string; role: string }) =>
     authenticatedRequest<Entity>(`${base}/engagements/${id}/entities`, json("POST", body)),
@@ -162,6 +174,13 @@ export const engagementsApi = {
     authenticatedRequest<{ screened_at: string; stage: string; events: MonitoringEvent[] }>(`${base}/engagements/${id}/bring-down`, { method: "POST" }),
   review: (id: string, body: { action: ReviewActionName; trigger?: string; note: string }) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/review`, json("POST", body)),
+  independenceStatements: () => authenticatedRequest<Record<string, string>>(`${base}/independence-statements`),
+  declare: (id: string, body: { statements: Record<string, boolean>; disclosure?: string }) =>
+    authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/declaration`, json("POST", body)),
+  signoff: (id: string, body: { kind: "second_review" | "counsel_review"; note: string; counsel_name?: string }) =>
+    authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/signoffs`, json("POST", body)),
+  shareForReply: (id: string, days?: number) =>
+    authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/reply/share`, json("POST", days ? { days } : {})),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>
