@@ -3,26 +3,8 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { engagementsApi, TIER_LABEL, type EngagementDetail, type Methodology, type Rating } from "@/lib/engagements";
-
-// Required statements (Methodology §1.3) — every report, both views.
-const STATEMENTS = [
-  "This report is an independent risk opinion as of the date stated. It is not a certification, guarantee, warranty, surety, clearance or approval of any kind.",
-  "It is not a CFIUS determination, export-control classification or decision of any government agency, and it carries no government endorsement.",
-  "It does not override any statute. Where a law bars a transaction, no rating changes that result.",
-  "It is not legal advice. Legal conclusions referenced here are those of the subject's counsel, collected and graded as evidence.",
-];
-// Data-availability caveats (Methodology §5.4)
-const CAVEATS = [
-  "PRC court-judgment publication has fallen sharply since 2019; the absence of PRC litigation records proves little.",
-  "The PBOC/SAMR beneficial-owner register is not public; PRC registry data shows first-tier owners only and may be incomplete.",
-  "Major PRC commercial databases restrict overseas access.",
-  "Audited financial statements are not, by themselves, proof of revenue.",
-];
-const GRADE: Record<string, string> = { E1: "Verified", E2: "Cross-checked", E3: "Attested only", E4: "Unverifiable" };
-const RESULT: Record<string, string> = { meets: "Meets definition", does_not_meet: "Does not meet definition", not_determined: "Not determined" };
-const OUTLOOK: Record<string, string> = { stable: "Stable", positive: "Positive", negative: "Negative" };
-const fmt = (d: string | null | undefined) => (d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "—");
+import { engagementsApi, type EngagementDetail, type Methodology, type Rating } from "@/lib/engagements";
+import { REPORT_TEXT, DOMAIN_ZH, type ReportLang } from "@/lib/report-text";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -33,14 +15,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Table({ head, rows }: { head: string[]; rows: (string | null | undefined)[][] }) {
+function Table({ head, rows, none }: { head: string[]; rows: (string | null | undefined)[][]; none: string }) {
   return (
     <table className="w-full border-collapse text-sm">
       <thead>
         <tr className="border-b-2 border-slate-800 text-left">{head.map((h) => <th key={h} className="py-1.5 pr-3 font-semibold">{h}</th>)}</tr>
       </thead>
       <tbody>
-        {rows.length === 0 && <tr><td colSpan={head.length} className="py-2 text-slate-500">None recorded.</td></tr>}
+        {rows.length === 0 && <tr><td colSpan={head.length} className="py-2 text-slate-500">{none}</td></tr>}
         {rows.map((r, i) => (
           <tr key={i} className="border-b border-slate-200 align-top">{r.map((c, j) => <td key={j} className="py-1.5 pr-3">{c ?? "—"}</td>)}</tr>
         ))}
@@ -54,10 +36,13 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const [eng, setEng] = useState<EngagementDetail | null>(null);
   const [m, setM] = useState<Methodology | null>(null);
   const [view, setView] = useState<"restricted" | "public">("restricted");
+  const [lang, setLang] = useState<ReportLang>("en");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("view") === "public") setView("public");
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("view") === "public") setView("public");
+    if (q.get("lang") === "zh") setLang("zh");
     engagementsApi.get(id).then(setEng).catch((e) => setError(e instanceof Error ? e.message : "Could not load"));
     engagementsApi.methodology().then(setM).catch(() => {});
   }, [id]);
@@ -65,63 +50,61 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   if (error) return <p className="p-8 text-red-600">{error}</p>;
   if (!eng || !m) return <p className="p-8 text-slate-500">Loading…</p>;
 
+  const t = REPORT_TEXT[lang];
+  const fmt = (d: string | null | undefined) =>
+    d ? new Date(d).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { year: "numeric", month: "long", day: "numeric" }) : "—";
   const issued = !!eng.rating_snapshot;
   const r: Rating = eng.rating_snapshot ?? eng.rating;
-  const status = eng.stage === "under_review" ? "Under review" : eng.stage === "withdrawn" ? "Withdrawn" : eng.stage === "expired" ? "Expired" : issued ? "Current" : "Draft";
+  const statusKey = ["under_review", "withdrawn", "expired"].includes(eng.stage) ? eng.stage : issued ? "current" : "draft";
   const ind = (c: string) => m.indicators[c]?.name ?? c;
+  const domainName = (d: string) => (lang === "zh" ? DOMAIN_ZH[d] : m.domains[d]?.name) ?? "";
   const mitigations = eng.indicator_scores.filter((s) => s.residual_level != null && s.residual_level < s.inherent_level);
   const entityName = Object.fromEntries(eng.entities.map((e) => [e.id, e.name]));
+  const lvl = (n: number | null | undefined) => (n == null ? null : `${t.level} ${n}`);
+  const domainRows = Object.entries(r.domain_tiers).map(([d, tier]) => [`${d} ${domainName(d)}`, tier]);
 
   return (
-    <div className="min-h-screen bg-slate-100 print:bg-white">
+    <div className="min-h-screen bg-slate-100 print:bg-white" lang={lang === "zh" ? "zh-CN" : "en"}>
       <div className="print:hidden sticky top-0 z-10 border-b bg-white">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-2 px-4 py-3">
-          <Link href={`/evaluator/engagements/${eng.id}`} className="text-sm text-primary hover:underline">← Back to workspace</Link>
-          <div className="ml-auto flex gap-2">
-            <Button size="sm" variant={view === "restricted" ? "default" : "outline"} onClick={() => setView("restricted")}>Restricted report</Button>
-            <Button size="sm" variant={view === "public" ? "default" : "outline"} onClick={() => setView("public")}>Public summary</Button>
-            <Button size="sm" variant="outline" onClick={() => window.print()}>Print / save as PDF</Button>
+          <Link href={`/evaluator/engagements/${eng.id}`} className="text-sm text-primary hover:underline">{t.back}</Link>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <Button size="sm" variant={view === "restricted" ? "default" : "outline"} onClick={() => setView("restricted")}>{t.restricted}</Button>
+            <Button size="sm" variant={view === "public" ? "default" : "outline"} onClick={() => setView("public")}>{t.public}</Button>
+            <Button size="sm" variant="outline" onClick={() => setLang(lang === "en" ? "zh" : "en")}>{lang === "en" ? "中文" : "English"}</Button>
+            <Button size="sm" variant="outline" onClick={() => window.print()}>{t.print}</Button>
           </div>
         </div>
       </div>
 
       <article className="mx-auto my-6 max-w-4xl space-y-8 bg-white p-10 text-slate-900 shadow print:my-0 print:max-w-none print:p-0 print:shadow-none">
-        {!issued && (
-          <p className="rounded border-2 border-red-500 px-3 py-2 text-center text-sm font-semibold uppercase tracking-wide text-red-700">
-            Draft — not issued. Rating may change. Not for reliance.
-          </p>
-        )}
+        {!issued && <p className="rounded border-2 border-red-500 px-3 py-2 text-center text-sm font-semibold uppercase tracking-wide text-red-700">{t.draft}</p>}
         {eng.stage === "under_review" && (
-          <p className="rounded border-2 border-amber-500 px-3 py-2 text-center text-sm font-semibold text-amber-800">
-            UNDER REVIEW since {fmt(eng.review_started_at)}. The rating may change; resolution expected by {fmt(eng.review_due_at)}.
-          </p>
+          <p className="rounded border-2 border-amber-500 px-3 py-2 text-center text-sm font-semibold text-amber-800">{t.underReview(fmt(eng.review_started_at), fmt(eng.review_due_at))}</p>
         )}
         {(eng.stage === "withdrawn" || eng.stage === "expired") && (
-          <p className="rounded border-2 border-red-500 px-3 py-2 text-center text-sm font-semibold uppercase text-red-700">
-            {eng.stage === "withdrawn" ? "Rating withdrawn" : "Rating expired"}. Not for reliance.
-          </p>
+          <p className="rounded border-2 border-red-500 px-3 py-2 text-center text-sm font-semibold uppercase text-red-700">{eng.stage === "withdrawn" ? t.withdrawn : t.expired}</p>
         )}
+        {t.governs && <p className="rounded bg-slate-50 px-3 py-2 text-xs text-slate-600">{t.governs}</p>}
         <header className="space-y-1 border-b-4 border-slate-900 pb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            TBRAC Independent Risk Assessment · {view === "public" ? "Public summary" : "Restricted report"}{eng.report_number ? ` · ${eng.report_number}` : ""}
+            {t.brand} · {view === "public" ? t.public : t.restricted}{eng.report_number ? ` · ${eng.report_number}` : ""}
           </p>
           <h1 className="text-3xl font-bold">{eng.customer_name}</h1>
           <p className="text-sm text-slate-600">
-            <span className="capitalize">{eng.engagement_type}</span> assessment · Methodology {r.methodology_version} ·
-            As of {issued ? fmt(eng.issued_at) : fmt(new Date().toISOString())} · Valid until {fmt(eng.valid_until)}
+            {t.assessment[eng.engagement_type] ?? eng.engagement_type} · {t.methodology} {r.methodology_version} ·
+            {" "}{t.asOf} {issued ? fmt(eng.issued_at) : fmt(new Date().toISOString())} · {t.validUntil} {fmt(eng.valid_until)}
           </p>
-          {view === "restricted" && (
-            <p className="text-sm text-slate-600">Intended users: {eng.relying_parties.length ? eng.relying_parties.join("; ") : "—"}. Not for distribution beyond the intended users.</p>
-          )}
+          {view === "restricted" && <p className="text-sm text-slate-600">{t.intended(eng.relying_parties.length ? eng.relying_parties.join("; ") : "—")}</p>}
         </header>
 
-        <Section title="Opinion">
+        <Section title={t.opinion}>
           <div className="grid gap-3 sm:grid-cols-4">
             {[
-              ["Tier", r.tier ? TIER_LABEL[r.tier] ?? r.tier : "Incomplete"],
-              ["Confidence", r.confidence ?? "—"],
-              ["Outlook", eng.outlook ? OUTLOOK[eng.outlook] : "—"],
-              ["Status", status],
+              [t.tier, r.tier ? t.tiers[r.tier] ?? r.tier : t.incomplete],
+              [t.confidence, r.confidence ? t.conf[r.confidence] ?? r.confidence : "—"],
+              [t.outlook, eng.outlook ? t.outlooks[eng.outlook] : "—"],
+              [t.status, t.statuses[statusKey]],
             ].map(([k, v]) => (
               <div key={k} className="rounded border border-slate-300 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-500">{k}</p>
@@ -129,111 +112,107 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               </div>
             ))}
           </div>
-          {eng.project_description && <p className="text-sm"><span className="font-semibold">Scope:</span> {eng.project_description}</p>}
-          <ul className="list-disc space-y-1 pl-5 text-sm">{STATEMENTS.map((s) => <li key={s}>{s}</li>)}</ul>
+          {eng.project_description && <p className="text-sm"><span className="font-semibold">{t.scope}:</span> {eng.project_description}</p>}
+          <ul className="list-disc space-y-1 pl-5 text-sm">{t.statements.map((s) => <li key={s}>{s}</li>)}</ul>
+        </Section>
+
+        <Section title={t.domains}>
+          <Table none={t.none} head={t.domainHead} rows={domainRows} />
         </Section>
 
         {view === "restricted" && (
           <>
-            <Section title="Inherent to residual risk">
-              <p className="text-sm">Inherent tier <b>{r.inherent_tier ?? "—"}</b> → residual tier <b>{r.tier ?? "—"}</b>.</p>
-              <Table head={["Indicator", "Inherent", "Residual", "Mitigation", "Mitigation evidence"]}
-                rows={mitigations.map((s) => [`${s.code} ${ind(s.code)}`, `Level ${s.inherent_level}`, `Level ${s.residual_level}`, s.mitigation, s.mitigation_grade ? GRADE[s.mitigation_grade] : null])} />
+            <Section title={t.bridge}>
+              <p className="text-sm">{t.bridgeLine(r.inherent_tier ?? "—", r.tier ?? "—")}</p>
+              <Table none={t.none} head={t.bridgeHead}
+                rows={mitigations.map((s) => [`${s.code} ${ind(s.code)}`, lvl(s.inherent_level), lvl(s.residual_level), s.mitigation, s.mitigation_grade ? t.grades[s.mitigation_grade] : null])} />
               {r.reasons.length > 0 && (
-                <div className="text-sm"><p className="font-semibold">Rules applied</p><ul className="list-disc pl-5">{r.reasons.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+                <div className="text-sm"><p className="font-semibold">{t.rules}</p><ul className="list-disc pl-5">{r.reasons.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
               )}
             </Section>
 
-            <Section title="Domain ratings">
-              <Table head={["Domain", "Tier"]} rows={Object.entries(r.domain_tiers).map(([d, t]) => [`${d} ${m.domains[d]?.name ?? ""}`, t])} />
+            <Section title={t.statutory}>
+              <p className="text-sm text-slate-600">{t.statutoryNote}</p>
+              <Table none={t.none} head={t.statutoryHead} rows={eng.statutory_findings.map((f) => [f.jurisdiction, f.test, t.results[f.result], f.basis])} />
             </Section>
 
-            <Section title="Statutory eligibility">
-              <p className="text-sm text-slate-600">Reported alongside, not combined with, the rating. A favorable tier never overrides a statutory bar.</p>
-              <Table head={["Jurisdiction", "Test", "Result", "Basis"]} rows={eng.statutory_findings.map((f) => [f.jurisdiction, f.test, RESULT[f.result], f.basis])} />
-            </Section>
-
-            <Section title="Red-line results">
-              <Table head={["Gate", "Test", "Result", "Basis", "Checked"]}
+            <Section title={t.gates}>
+              <Table none={t.none} head={t.gatesHead}
                 rows={Object.entries(m.gates).map(([code, g]) => {
                   const res = eng.gate_results.find((x) => x.code === code);
-                  return [code, g.name, res ? (res.status === "clear" ? "Clear" : res.status === "triggered" ? "TRIGGERED" : "Not checked") : "Not checked", res?.basis, res ? fmt(res.checked_at) : null];
+                  return [code, g.name, res ? (res.status === "clear" ? t.clear : res.status === "triggered" ? t.triggered : t.notChecked) : t.notChecked, res?.basis, res ? fmt(res.checked_at) : null];
                 })} />
             </Section>
 
-            <Section title="Findings by indicator">
-              <Table head={["Indicator", "Level", "Evidence", "Basis"]}
+            <Section title={t.findings}>
+              <Table none={t.none} head={t.findingsHead}
                 rows={Object.keys(m.indicators).map((c) => {
                   const s = eng.indicator_scores.find((x) => x.code === c);
-                  return [`${c} ${ind(c)}`, s ? `Level ${s.residual_level ?? s.inherent_level}` : "Not scored", s ? GRADE[s.evidence_grade] : null, s?.rationale];
+                  return [`${c} ${ind(c)}`, s ? lvl(s.residual_level ?? s.inherent_level) : t.notScored, s ? t.grades[s.evidence_grade] : null, s?.rationale];
                 })} />
             </Section>
 
-            <Section title="Ownership and entities">
-              <Table head={["Entity", "Role", "Held by", "%", "Jurisdiction", "Registry ID", "State-linked"]}
-                rows={eng.entities.map((e) => [e.name + (e.name_zh ? ` (${e.name_zh})` : ""), e.role.replace("_", " "), e.parent_id ? entityName[e.parent_id] : null,
-                  e.ownership_pct != null ? String(e.ownership_pct) : null, e.jurisdiction, e.registry_id, e.is_state_linked ? "Yes" : "No"])} />
+            <Section title={t.entities}>
+              <Table none={t.none} head={t.entitiesHead}
+                rows={eng.entities.map((e) => [e.name + (e.name_zh ? ` (${e.name_zh})` : ""), t.roles[e.role] ?? e.role, e.parent_id ? entityName[e.parent_id] : null,
+                  e.ownership_pct != null ? String(e.ownership_pct) : null, e.jurisdiction, e.registry_id, e.is_state_linked ? t.yes : t.no])} />
             </Section>
 
-            <Section title="Evidence register">
-              <Table head={["Evidence", "Source", "Subject-authored", "Supports"]}
-                rows={eng.evidence.map((e) => [e.description + (e.source_ref ? ` — ${e.source_ref}` : ""), e.source_type.replace("_", " "), e.authored_by_subject ? "Yes" : "No",
+            <Section title={t.evidence}>
+              <Table none={t.none} head={t.evidenceHead}
+                rows={eng.evidence.map((e) => [e.description + (e.source_ref ? ` — ${e.source_ref}` : ""), t.sources[e.source_type] ?? e.source_type, e.authored_by_subject ? t.yes : t.no,
                   [...e.indicator_codes, ...e.gate_codes].join(" ") || null])} />
             </Section>
 
-            <Section title="Recommended agreement conditions">
+            <Section title={t.conditions}>
               {eng.conditions.length ? <ol className="list-decimal space-y-1 pl-5 text-sm">{eng.conditions.map((c, i) => <li key={i}>{c}</li>)}</ol>
-                : <p className="text-sm text-slate-500">None recorded.</p>}
+                : <p className="text-sm text-slate-500">{t.none}</p>}
             </Section>
 
-            <Section title="Rating committee">
+            <Section title={t.committee}>
               {(() => {
                 const d = [...eng.committee_decisions].reverse().find((x) => x.decision === "approve");
-                return d ? (
+                if (!d) return <p className="text-sm text-slate-500">{t.noCommittee}</p>;
+                const sec = [...eng.signoffs].reverse().find((x) => x.kind === "second_review");
+                const cr = [...eng.signoffs].reverse().find((x) => x.kind === "counsel_review");
+                const ext = d.external_members?.length ?? 0;
+                return (
                   <div className="space-y-1 text-sm">
-                    <p>Approved {fmt(d.decided_at)} by a committee of {d.members.length + (d.external_members?.length ?? 0)} (chair: {d.chair}
-                      {d.external_members?.length ? `; including ${d.external_members.length} independent external member${d.external_members.length > 1 ? "s" : ""}` : ""}). The lead analyst did not vote.</p>
-                    <p><span className="font-semibold">Rationale:</span> {d.rationale}</p>
-                    {d.dissent && <p><span className="font-semibold">Dissent recorded:</span> {d.dissent}</p>}
-                    {(() => {
-                      const sec = [...eng.signoffs].reverse().find((x) => x.kind === "second_review");
-                      const cr = [...eng.signoffs].reverse().find((x) => x.kind === "counsel_review");
-                      return <>
-                        {sec && <p>Independent second review by {sec.signed_by} on {fmt(sec.signed_at)}.</p>}
-                        {cr && <p>Counsel review by {cr.counsel_name} on {fmt(cr.signed_at)}.</p>}
-                        <p>Independence declarations on file: {eng.declarations.filter((x) => x.cleared).length}.</p>
-                      </>;
-                    })()}
+                    <p>{t.approved(fmt(d.decided_at), d.members.length + ext, d.chair, ext)}</p>
+                    <p><span className="font-semibold">{t.rationale}:</span> {d.rationale}</p>
+                    {d.dissent && <p><span className="font-semibold">{t.dissent}:</span> {d.dissent}</p>}
+                    {sec && <p>{t.secondReview(sec.signed_by, fmt(sec.signed_at))}</p>}
+                    {cr && <p>{t.counselReview(cr.counsel_name ?? "", fmt(cr.signed_at))}</p>}
+                    <p>{t.declarations(eng.declarations.filter((x) => x.cleared).length)}</p>
                   </div>
-                ) : <p className="text-sm text-slate-500">No committee approval recorded.</p>;
+                );
               })()}
             </Section>
 
-            <Section title="Subject's response">
+            <Section title={t.reply}>
               {eng.reply_shared_at && (
-                <p className="text-sm text-slate-600">Draft factual findings were shared with the Subject on {fmt(eng.reply_shared_at)} with a response due {fmt(eng.reply_due_at)}.
-                  {eng.reply_received_at ? ` Response received ${fmt(eng.reply_received_at)}.` : " No response was received."}</p>
+                <p className="text-sm text-slate-600">{t.replyShared(fmt(eng.reply_shared_at), fmt(eng.reply_due_at))}
+                  {eng.reply_received_at ? t.replyReceived(fmt(eng.reply_received_at)) : t.replyNone}</p>
               )}
-              <p className="whitespace-pre-wrap text-sm">{eng.subject_reply || "No response recorded."}</p>
+              <p className="whitespace-pre-wrap text-sm">{eng.subject_reply || t.noReply}</p>
             </Section>
 
-            <Section title="Data-availability caveats">
-              <ul className="list-disc space-y-1 pl-5 text-sm">{CAVEATS.map((c) => <li key={c}>{c}</li>)}</ul>
+            <Section title={t.caveats}>
+              <ul className="list-disc space-y-1 pl-5 text-sm">{t.caveatList.map((c) => <li key={c}>{c}</li>)}</ul>
             </Section>
           </>
         )}
 
         {eng.report_number && (
           <section className="break-inside-avoid-page rounded border border-slate-300 p-4 text-sm">
-            <p className="font-semibold">Report {eng.report_number}</p>
-            <p className="mt-1 text-slate-600">Check this report&apos;s current status at <span className="font-mono">tbrac.org/verify/{eng.report_number}</span>.
-              The register shows the same fingerprint if the rating on this copy has not been altered.</p>
-            <p className="mt-1 break-all font-mono text-xs text-slate-500">Fingerprint (SHA-256): {eng.report_fingerprint}</p>
+            <p className="font-semibold">{t.report} {eng.report_number}</p>
+            <p className="mt-1 text-slate-600">{t.verifyAt(eng.report_number)}</p>
+            <p className="mt-1 break-all font-mono text-xs text-slate-500">{t.fingerprint}: {eng.report_fingerprint}</p>
           </section>
         )}
         <footer className="border-t pt-3 text-xs text-slate-500">
-          Prepared under TBRAC Assessment Methodology {r.methodology_version}. Point scores are internal working figures and are not reported.
-          {view === "public" && " This public summary omits confidential findings; the restricted report is available only to the named intended users."}
+          {t.footer(r.methodology_version)}
+          {view === "public" && t.footerPublic}
         </footer>
       </article>
     </div>

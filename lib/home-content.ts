@@ -3,7 +3,7 @@
 
 export const HOME = {
   en: {
-    nav: { how: "How it works", methodology: "Methodology", cases: "Use cases", faq: "FAQ", about: "About", signIn: "Sign in" },
+    nav: { relying: "For relying parties", how: "How it works", methodology: "Methodology", cases: "Use cases", faq: "FAQ", about: "About", signIn: "Sign in" },
     eyebrow: "Independent risk assessment · US market entry",
     title: "An independent view of the risks US decision-makers ask about",
     lead: "TBRAC assesses companies with Chinese ownership or ties that plan US investments, sites or partnerships. We look at ownership and state links, national security and export controls, data security, supply chains, integrity, finances and IP, and report the result to the counties, state agencies and partners who rely on it.",
@@ -83,7 +83,7 @@ export const HOME = {
     footer: { evaluator: "Evaluator sign-in", privacy: "Privacy", terms: "Terms", contact: "Contact", rights: "All rights reserved." },
   },
   zh: {
-    nav: { how: "评估流程", methodology: "评估方法", cases: "案例", faq: "常见问题", about: "关于我们", signIn: "登录" },
+    nav: { relying: "依赖方指南", how: "评估流程", methodology: "评估方法", cases: "案例", faq: "常见问题", about: "关于我们", signIn: "登录" },
     eyebrow: "独立风险评估 · 进入美国市场",
     title: "就美国决策者关心的风险，提供独立的评估意见",
     lead: "TBRAC 为具有中国所有权或关联、计划在美国投资、设厂或合作的企业进行评估。我们审查所有权与国有关联、国家安全与出口管制、数据安全、供应链、诚信、财务和知识产权，并将结果报告给依赖这份报告的县政府、州机构和合作伙伴。",
