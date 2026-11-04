@@ -52,7 +52,8 @@ export default function HomePage() {
           <Wordmark />
           <nav className="hidden items-center gap-7 text-sm text-slate-700 lg:flex">
             <a href="#how" className="hover:text-slate-950">{c.nav.how}</a>
-            <Link href="/relying-parties" className="hover:text-slate-950">{c.nav.relying}</Link>
+            <Link href="/for-companies" className="hover:text-slate-950">{c.nav.companies}</Link>
+            <Link href="/for-government" className="hover:text-slate-950">{c.nav.government}</Link>
             <Link href="/methodology" className="hover:text-slate-950">{c.nav.methodology}</Link>
             <Link href="/case-studies" className="hover:text-slate-950">{c.nav.cases}</Link>
             <Link href="/faq" className="hover:text-slate-950">{c.nav.faq}</Link>
@@ -156,7 +157,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <Link href="/relying-parties" className="mt-8 inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">{c.nav.relying} <ArrowRight className="h-3.5 w-3.5" /></Link>
+          <Link href="/for-government" className="mt-8 inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">{c.nav.government} <ArrowRight className="h-3.5 w-3.5" /></Link>
         </div>
       </section>
 
@@ -259,6 +260,8 @@ export default function HomePage() {
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
             <Link href="/methodology" className="hover:text-slate-950">{c.nav.methodology}</Link>
             <Link href="/faq" className="hover:text-slate-950">{c.nav.faq}</Link>
+            <Link href="/for-companies" className="hover:text-slate-950">{c.nav.companies}</Link>
+            <Link href="/for-government" className="hover:text-slate-950">{c.nav.government}</Link>
             <Link href="/relying-parties" className="hover:text-slate-950">{c.nav.relying}</Link>
             <Link href="/verify" className="hover:text-slate-950">{c.verify.cta}</Link>
             <Link href="/contact" className="hover:text-slate-950">{c.footer.contact}</Link>
