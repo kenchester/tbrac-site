@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, AlertTriangle, XCircle, Search } from "lucide-react";
-import { LanguageToggle } from "@/components/language-toggle";
+import { SiteHeader } from "@/components/site-header";
 import { Copyright } from "@/components/copyright";
 import { useLanguage } from "@/lib/language-context";
 
@@ -72,15 +72,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   const t = useV();
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-[#0b1f3a] text-sm font-bold text-white">TB</span>
-            <span className="text-[15px] font-bold tracking-[0.18em]">TBRAC</span>
-          </Link>
-          <div className="flex items-center gap-2"><span className="hidden text-sm text-slate-500 sm:block">{t.header}</span><LanguageToggle /></div>
-        </div>
-      </header>
+      <SiteHeader />
       <main className="mx-auto max-w-3xl space-y-6 px-5 py-10">{children}</main>
       <Copyright />
     </div>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Source_Serif_4 } from "next/font/google";
 import { ArrowRight, Check, Minus, Scale, FileSearch, Users, MessageSquareText, ShieldCheck, BookOpen } from "lucide-react";
-import { LanguageToggle } from "@/components/language-toggle";
+import { SiteHeader } from "@/components/site-header";
 import { HOME } from "@/lib/home-content";
 import { useLanguage } from "@/lib/language-context";
 
@@ -46,26 +46,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-          <Wordmark />
-          <nav className="hidden items-center gap-7 text-sm text-slate-700 lg:flex">
-            <a href="#how" className="hover:text-slate-950">{c.nav.how}</a>
-            <Link href="/for-companies" className="hover:text-slate-950">{c.nav.companies}</Link>
-            <Link href="/for-government" className="hover:text-slate-950">{c.nav.government}</Link>
-            <Link href="/methodology" className="hover:text-slate-950">{c.nav.methodology}</Link>
-            <Link href="/case-studies" className="hover:text-slate-950">{c.nav.cases}</Link>
-            <Link href="/faq" className="hover:text-slate-950">{c.nav.faq}</Link>
-            <Link href="/about" className="hover:text-slate-950">{c.nav.about}</Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <Link href="/company/login" className="hidden px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-950 sm:block">{c.nav.signIn}</Link>
-            <Link href={SIGNUP} className="rounded-md px-4 py-2 text-sm font-semibold text-white" style={{ background: NAVY }}>{c.step1.cta}</Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero */}
       <section style={{ background: NAVY }} className="text-white">

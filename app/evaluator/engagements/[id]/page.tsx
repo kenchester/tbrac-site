@@ -1766,7 +1766,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header minimal />
       <main className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
         <div className="flex gap-4 text-sm">
           <Link href="/evaluator/engagements" className="text-primary hover:underline">← All engagements</Link>

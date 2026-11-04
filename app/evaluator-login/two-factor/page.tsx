@@ -59,7 +59,7 @@ export default function TwoFactorSetupPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header minimal />
       <div className="container mx-auto max-w-lg px-4 py-16">
         <Card>
           <CardHeader>

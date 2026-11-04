@@ -20,7 +20,7 @@ export default function AiCheckPage() {
   };
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header minimal />
       <main className="container mx-auto max-w-4xl space-y-6 px-4 py-10">
         <Link href="/evaluator/engagements" className="text-sm text-primary hover:underline">← Comprehensive assessments</Link>
         <div>

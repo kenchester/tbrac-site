@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Source_Serif_4 } from "next/font/google"
 import { ArrowRight } from "lucide-react"
-import { LanguageToggle } from "@/components/language-toggle"
+import { SiteHeader } from "@/components/site-header"
 import { Copyright } from "@/components/copyright"
 import { useLanguage } from "@/lib/language-context"
 
@@ -73,15 +73,7 @@ export default function MethodologyPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-sm text-sm font-bold text-white" style={{ background: NAVY }}>TB</span>
-            <span className="text-[15px] font-bold tracking-[0.18em]">TBRAC</span>
-          </Link>
-          <LanguageToggle />
-        </div>
-      </header>
+      <SiteHeader />
 
       <section style={{ background: NAVY }} className="text-white">
         <div className="mx-auto max-w-5xl px-5 py-16">

@@ -58,7 +58,7 @@ export default function MethodologyAdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header minimal />
       <main className="container mx-auto max-w-6xl space-y-6 px-4 py-10">
         <Link href="/evaluator/engagements" className="text-sm text-primary hover:underline">← Comprehensive assessments</Link>
         <div>

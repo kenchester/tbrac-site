@@ -101,7 +101,7 @@ export default function EvaluatorLoginPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header minimal />
 
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-md mx-auto space-y-8">
