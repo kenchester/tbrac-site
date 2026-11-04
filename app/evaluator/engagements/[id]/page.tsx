@@ -806,6 +806,14 @@ function DocumentRequests({ eng, m, reload }: { eng: EngagementDetail; m: Method
   });
   const review = (r: DocRequest, action: "accept" | "return" | "waive") =>
     run(() => engagementsApi.reviewRequest(eng.id, r.id, { action, note: notes[r.id] }));
+  const [sent, setSent] = useState("");
+  const awaiting = (rows ?? []).filter((r) => r.status === "open" || r.status === "returned").length;
+  const notify = () => run(async () => {
+    const res = await fetch(`/api/evaluator/engagements/${eng.id}/notify`, { method: "POST" });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail ?? "Email failed");
+    setSent(`Emailed ${body.to} about ${body.count} request(s).`);
+  });
   const counts = (rows ?? []).reduce<Record<string, number>>((a, r) => ({ ...a, [r.status]: (a[r.status] ?? 0) + 1 }), {});
 
   return (
@@ -819,6 +827,13 @@ function DocumentRequests({ eng, m, reload }: { eng: EngagementDetail; m: Method
             Accepting a response records it as subject-authored evidence linked to the listed indicators and red lines.
             A refusal you accept is recorded as a finding (grade it E4).
           </p>
+          {!locked && awaiting > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Button size="sm" variant="outline" disabled={busy} onClick={notify}>Email the company ({awaiting} awaiting)</Button>
+              <span className="text-xs text-muted-foreground">Sends the list in English and Chinese with a link to respond.</span>
+              {sent && <span className="text-xs text-green-700">{sent}</span>}
+            </div>
+          )}
           {rows && rows.length > 0 && (
             <p className="text-xs text-muted-foreground">
               {Object.entries(counts).map(([k, v]) => `${REQUEST_STATUS_LABEL[k as keyof typeof REQUEST_STATUS_LABEL]} ${v}`).join(" · ")}

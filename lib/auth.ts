@@ -10,9 +10,12 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null
 
+// Shared with route handlers that need to look up a user's email (lib/email.ts callers).
+export const authDb = new Pool({ connectionString: process.env.DATABASE_URL })
+
 export const auth = betterAuth({
   baseURL,
-  database: new Pool({ connectionString: process.env.DATABASE_URL }),
+  database: authDb,
   advanced: {
     // FastAPI parses the JWT `sub` as a UUID (customers.user_id etc.)
     database: { generateId: "uuid" },
