@@ -213,6 +213,27 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Fees and verification */}
+      <section className="border-t border-slate-200 bg-slate-50">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2">
+          <div>
+            <h2 className={`${serif.className} text-2xl font-semibold`}>{c.fees.title}</h2>
+            <p className="mt-3 text-[15px] leading-relaxed text-slate-600">{c.fees.text}</p>
+            <ul className="mt-5 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white text-sm">
+              {[c.fees.design, c.fees.operating, c.fees.monitoring].map((x) => (
+                <li key={x} className="flex justify-between px-4 py-3"><span>{x}</span><span className="font-medium text-slate-700">{c.fees.flat}</span></li>
+              ))}
+            </ul>
+            <Link href="/contact" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">{c.fees.ask} <ArrowRight className="h-3.5 w-3.5" /></Link>
+          </div>
+          <div>
+            <h2 className={`${serif.className} text-2xl font-semibold`}>{c.verify.title}</h2>
+            <p className="mt-3 text-[15px] leading-relaxed text-slate-600">{c.verify.text}</p>
+            <Link href="/verify" className="mt-5 inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold hover:bg-slate-50">{c.verify.cta} <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section style={{ background: NAVY }} className="text-white">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-5 py-16 md:flex-row md:items-center">
@@ -237,6 +258,7 @@ export default function HomePage() {
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
             <Link href="/methodology" className="hover:text-slate-950">{c.nav.methodology}</Link>
             <Link href="/faq" className="hover:text-slate-950">{c.nav.faq}</Link>
+            <Link href="/verify" className="hover:text-slate-950">{c.verify.cta}</Link>
             <Link href="/contact" className="hover:text-slate-950">{c.footer.contact}</Link>
             <Link href="/privacy" className="hover:text-slate-950">{c.footer.privacy}</Link>
             <Link href="/terms" className="hover:text-slate-950">{c.footer.terms}</Link>

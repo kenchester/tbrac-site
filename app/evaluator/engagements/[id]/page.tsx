@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventRow } from "@/components/monitoring-event-row";
 import {
   engagementsApi, PRE_ISSUE_STAGES, stageLabel,
-  type MonitoringConfig, type FeeStatus, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
+  type MonitoringConfig, type FeeStatus, type ExternalMember, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
   type AuditEntry, type DocRequest, type RequestTemplate, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
@@ -658,9 +658,12 @@ function ReportInputs({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: En
 }
 
 // ------------------------------------------------------------------ committee
-function Committee({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+function Committee({ eng, m, onSaved }: { eng: EngagementDetail; m: Methodology; onSaved: (e: EngagementDetail) => void }) {
   const [decision, setDecision] = useState<"approve" | "return">("approve");
   const [members, setMembers] = useState("");
+  const [externals, setExternals] = useState<ExternalMember[]>([]);
+  const internalCount = 1 + members.split(",").map((x) => x.trim()).filter(Boolean).length;
+  const total = internalCount + externals.length;
   const [rationale, setRationale] = useState("");
   const [dissent, setDissent] = useState("");
   const [msg, setMsg] = useState("");
@@ -671,6 +674,7 @@ function Committee({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Engag
       onSaved(await engagementsApi.committee(eng.id, {
         decision, rationale, dissent: dissent || null,
         members: members.split(",").map((s) => s.trim()).filter(Boolean),
+        external_members: externals.filter((x) => x.name.trim()),
       }));
       setRationale(""); setDissent(""); setMsg("Decision recorded.");
     } catch (e) { setMsg(errMsg(e)); }
@@ -702,6 +706,24 @@ function Committee({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Engag
               <Label htmlFor="members">Other committee members (evaluator emails, comma-separated)</Label>
               <Input id="members" value={members} onChange={(e) => setMembers(e.target.value)} placeholder="name@example.com" />
             </div>
+            <div className="space-y-2">
+              <Label>Independent external members (§11)</Label>
+              {externals.map((x, i) => (
+                <div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto] items-center">
+                  <Input placeholder="Name" value={x.name} onChange={(e) => setExternals(externals.map((y, j) => j === i ? { ...y, name: e.target.value } : y))} />
+                  <Input placeholder="Affiliation / role" value={x.affiliation} onChange={(e) => setExternals(externals.map((y, j) => j === i ? { ...y, affiliation: e.target.value } : y))} />
+                  <label className="flex items-center gap-1 text-xs">
+                    <input type="checkbox" checked={x.independence_confirmed} onChange={(e) => setExternals(externals.map((y, j) => j === i ? { ...y, independence_confirmed: e.target.checked } : y))} />
+                    signed independence declaration on file
+                  </label>
+                  <Button size="sm" variant="ghost" onClick={() => setExternals(externals.filter((_, j) => j !== i))}>Remove</Button>
+                </div>
+              ))}
+              <Button size="sm" variant="outline" onClick={() => setExternals([...externals, { name: "", affiliation: "", independence_confirmed: false }])}>Add external member</Button>
+              <p className={`text-xs ${total < m.committee_min_members ? "text-amber-700" : "text-muted-foreground"}`}>
+                Committee size: {total} (you, {internalCount - 1} evaluator{internalCount === 2 ? "" : "s"}, {externals.length} external). Minimum {m.committee_min_members}.
+              </p>
+            </div>
             <div className="space-y-1">
               <Label htmlFor="rationale">Rationale (required)</Label>
               <Textarea id="rationale" rows={3} value={rationale} onChange={(e) => setRationale(e.target.value)} />
@@ -730,7 +752,8 @@ function Committee({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Engag
                 <span>{new Date(d.decided_at).toLocaleString()}</span>
                 <span className="text-muted-foreground">rating seen: {d.tier ?? "—"} · {d.confidence ?? "—"}</span>
               </div>
-              <p><span className="font-medium">Chair:</span> {d.chair} · <span className="font-medium">Members:</span> {d.members.join(", ")}</p>
+              <p><span className="font-medium">Chair:</span> {d.chair} · <span className="font-medium">Members:</span> {d.members.join(", ")}
+                {d.external_members?.length > 0 && <> · <span className="font-medium">External:</span> {d.external_members.map((x) => `${x.name} (${x.affiliation})`).join(", ")}</>}</p>
               <p>{d.rationale}</p>
               {d.dissent && <p className="text-orange-800"><span className="font-medium">Dissent:</span> {d.dissent}</p>}
             </div>
@@ -1369,7 +1392,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
                   <TabsTrigger value="audit">Audit trail</TabsTrigger>
                 </TabsList>
-                <TabsContent value="committee" className="space-y-4"><Signoffs eng={eng} onSaved={setEng} /><Committee eng={eng} onSaved={setEng} /></TabsContent>
+                <TabsContent value="committee" className="space-y-4"><Signoffs eng={eng} onSaved={setEng} /><Committee eng={eng} m={m} onSaved={setEng} /></TabsContent>
                 <TabsContent value="acceptance"><Acceptance eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="reply"><RightOfReply eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="audit"><AuditTrail eng={eng} /></TabsContent>

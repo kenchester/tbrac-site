@@ -19,6 +19,7 @@ export interface Methodology {
   gates: Record<string, { kind: "hard" | "soft"; name: string; cap?: string; indicators: string[] }>;
   evidence_grades: Grade[];
   validity_months: number;
+  committee_min_members: number;
   /** Appendix C anchors: written description of each level 0-4, plus expected evidence. */
   anchors: Record<string, { name: string; evidence: string | null; levels: Record<string, string> }>;
 }
@@ -53,8 +54,10 @@ export interface StatutoryFinding {
   jurisdiction: string; test: string; result: "meets" | "does_not_meet" | "not_determined"; basis: string | null;
 }
 export type Outlook = "stable" | "positive" | "negative";
+export interface ExternalMember { name: string; affiliation: string; independence_confirmed: boolean }
 export interface CommitteeDecision {
   id: string; decision: "approve" | "return"; chair: string; members: string[]; rationale: string;
+  external_members: { name: string; affiliation: string }[];
   dissent: string | null; decided_at: string; tier: string | null; confidence: string | null;
 }
 export interface AuditEntry { at: string; actor: string | null; target: string | null; action: string; old: Record<string, unknown> | null; new: Record<string, unknown> }
@@ -69,6 +72,7 @@ export interface EngagementDetail extends EngagementSummary {
   reply_shared_at: string | null; reply_due_at: string | null; reply_received_at: string | null; reply_submitted_by: string | null;
   declarations: Declaration[]; signoffs: Signoff[]; readiness: ReadinessCheck[];
   grade_support: Record<string, { items: number; independent: number; best: Grade }>;
+  report_number: string | null; report_fingerprint: string | null;
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
@@ -149,7 +153,8 @@ export const engagementsApi = {
     authenticatedRequest<void>(`${base}/engagements/${id}/evidence/${evidenceId}`, { method: "DELETE" }),
   scoreIndicator: (id: string, code: string, body: Omit<IndicatorScore, "code" | "scored_by" | "updated_at">) =>
     authenticatedRequest<IndicatorScore>(`${base}/engagements/${id}/indicators/${code}`, json("PUT", body)),
-  committee: (id: string, body: { decision: "approve" | "return"; members: string[]; rationale: string; dissent?: string | null }) =>
+  committee: (id: string, body: { decision: "approve" | "return"; members: string[]; rationale: string; dissent?: string | null;
+    external_members?: ExternalMember[] }) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/committee`, json("POST", body)),
   requestList: () => authenticatedRequest<{ items: Record<string, RequestTemplate>; attestation_statement: string }>(`${base}/document-request-list`),
   requests: (id: string) => authenticatedRequest<DocRequest[]>(`${base}/engagements/${id}/document-requests`),

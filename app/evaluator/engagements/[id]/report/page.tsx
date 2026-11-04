@@ -103,7 +103,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         )}
         <header className="space-y-1 border-b-4 border-slate-900 pb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            TBRAC Independent Risk Assessment · {view === "public" ? "Public summary" : "Restricted report"}
+            TBRAC Independent Risk Assessment · {view === "public" ? "Public summary" : "Restricted report"}{eng.report_number ? ` · ${eng.report_number}` : ""}
           </p>
           <h1 className="text-3xl font-bold">{eng.customer_name}</h1>
           <p className="text-sm text-slate-600">
@@ -191,7 +191,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 const d = [...eng.committee_decisions].reverse().find((x) => x.decision === "approve");
                 return d ? (
                   <div className="space-y-1 text-sm">
-                    <p>Approved {fmt(d.decided_at)} by a committee of {d.members.length} (chair: {d.chair}). The lead analyst did not vote.</p>
+                    <p>Approved {fmt(d.decided_at)} by a committee of {d.members.length + (d.external_members?.length ?? 0)} (chair: {d.chair}
+                      {d.external_members?.length ? `; including ${d.external_members.length} independent external member${d.external_members.length > 1 ? "s" : ""}` : ""}). The lead analyst did not vote.</p>
                     <p><span className="font-semibold">Rationale:</span> {d.rationale}</p>
                     {d.dissent && <p><span className="font-semibold">Dissent recorded:</span> {d.dissent}</p>}
                     {(() => {
@@ -222,6 +223,14 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           </>
         )}
 
+        {eng.report_number && (
+          <section className="break-inside-avoid-page rounded border border-slate-300 p-4 text-sm">
+            <p className="font-semibold">Report {eng.report_number}</p>
+            <p className="mt-1 text-slate-600">Check this report&apos;s current status at <span className="font-mono">tbrac.org/verify/{eng.report_number}</span>.
+              The register shows the same fingerprint if the rating on this copy has not been altered.</p>
+            <p className="mt-1 break-all font-mono text-xs text-slate-500">Fingerprint (SHA-256): {eng.report_fingerprint}</p>
+          </section>
+        )}
         <footer className="border-t pt-3 text-xs text-slate-500">
           Prepared under TBRAC Assessment Methodology {r.methodology_version}. Point scores are internal working figures and are not reported.
           {view === "public" && " This public summary omits confidential findings; the restricted report is available only to the named intended users."}

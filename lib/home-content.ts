@@ -67,7 +67,7 @@ export const HOME = {
     sample: { company: "Example Battery Materials Co.", type: "Design assessment", tier: "T2 · Moderate", confidence: "Moderate", outlook: "Stable", status: "Current", valid: "Valid 12 months from issue", rows: [["Ownership and state links", "T2"], ["National security and export control", "T1"], ["Data security", "T2"], ["Supply chain and forced labor", "T2"], ["Integrity and legal history", "T1"], ["Financial integrity", "T2"], ["IP conduct", "T1"]] },
     trustTitle: "Why the result can be relied on",
     trust: [
-      { t: "Independent by design", d: "Flat, published fees paid before the committee decides. No consulting for any company we assess. Sales are kept apart from analysis." },
+      { t: "Independent by design", d: "One flat fee per assessment type, the same for every company whatever its size, paid before the committee decides and never linked to the outcome. No consulting for any company we assess." },
       { t: "Evidence, graded", d: "A grade cannot exceed its evidence: a top grade needs two or more sources, at least one not supplied by the company." },
       { t: "Decided by a committee", d: "A second reviewer checks the work; a committee with an independent chair decides. Counsel reviews every elevated or high rating." },
       { t: "Fair to the company", d: "A right of reply before any decision, an officer's attestation in place of guesswork, and refusals recorded rather than filled in covertly." },
@@ -78,6 +78,8 @@ export const HOME = {
     disclaimer: "A TBRAC report is an independent risk opinion as of the date stated. It is not a certification, guarantee or approval; it is not a CFIUS determination or a decision of any government agency; it does not override any statute; and it is not legal advice.",
     finalTitle: "Start with the free self-assessment",
     finalLead: "See where you stand, privately. When you are ready, request an independent assessment from your results.",
+    fees: { title: "Fees", text: "Every company pays the same flat fee for the same type of assessment, whatever its size, revenue or the outcome. The fee is agreed in the engagement letter and paid or escrowed before the rating committee meets, so it can never depend on the rating. Analysts never discuss fees.", design: "Design assessment", operating: "Operating assessment", monitoring: "Monitoring during validity", flat: "One flat fee", ask: "Ask for the current fee schedule" },
+    verify: { title: "Verify a report", text: "Every issued report has a report number and a fingerprint. Anyone can check its live status in the public register.", cta: "Verify a report" },
     footer: { evaluator: "Evaluator sign-in", privacy: "Privacy", terms: "Terms", contact: "Contact", rights: "All rights reserved." },
   },
   zh: {
@@ -145,7 +147,7 @@ export const HOME = {
     sample: { company: "示例电池材料有限公司", type: "设计评估", tier: "T2 · 中等", confidence: "中等", outlook: "稳定", status: "有效", valid: "自出具之日起 12 个月有效", rows: [["所有权与国有关联", "T2"], ["国家安全与出口管制", "T1"], ["数据安全", "T2"], ["供应链与强迫劳动", "T2"], ["诚信与法律记录", "T1"], ["财务诚信", "T2"], ["知识产权行为", "T1"]] },
     trustTitle: "为何评估结果值得依赖",
     trust: [
-      { t: "制度上保持独立", d: "固定公开收费，在委员会决定前付清。不为任何被评估企业提供咨询。销售与分析相互隔离。" },
+      { t: "制度上保持独立", d: "每类评估一个固定费用，无论企业规模大小均相同，在委员会决定前付清，且与评估结果无关。不为任何被评估企业提供咨询。" },
       { t: "证据分级", d: "评级不能超出证据：最高等级需要两个以上来源，且至少一个并非由企业提供。" },
       { t: "由委员会决定", d: "第二审核人复核工作；由独立主席主持的委员会作出决定。律师审查每一项较高或高风险评级。" },
       { t: "对企业公平", d: "决定前享有答辩权，以高级管理人员声明代替猜测，拒绝提供的情况如实记录，绝不暗中填补。" },
@@ -156,6 +158,8 @@ export const HOME = {
     disclaimer: "TBRAC 报告是截至所述日期的独立风险意见。它不是认证、担保或批准；不是 CFIUS 决定，也不是任何政府机构的决定；不能凌驾于任何法律之上；也不构成法律意见。",
     finalTitle: "从免费自我评估开始",
     finalLead: "私密地了解贵公司的现状。准备就绪后，可在评估结果页面申请独立评估。",
+    fees: { title: "收费", text: "同一类型的评估，所有企业支付相同的固定费用，与企业规模、收入或评估结果无关。费用在委托书中约定，并在评级委员会开会前付清或托管，因此绝不会取决于评级结果。分析师从不讨论费用。", design: "设计评估", operating: "运营评估", monitoring: "有效期内持续监测", flat: "一个固定费用", ask: "索取现行收费标准" },
+    verify: { title: "核验报告", text: "每份已出具的报告都有报告编号和数字指纹。任何人都可以在公开登记册中查询其实时状态。", cta: "核验报告" },
     footer: { evaluator: "评估人员登录", privacy: "隐私政策", terms: "使用条款", contact: "联系我们", rights: "保留所有权利。" },
   },
 } as const;
