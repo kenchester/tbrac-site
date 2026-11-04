@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { engagementsApi, stageLabel, type EngagementSummary } from "@/lib/engagements";
+import { engagementsApi, stageLabel, type EngagementSummary, type MonitoringEvent } from "@/lib/engagements";
+import { EventRow } from "@/components/monitoring-event-row";
 
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 
@@ -120,6 +121,20 @@ export default function EngagementsPage() {
   const [error, setError] = useState("");
   const [showNew, setShowNew] = useState(false);
 
+  const [alerts, setAlerts] = useState<MonitoringEvent[] | null>(null);
+  const [runMsg, setRunMsg] = useState("");
+  const [running, setRunning] = useState(false);
+  const loadAlerts = useCallback(() => { engagementsApi.events().then(setAlerts).catch(() => setAlerts([])); }, []);
+  useEffect(loadAlerts, [loadAlerts]);
+  const runNow = async () => {
+    setRunning(true); setRunMsg("");
+    try {
+      const s = await engagementsApi.runMonitoring();
+      setRunMsg(`Checked ${s.checked} issued rating(s): ${s.events} new alert(s), ${s.under_review} placed Under Review, ${s.expired} expired.`);
+      loadAlerts(); load();
+    } catch (e) { setRunMsg(e instanceof Error ? e.message : "Monitoring failed"); } finally { setRunning(false); }
+  };
+
   const load = useCallback(() => {
     engagementsApi.list().then(setRows).catch((e) => setError(e instanceof Error ? e.message : "Could not load engagements"));
   }, []);
@@ -141,6 +156,24 @@ export default function EngagementsPage() {
         </div>
 
         {showNew && <NewEngagement onCreated={(id) => router.push(`/evaluator/engagements/${id}`)} />}
+
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="text-base">Monitoring alerts {alerts && alerts.length > 0 && `(${alerts.length})`}</CardTitle>
+              <Button size="sm" variant="outline" disabled={running} onClick={runNow}>{running ? "Running…" : "Run monitoring now"}</Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Issued ratings are re-screened every morning; expiries, Under Review deadlines and watch dates are checked too.
+            </p>
+            {runMsg && <p className="text-sm text-green-700">{runMsg}</p>}
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {alerts === null && <p className="text-sm text-muted-foreground">Loading…</p>}
+            {alerts?.length === 0 && <p className="text-sm text-muted-foreground">No open alerts.</p>}
+            {alerts?.map((e) => <EventRow key={e.id} e={e} onAck={loadAlerts} showCompany />)}
+          </CardContent>
+        </Card>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Card>

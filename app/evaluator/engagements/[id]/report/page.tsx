@@ -91,6 +91,16 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             Draft — not issued. Rating may change. Not for reliance.
           </p>
         )}
+        {eng.stage === "under_review" && (
+          <p className="rounded border-2 border-amber-500 px-3 py-2 text-center text-sm font-semibold text-amber-800">
+            UNDER REVIEW since {fmt(eng.review_started_at)}. The rating may change; resolution expected by {fmt(eng.review_due_at)}.
+          </p>
+        )}
+        {(eng.stage === "withdrawn" || eng.stage === "expired") && (
+          <p className="rounded border-2 border-red-500 px-3 py-2 text-center text-sm font-semibold uppercase text-red-700">
+            {eng.stage === "withdrawn" ? "Rating withdrawn" : "Rating expired"}. Not for reliance.
+          </p>
+        )}
         <header className="space-y-1 border-b-4 border-slate-900 pb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             TBRAC Independent Risk Assessment · {view === "public" ? "Public summary" : "Restricted report"}

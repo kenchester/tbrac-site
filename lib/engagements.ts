@@ -63,6 +63,7 @@ export interface EngagementDetail extends EngagementSummary {
   outlook: Outlook | null; statutory_findings: StatutoryFinding[]; conditions: string[];
   subject_reply: string | null; rating_snapshot: Rating | null;
   committee_decisions: CommitteeDecision[]; committee_status: { approved: boolean; reason: string };
+  review_started_at: string | null; review_due_at: string | null; review_reason: string | null; last_monitored_at: string | null;
   entities: Entity[]; evidence: Evidence[]; indicator_scores: IndicatorScore[]; gate_results: GateResult[]; rating: Rating;
 }
 
@@ -91,6 +92,23 @@ export const REQUEST_STATUS_CLASS: Record<RequestStatus, string> = {
   open: "bg-slate-100 text-slate-700", submitted: "bg-blue-100 text-blue-800", accepted: "bg-green-100 text-green-800",
   returned: "bg-amber-100 text-amber-800", refused: "bg-red-100 text-red-800", waived: "bg-slate-100 text-slate-500",
 };
+
+export interface MonitoringEvent {
+  id: string; engagement_id: string; kind: string; severity: "info" | "warning" | "critical"; message: string;
+  details: Record<string, unknown>; created_at: string; acknowledged_by: string | null; acknowledged_at: string | null;
+  customer_name?: string;
+}
+export interface MonitoringConfig {
+  triggers: Record<string, string>; watch_dates: { date: string; item: string }[];
+  under_review_days: number; expiry_warning_days: number;
+}
+export type ReviewActionName = "start" | "affirm" | "reopen" | "withdraw" | "expire";
+export const SEVERITY_CLASS: Record<string, string> = {
+  critical: "bg-red-100 text-red-800 border-red-200", warning: "bg-amber-100 text-amber-800 border-amber-200",
+  info: "bg-slate-100 text-slate-700",
+};
+/** Stages an evaluator can set directly; after issue the stage changes only through review actions. */
+export const PRE_ISSUE_STAGES: Stage[] = ["acceptance", "scoping", "documents", "screening", "verification", "scoring", "reply", "committee", "issued", "withdrawn"];
 
 const json = (method: string, body: unknown) => ({ method, body: JSON.stringify(body) });
 
@@ -130,6 +148,20 @@ export const engagementsApi = {
     authenticatedRequest<void>(`${base}/engagements/${id}/document-requests/${rid}`, { method: "DELETE" }),
   reviewRequest: (id: string, rid: string, body: { action: "accept" | "return" | "waive"; note?: string }) =>
     authenticatedRequest<DocRequest>(`${base}/engagements/${id}/document-requests/${rid}/review`, json("POST", body)),
+  monitoringConfig: () => authenticatedRequest<MonitoringConfig>(`${base}/monitoring/config`),
+  events: (params: { engagement_id?: string; include_acknowledged?: boolean } = {}) => {
+    const q = new URLSearchParams();
+    if (params.engagement_id) q.set("engagement_id", params.engagement_id);
+    if (params.include_acknowledged) q.set("include_acknowledged", "true");
+    return authenticatedRequest<MonitoringEvent[]>(`${base}/monitoring/events?${q}`);
+  },
+  acknowledge: (eventId: string, note?: string) =>
+    authenticatedRequest<MonitoringEvent>(`${base}/monitoring/events/${eventId}/acknowledge`, json("POST", { note })),
+  runMonitoring: () => authenticatedRequest<{ checked: number; events: number; under_review: number; expired: number }>(`${base}/monitoring/run`, { method: "POST" }),
+  bringDown: (id: string) =>
+    authenticatedRequest<{ screened_at: string; stage: string; events: MonitoringEvent[] }>(`${base}/engagements/${id}/bring-down`, { method: "POST" }),
+  review: (id: string, body: { action: ReviewActionName; trigger?: string; note: string }) =>
+    authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/review`, json("POST", body)),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>

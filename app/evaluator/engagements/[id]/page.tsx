@@ -10,13 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EventRow } from "@/components/monitoring-event-row";
 import {
-  engagementsApi, STAGES, stageLabel, TIER_CLASS, TIER_LABEL,
+  engagementsApi, PRE_ISSUE_STAGES, stageLabel,
+  type MonitoringConfig, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
   type AuditEntry, type DocRequest, type RequestTemplate, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
 
-const LOCKED = new Set(["issued", "withdrawn", "expired"]);
+const LOCKED = new Set(["issued", "under_review", "withdrawn", "expired"]);
+const POST_ISSUE = new Set(["issued", "under_review", "withdrawn", "expired"]);
 const GRADES: Grade[] = ["E1", "E2", "E3", "E4"];
 const GRADE_HINT: Record<Grade, string> = {
   E1: "E1 · Verified (2+ independent sources)",
@@ -124,15 +127,19 @@ function Overview({ eng, m, onSaved }: { eng: EngagementDetail; m: Methodology; 
       <Card>
         <CardContent className="pt-6 space-y-3">
           <Label htmlFor="stage">Stage</Label>
+          {POST_ISSUE.has(eng.stage) ? (
+            <p className="text-sm">{stageLabel(eng.stage)}. After issue, use the <b>Monitoring</b> tab to place it Under Review, affirm, reopen for re-rating, withdraw or expire it.</p>
+          ) : (
           <div className="flex flex-wrap gap-2">
             <select id="stage" className={sel} value={stage} onChange={(e) => setStage(e.target.value as typeof stage)}>
-              {STAGES.map((s) => <option key={s} value={s}>{stageLabel(s)}</option>)}
+              {PRE_ISSUE_STAGES.map((s) => <option key={s} value={s}>{stageLabel(s)}</option>)}
             </select>
             <Button variant="outline" onClick={changeStage} disabled={stage === eng.stage}>Update stage</Button>
           </div>
+          )}
           <p className="text-xs text-muted-foreground">
-            Issuing requires a complete rating, sets validity to {m.validity_months} months and locks the engagement.
-            Move it to “Under review” to make changes after issue.
+            Issuing requires a complete rating, committee approval and an Outlook; it sets validity to {m.validity_months} months,
+            records the screening baseline and locks the engagement. Daily monitoring then re-screens it.
           </p>
           {eng.issued_at && <p className="text-sm">Issued {new Date(eng.issued_at).toLocaleDateString()} · valid until {eng.valid_until ? new Date(eng.valid_until).toLocaleDateString() : "—"}</p>}
         </CardContent>
@@ -947,6 +954,135 @@ function DocumentRequests({ eng, m, reload }: { eng: EngagementDetail; m: Method
   );
 }
 
+// ------------------------------------------------------------------ monitoring (§9)
+const ACTIONS: { action: ReviewActionName; label: string; from: string[]; hint: string }[] = [
+  { action: "start", label: "Place Under Review", from: ["issued"], hint: "A §9 trigger occurred. Resolve within 90 days." },
+  { action: "affirm", label: "Affirm rating", from: ["under_review"], hint: "Review found no change to the rating." },
+  { action: "reopen", label: "Reopen for re-rating", from: ["issued", "under_review"], hint: "Back to scoring; the issued rating is withdrawn from the report until the committee approves and you issue again." },
+  { action: "withdraw", label: "Withdraw rating", from: ["issued", "under_review"], hint: "Relying Parties must be notified." },
+  { action: "expire", label: "Expire now", from: ["issued", "under_review"], hint: "e.g. change of control (§9)." },
+];
+const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
+
+function Monitoring({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [cfg, setCfg] = useState<MonitoringConfig | null>(null);
+  const [events, setEvents] = useState<MonitoringEvent[] | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const [action, setAction] = useState<ReviewActionName | "">("");
+  const [trigger, setTrigger] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+
+  const load = useCallback(() => {
+    engagementsApi.events({ engagement_id: eng.id, include_acknowledged: showAll }).then(setEvents).catch((e) => setError(errMsg(e)));
+  }, [eng.id, showAll]);
+  useEffect(() => { load(); }, [load, eng.stage]);
+  useEffect(() => { engagementsApi.monitoringConfig().then(setCfg).catch(() => {}); }, []);
+
+  const go = async (f: () => Promise<void>) => {
+    setBusy(true); setError(""); setMsg("");
+    try { await f(); load(); } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  const bringDown = () => go(async () => {
+    const r = await engagementsApi.bringDown(eng.id);
+    setMsg(`Re-screened ${new Date(r.screened_at).toLocaleString()}: ${r.events.length} new event(s).`);
+    onSaved(await engagementsApi.get(eng.id));
+  });
+  const doAction = () => go(async () => {
+    if (!action) return;
+    onSaved(await engagementsApi.review(eng.id, { action, trigger: action === "start" ? trigger : undefined, note }));
+    setAction(""); setNote(""); setTrigger(""); setMsg("Saved.");
+  });
+  const available = ACTIONS.filter((a) => a.from.includes(eng.stage));
+  const issued = eng.stage === "issued" || eng.stage === "under_review";
+
+  return (
+    <div className="space-y-4">
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {msg && <p className="text-sm text-green-700">{msg}</p>}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Surveillance status</CardTitle></CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="grid gap-2 sm:grid-cols-4">
+            <div><p className="text-xs text-muted-foreground">Status</p><p className="font-medium">{stageLabel(eng.stage)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Issued</p><p>{fmtDate(eng.issued_at)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Valid until</p><p>{fmtDate(eng.valid_until)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Last monitored</p><p>{eng.last_monitored_at ? new Date(eng.last_monitored_at).toLocaleString() : "—"}</p></div>
+          </div>
+          {eng.review_reason && (
+            <p className={eng.stage === "under_review" ? "rounded-md bg-amber-50 p-2 text-amber-900" : "text-muted-foreground"}>
+              {eng.stage === "under_review" && <b>Under Review since {fmtDate(eng.review_started_at)}, resolve by {fmtDate(eng.review_due_at)}. </b>}
+              {eng.review_reason}
+            </p>
+          )}
+          {!issued && !eng.review_reason && <p className="text-muted-foreground">Monitoring starts when the rating is issued.</p>}
+          {issued && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Button size="sm" variant="outline" disabled={busy} onClick={bringDown}>Bring-down re-screen now</Button>
+              <span className="text-xs text-muted-foreground">Run at each Relying Party decision point (incentive approval, land closing). Daily monitoring also runs automatically.</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {available.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Actions</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {available.map((a) => (
+                <Button key={a.action} size="sm" variant={action === a.action ? "default" : "outline"} onClick={() => setAction(a.action)}>{a.label}</Button>
+              ))}
+            </div>
+            {action && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">{ACTIONS.find((a) => a.action === action)?.hint}</p>
+                {action === "start" && cfg && (
+                  <select className={sel} value={trigger} onChange={(e) => setTrigger(e.target.value)}>
+                    <option value="">Trigger (§9)…</option>
+                    {Object.entries(cfg.triggers).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  </select>
+                )}
+                <Textarea placeholder="What happened and what you are doing about it (recorded in the audit trail)" value={note} onChange={(e) => setNote(e.target.value)} />
+                <Button size="sm" disabled={busy || note.trim().length < 5 || (action === "start" && !trigger)} onClick={doAction}>
+                  Confirm: {ACTIONS.find((a) => a.action === action)?.label}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Alerts</CardTitle>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} /> show acknowledged
+            </label>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {events === null && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {events?.length === 0 && <p className="text-sm text-muted-foreground">No open alerts.</p>}
+          {events?.map((e) => <EventRow key={e.id} e={e} onAck={load} />)}
+        </CardContent>
+      </Card>
+
+      {cfg && (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Watch dates (Appendix B)</CardTitle></CardHeader>
+          <CardContent>
+            <ul className="text-sm space-y-1">{cfg.watch_dates.map((w) => <li key={w.date + w.item}><span className="font-mono text-xs">{w.date}</span> {w.item}</li>)}</ul>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -994,10 +1130,12 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   <TabsTrigger value="indicators">Indicators</TabsTrigger>
                   <TabsTrigger value="report">Report</TabsTrigger>
                   <TabsTrigger value="committee">Committee</TabsTrigger>
+                  <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
                   <TabsTrigger value="audit">Audit trail</TabsTrigger>
                 </TabsList>
                 <TabsContent value="committee"><Committee eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="audit"><AuditTrail eng={eng} /></TabsContent>
+                <TabsContent value="monitoring"><Monitoring eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="overview"><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>
