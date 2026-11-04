@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Globe, Users, LogOut, ChevronDown } from "lucide-react";
+import { Users, LogOut, ChevronDown } from "lucide-react";
+import { CompanyViewBanner } from "@/components/company-view-banner";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ export function PortalHeader() {
     router.push("/");
   };
 
+  const customerId = /^\/customers\/([0-9a-f-]{36})/.exec(pathname ?? "")?.[1];
+
   const navLinks = [
     { href: "/company/profile", label: t("portalCustomers"), icon: Users },
   ];
@@ -35,18 +38,9 @@ export function PortalHeader() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/company/profile" className="flex items-center gap-3">
-              <div className="relative h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-                <Globe className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold tracking-tight text-foreground">
-                  TBRAC
-                </span>
-                <span className="text-xs text-muted-foreground italic">
-                  Risk Assessment Platform
-                </span>
-              </div>
+            <Link href="/company/profile" className="flex items-center gap-3" aria-label="TBRAC">
+              <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-[#0b1f3a] text-sm font-bold text-white">TB</span>
+              <span className="text-[15px] font-bold tracking-[0.18em] text-slate-900">TBRAC</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1">
@@ -107,6 +101,7 @@ export function PortalHeader() {
           </div>
         </div>
       </div>
+      {customerId && <CompanyViewBanner customerId={customerId} />}
     </header>
   );
 }

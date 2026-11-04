@@ -81,6 +81,11 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
       </div>
 
       <article className="mx-auto my-6 max-w-4xl space-y-8 bg-white p-10 text-slate-900 shadow print:my-0 print:max-w-none print:p-0 print:shadow-none">
+        {eng.is_sandbox && (
+          <p className="rounded border-2 border-red-400 bg-red-50 px-4 py-2 text-center text-sm font-semibold text-red-800">
+            {lang === "zh" ? "测试报告 · 虚拟数据 · 并非 TBRAC 意见，不得依赖" : "TEST REPORT · DUMMY DATA · NOT A TBRAC OPINION AND NOT TO BE RELIED ON"}
+          </p>
+        )}
         {!issued && <p className="rounded border-2 border-red-500 px-3 py-2 text-center text-sm font-semibold uppercase tracking-wide text-red-700">{t.draft}</p>}
         {eng.stage === "under_review" && (
           <p className="rounded border-2 border-amber-500 px-3 py-2 text-center text-sm font-semibold text-amber-800">{t.underReview(fmt(eng.review_started_at), fmt(eng.review_due_at))}</p>

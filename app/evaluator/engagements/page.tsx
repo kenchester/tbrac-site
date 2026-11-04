@@ -151,6 +151,7 @@ export default function EngagementsPage() {
             <p className="text-muted-foreground">Engagements scored under the TBRAC methodology.</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" asChild><Link href="/evaluator/company-view">Company view</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/dashboard">Self-assessment review</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/guide">Guide</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/methodology">Methodology calibration</Link></Button>
@@ -206,6 +207,7 @@ export default function EngagementsPage() {
                   <tr key={r.id} className="hover:bg-muted/50">
                     <td className="px-4 py-3">
                       <Link className="font-medium text-primary hover:underline" href={`/evaluator/engagements/${r.id}`}>{r.customer_name}</Link>
+                      {r.is_sandbox && <Badge variant="outline" className="ml-2 border-sky-300 bg-sky-50 text-sky-900">Dummy data</Badge>}
                     </td>
                     <td className="px-4 py-3"><Badge variant="outline">{stageLabel(r.stage)}</Badge></td>
                     <td className="px-4 py-3 capitalize">{r.engagement_type}</td>

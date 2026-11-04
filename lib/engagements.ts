@@ -46,7 +46,7 @@ export interface Rating {
   reasons: string[]; missing: string[]; methodology_version: string; error: string | null;
 }
 export interface EngagementSummary {
-  id: string; customer_id: string; customer_name: string; engagement_type: string; track: string; stage: Stage;
+  id: string; customer_id: string; customer_name: string; is_sandbox?: boolean; engagement_type: string; track: string; stage: Stage;
   methodology_version: string; lead_analyst: string | null; issued_at: string | null; valid_until: string | null;
   created_at: string; updated_at: string;
 }

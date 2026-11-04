@@ -12,6 +12,7 @@ interface Verified {
   report_number: string; subject: string; engagement_type: string; scope: string | null; tier: string | null;
   confidence: string | null; outlook: string | null; domain_tiers: Record<string, string>; methodology_version: string;
   issued_at: string; valid_until: string; status: string; status_note: string | null; fingerprint: string; checked_at: string;
+  test?: boolean;
 }
 
 const V = {
@@ -35,6 +36,8 @@ const V = {
     check: "Check your copy", checkText: "Paste the fingerprint printed on your report. If it matches, the rating on your copy is the one TBRAC issued.",
     fpPlaceholder: "64-character fingerprint", match: "✓ Fingerprint matches.", noMatch: "✗ Fingerprint does not match this report. Contact TBRAC before relying on your copy.",
     registerFp: "Register fingerprint",
+    testTitle: "Test report: not a TBRAC opinion",
+    testText: "This report was issued from dummy data while TBRAC staff tested the system. It is not about a real company and must not be relied on.",
     disclaimer: (d: string) => `A TBRAC report is an independent risk opinion as of the date stated. It is not a certification, guarantee or approval; not a CFIUS determination or a decision of any government agency; it does not override any statute and is not legal advice. Confidential findings are available only to the named intended users. Checked ${d}.`,
     locale: "en-US",
   },
@@ -58,6 +61,8 @@ const V = {
     check: "核对您的副本", checkText: "粘贴报告上印有的数字指纹。如一致，则您副本上的评级即为 TBRAC 出具的评级。",
     fpPlaceholder: "64 位数字指纹", match: "✓ 数字指纹一致。", noMatch: "✗ 数字指纹与本报告不一致。在依赖您的副本之前，请联系 TBRAC。",
     registerFp: "登记册数字指纹",
+    testTitle: "测试报告：并非 TBRAC 意见",
+    testText: "本报告由 TBRAC 工作人员在测试系统时使用虚拟数据出具，并不涉及真实企业，不得依赖。",
     disclaimer: (d: string) => `TBRAC 报告是截至所述日期的独立风险意见。它不是认证、担保或批准；不是 CFIUS 决定或任何政府机构的决定；不能凌驾于任何法律之上，也不构成法律意见。保密调查结果仅提供给指定的预期使用方。查询时间：${d}。`,
     locale: "zh-CN",
   },
@@ -126,10 +131,16 @@ export function VerifyResult({ number }: { number: string }) {
   );
   if (!v) return <Shell><p className="text-slate-500">{t.checking}</p></Shell>;
 
-  const good = v.status === "Current";
+  const good = v.status === "Current" && !v.test;
   const fpTrim = fp.trim().toLowerCase();
   return (
     <Shell>
+      {v.test && (
+        <div className="flex gap-3 rounded-lg border border-red-300 bg-red-50 p-5 text-red-900">
+          <AlertTriangle className="h-6 w-6 shrink-0" />
+          <div><p className="font-semibold">{t.testTitle}</p><p className="text-sm">{t.testText}</p></div>
+        </div>
+      )}
       <div className={`flex gap-3 rounded-lg border p-5 ${good ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
         {good ? <CheckCircle2 className="h-6 w-6 shrink-0" /> : <AlertTriangle className="h-6 w-6 shrink-0" />}
         <div>

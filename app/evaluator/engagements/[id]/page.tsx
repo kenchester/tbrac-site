@@ -3,6 +3,7 @@
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/header";
+import { companyViewApi, type AssistedSession } from "@/lib/company-view";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1783,11 +1784,14 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   <span className="capitalize">{eng.engagement_type}</span> assessment · {eng.track.replace("_", "-")} · lead {eng.lead_analyst ?? "—"}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {eng.is_sandbox && <Badge variant="outline" className="border-sky-300 bg-sky-50 text-sky-900">Dummy data · TEST report</Badge>}
                 <Badge variant="outline">{stageLabel(eng.stage)}</Badge>
                 {LOCKED.has(eng.stage) && <Badge variant="outline">Locked</Badge>}
+                {eng.is_sandbox && <Button size="sm" variant="outline" asChild><Link href={`/customers/${eng.customer_id}`}>Open company view</Link></Button>}
               </div>
             </div>
+            {!eng.is_sandbox && <AssistedDisclosure customerId={eng.customer_id} />}
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
               <Tabs defaultValue="indicators">
                 <TabsList className="flex-wrap h-auto">
@@ -1857,6 +1861,20 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
           </>
         )}
       </main>
+    </div>
+  );
+}
+
+
+function AssistedDisclosure({ customerId }: { customerId: string }) {
+  const [rows, setRows] = useState<AssistedSession[]>([]);
+  useEffect(() => { companyViewApi.sessions(customerId).then(setRows).catch(() => setRows([])); }, [customerId]);
+  if (rows.length === 0) return null;
+  const who = Array.from(new Set(rows.map((r) => r.staff_email))).join(", ");
+  return (
+    <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+      <strong>TBRAC staff assisted this company {rows.length} time{rows.length === 1 ? "" : "s"}</strong> ({who}; {rows.reduce((n, r) => n + r.actions, 0)} changes recorded).
+      Information entered while assisting came through TBRAC staff: weigh it as the company&apos;s own statement, and keep the staff who assisted away from the second review where you can.
     </div>
   );
 }

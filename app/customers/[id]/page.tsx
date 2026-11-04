@@ -4,6 +4,7 @@ import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/protected-route";
 import { PortalHeader } from "@/components/portal-header";
+import { AssistedSessionsCard } from "@/components/assisted-sessions-card";
 import {
   useCustomer,
   useUpdateCustomer,
@@ -487,6 +488,8 @@ function CustomerDetailContent({ params }: PageProps) {
           {assessments && assessments.items.some((a) => a.status === "submitted" || a.status === "completed") && (
             <RequestAssessmentCard customerId={resolvedParams.id} />
           )}
+
+          <AssistedSessionsCard customerId={resolvedParams.id} />
 
           {/* Recent Documents */}
           <Card>
