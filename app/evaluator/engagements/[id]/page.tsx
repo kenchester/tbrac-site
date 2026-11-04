@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventRow } from "@/components/monitoring-event-row";
 import {
   engagementsApi, PRE_ISSUE_STAGES, stageLabel,
-  type MonitoringConfig, type FeeStatus, type ExternalMember, type EngagementDocument, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
+  type MonitoringConfig, type FeeStatus, type ExternalMember, type EngagementDocument, type HitTriage, type ReplyMap, type DraftedConditions, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
   type AuditEntry, type DocRequest, type RequestTemplate, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
@@ -181,7 +181,16 @@ function ScreeningPanel({ eng, reload }: { eng: EngagementDetail; reload: () => 
   const [res, setRes] = useState<ScreenResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [triage, setTriage] = useState<Record<string, HitTriage | "busy" | string>>({});
   const locked = LOCKED.has(eng.stage);
+  const explain = async (list: string, h: ScreenResponse["results"][number]["hits"][number]) => {
+    const k = `${list}|${h.query}|${h.listed_name}`;
+    setTriage((t) => ({ ...t, [k]: "busy" }));
+    try {
+      const r = await engagementsApi.aiTriage(eng.id, { query: h.query, listed_name: h.listed_name, matched_on: h.matched_on, list, scope: h.scope, strength: h.strength });
+      setTriage((t) => ({ ...t, [k]: r }));
+    } catch (e) { setTriage((t) => ({ ...t, [k]: errMsg(e) })); }
+  };
   const run = async () => {
     setBusy(true); setMsg("");
     try { setRes(await engagementsApi.screen(eng.id)); reload(); }
@@ -230,6 +239,24 @@ function ScreeningPanel({ eng, reload }: { eng: EngagementDetail; reload: () => 
                           <td className="px-3 py-2 whitespace-nowrap">
                             <Badge variant="outline">{h.strength === "match" ? "Name match" : "Possible match"}</Badge>
                             {h.gate && <Badge variant="outline" className="ml-1">Red line {h.gate}</Badge>}
+                            {eng.ai_processing_allowed && (
+                              <Button size="sm" variant="ghost" className="ml-1 h-6 px-2 text-xs" disabled={triage[`${r.list}|${h.query}|${h.listed_name}`] === "busy"}
+                                onClick={() => explain(r.list, h)}>Explain (AI)</Button>
+                            )}
+                            {(() => {
+                              const t = triage[`${r.list}|${h.query}|${h.listed_name}`];
+                              if (!t || t === "busy") return null;
+                              if (typeof t === "string") return <p className="mt-1 whitespace-normal text-xs text-red-600">{t}</p>;
+                              const label = { likely_same: "Likely the same entity", likely_different: "Likely a different entity", unclear: "Unclear" }[t.assessment];
+                              return (
+                                <div className="mt-1 max-w-sm whitespace-normal rounded border bg-slate-50 p-2 text-xs">
+                                  <p className={t.assessment === "likely_same" ? "font-medium text-red-700" : "font-medium"}>{label} · {t.confidence} confidence (AI, advisory)</p>
+                                  {t.reasons.length > 0 && <ul className="list-disc pl-4">{t.reasons.map((x, i) => <li key={i}>{x}</li>)}</ul>}
+                                  {t.differences.length > 0 && <p className="text-muted-foreground">Differences: {t.differences.join("; ")}</p>}
+                                  {t.to_confirm && <p><span className="font-medium">To settle it:</span> {t.to_confirm}</p>}
+                                </div>
+                              );
+                            })()}
                           </td>
                         </tr>
                       ))}
@@ -622,6 +649,7 @@ function ReportInputs({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: En
             <Label htmlFor="conditions">Recommended agreement conditions (§8.5), one per line</Label>
             <Textarea id="conditions" rows={5} disabled={locked} value={conditions} onChange={(e) => setConditions(e.target.value)}
               placeholder={"Change-of-control notice within 10 business days, triggering re-assessment\nUS-only data residency with US-side audit rights"} />
+            {!locked && eng.ai_processing_allowed && <ConditionDrafts eng={eng} onAdd={(t) => setConditions((c) => (c.trim() ? `${c.trim()}\n${t}` : t))} />}
           </div>
           <div className="space-y-2">
             <Label htmlFor="reply">Subject&apos;s right-of-reply response (Stage 6)</Label>
@@ -1356,6 +1384,7 @@ function RightOfReply({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: En
             {eng.reply_received_at ? <span className="text-green-700">received {new Date(eng.reply_received_at).toLocaleString()} from {eng.reply_submitted_by}</span> : "awaiting response"}</p>
         ) : <p className="text-muted-foreground">Not shared yet. Write rationales on the Indicators tab first: they are the findings the Subject sees.</p>}
         {eng.reply_received_at && eng.subject_reply && <p className="whitespace-pre-wrap rounded-md bg-muted/50 p-3">{eng.subject_reply}</p>}
+        {eng.reply_received_at && eng.ai_processing_allowed && <ReplyMapper eng={eng} />}
         {!locked && (
           <div className="flex flex-wrap items-end gap-2">
             <div className="space-y-1"><Label>Days to respond</Label><Input className="w-24" type="number" min="5" max="60" value={days} onChange={(e) => setDays(e.target.value)} /></div>
@@ -1574,6 +1603,68 @@ function VersionBox({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
         {error && <p className="text-red-600">{error}</p>}
       </CardContent>
     </Card>
+  );
+}
+
+// ------------------------------------------------------------------ AI helpers: conditions, reply mapping (§5.6)
+function ConditionDrafts({ eng, onAdd }: { eng: EngagementDetail; onAdd: (text: string) => void }) {
+  const [res, setRes] = useState<DraftedConditions | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [used, setUsed] = useState<Set<number>>(new Set());
+  const draft = async () => {
+    setBusy(true); setError("");
+    try { setRes(await engagementsApi.aiConditions(eng.id)); setUsed(new Set()); } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  return (
+    <div className="space-y-2 rounded-md border border-dashed p-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="outline" disabled={busy || !eng.indicator_scores.length} onClick={draft}>{busy ? "Drafting…" : "Draft conditions with AI"}</Button>
+        <span className="text-xs text-muted-foreground">Suggestions from your findings, drafted as objective facts (§8.5). Add the ones you want, then edit and save.</span>
+      </div>
+      {error && <p className="text-red-600">{error}</p>}
+      {res?.conditions.length === 0 && <p className="text-muted-foreground">No conditions suggested.</p>}
+      {res?.conditions.map((c, i) => (
+        <div key={i} className="flex items-start justify-between gap-3 border-t pt-2">
+          <div><p>{c.text}</p><p className="text-xs text-muted-foreground"><span className="font-mono">{c.codes.join(" ")}</span> {c.why}</p></div>
+          <Button size="sm" variant="ghost" disabled={used.has(i)} onClick={() => { onAdd(c.text); setUsed(new Set([...used, i])); }}>{used.has(i) ? "Added" : "Add"}</Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReplyMapper({ eng }: { eng: EngagementDetail }) {
+  const [res, setRes] = useState<ReplyMap | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const run = async () => {
+    setBusy(true); setError("");
+    try { setRes(await engagementsApi.aiReplyMap(eng.id)); } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  const KIND: Record<string, string> = { correction: "Correction", objection: "Objection", new_fact: "New fact", agreement: "Agrees" };
+  return (
+    <div className="space-y-2 rounded-md border border-dashed p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="outline" disabled={busy} onClick={run}>{busy ? "Mapping…" : "Map reply to findings (AI)"}</Button>
+        <span className="text-xs text-muted-foreground">Lists each correction and the finding it concerns, so none is missed. It does not judge who is right.</span>
+      </div>
+      {error && <p className="text-red-600">{error}</p>}
+      {res && (
+        <table className="w-full text-xs">
+          <tbody className="divide-y">
+            {res.items.map((it, i) => (
+              <tr key={i} className="align-top">
+                <td className="py-1.5 pr-2 whitespace-nowrap font-medium">{KIND[it.kind] ?? it.kind}</td>
+                <td className="py-1.5 pr-2">{it.code ? <span className="font-mono">{it.code} </span> : null}{it.concerns}{it.is_entity && " (entity)"}</td>
+                <td className="py-1.5 pr-2">{it.summary}<span className="block text-muted-foreground">“{it.quote}”{!it.quote_verified && <span className="ml-1 rounded bg-red-50 px-1 text-[10px] font-medium text-red-700">quote not found in reply</span>}</span></td>
+                <td className="py-1.5 text-muted-foreground">{it.action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   );
 }
 

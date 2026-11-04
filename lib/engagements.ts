@@ -79,6 +79,9 @@ export interface MethodologyVersionInfo {
   panel: { composition: { role: string; count: number }[]; size: number; rounds: number; panelist_crs: number[]; aggregate_cr: number;
     lambda_max: number; consensus_notes: string | null; judgments?: number[][]; inconsistent_panelists?: number[] };
 }
+export interface HitTriage { run_at: string; model: string; assessment: "likely_same" | "likely_different" | "unclear"; reasons: string[]; differences: string[]; to_confirm: string; confidence: string }
+export interface ReplyMap { run_at: string; model: string; items: { concerns: string; code: string | null; is_entity: boolean; kind: string; summary: string; quote: string; quote_verified: boolean; action: string }[] }
+export interface DraftedConditions { run_at: string; model: string; conditions: { text: string; codes: string[]; why: string }[] }
 export interface ExternalMember { name: string; affiliation: string; independence_confirmed: boolean }
 export interface CommitteeDecision {
   id: string; decision: "approve" | "return"; chair: string; members: string[]; rationale: string;
@@ -233,6 +236,10 @@ export const engagementsApi = {
   retireVersion: (v: string) => authenticatedRequest<MethodologyVersionInfo>(`${base}/methodology/versions/${encodeURIComponent(v)}/retire`, { method: "POST" }),
   rebase: (id: string, version: string, reason: string) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/rebase`, json("POST", { version, reason })),
+  aiTriage: (id: string, hit: { query: string; listed_name: string; matched_on?: string; list: string; scope?: string | null; strength?: string }) =>
+    authenticatedRequest<HitTriage>(`${base}/engagements/${id}/ai/screen-triage`, json("POST", hit)),
+  aiReplyMap: (id: string) => authenticatedRequest<ReplyMap>(`${base}/engagements/${id}/ai/reply-map`, { method: "POST" }),
+  aiConditions: (id: string) => authenticatedRequest<DraftedConditions>(`${base}/engagements/${id}/ai/conditions`, { method: "POST" }),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>
