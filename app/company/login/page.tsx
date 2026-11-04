@@ -57,6 +57,10 @@ export default function CompanyLoginPage() {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState("login");
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("tab") === "signup") setTab("signup");
+  }, []);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -135,7 +139,7 @@ export default function CompanyLoginPage() {
                 </div>
               )}
 
-              <Tabs defaultValue="login">
+              <Tabs value={tab} onValueChange={setTab}>
                 <TabsList className="w-full mb-6">
                   <TabsTrigger value="login" className="flex-1">Sign In</TabsTrigger>
                   <TabsTrigger value="signup" className="flex-1">Create Account</TabsTrigger>

@@ -1,236 +1,248 @@
 "use client";
 
 import Link from "next/link";
-import { Shield, Activity, FileText } from "lucide-react";
+import { Source_Serif_4 } from "next/font/google";
+import { ArrowRight, Check, Minus, Scale, FileSearch, Users, MessageSquareText, ShieldCheck, BookOpen } from "lucide-react";
+import { LanguageToggle } from "@/components/language-toggle";
+import { HOME } from "@/lib/home-content";
+import { useLanguage } from "@/lib/language-context";
+
+const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] });
+const NAVY = "#0b1f3a";
+const SIGNUP = "/company/login?tab=signup";
+const TRUST_ICONS = [Scale, FileSearch, Users, MessageSquareText, ShieldCheck, BookOpen];
+const TIER_STYLE: Record<string, string> = {
+  T1: "bg-emerald-50 text-emerald-800 border-emerald-200",
+  T2: "bg-sky-50 text-sky-800 border-sky-200",
+  T3: "bg-amber-50 text-amber-800 border-amber-200",
+  T4: "bg-rose-50 text-rose-800 border-rose-200",
+  UA: "bg-slate-100 text-slate-700 border-slate-200",
+};
+
+function Wordmark() {
+  return (
+    <Link href="/" className="flex items-center gap-3" aria-label="TBRAC home">
+      <span className="flex h-9 w-9 items-center justify-center rounded-sm text-sm font-bold tracking-tight text-white" style={{ background: NAVY }}>TB</span>
+      <span className="leading-tight">
+        <span className="block text-[15px] font-bold tracking-[0.18em] text-slate-900">TBRAC</span>
+        <span className="block text-[11px] text-slate-500">Trans-Border Risk Assessment</span>
+      </span>
+    </Link>
+  );
+}
+
+function SectionTitle({ title, lead }: { title: string; lead?: string }) {
+  return (
+    <div className="max-w-2xl">
+      <h2 className={`${serif.className} text-3xl font-semibold tracking-tight text-slate-900 sm:text-[34px]`}>{title}</h2>
+      {lead && <p className="mt-3 text-base leading-relaxed text-slate-600">{lead}</p>}
+    </div>
+  );
+}
 
 export default function HomePage() {
+  const { language } = useLanguage();
+  const c = HOME[language] ?? HOME.en;
+
   return (
-    <div className="min-h-screen bg-[#f0ebe0] font-sans">
+    <div className="min-h-screen bg-white text-slate-900">
       {/* Header */}
-      <header className="flex items-center justify-between px-8 py-5">
-        <Link
-          href="/company/login"
-          className="border border-[#1a1f2e] text-[#1a1f2e] text-sm font-medium px-5 py-2 rounded hover:bg-[#1a1f2e] hover:text-white transition-colors"
-        >
-          Login
-        </Link>
-
-        <nav className="flex items-center gap-8">
-          <Link href="/about" className="text-sm text-[#1a1f2e] hover:opacity-70 transition-opacity">
-            About
-          </Link>
-          <Link href="/case-studies" className="text-sm text-[#1a1f2e] hover:opacity-70 transition-opacity">
-            Use Cases
-          </Link>
-          <Link href="/company/login" className="text-sm text-[#1a1f2e] hover:opacity-70 transition-opacity">
-            My Reports
-          </Link>
-        </nav>
-
-        <span className="text-base font-bold tracking-widest text-[#1a1f2e]">TBRAC AI</span>
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+          <Wordmark />
+          <nav className="hidden items-center gap-7 text-sm text-slate-700 lg:flex">
+            <a href="#how" className="hover:text-slate-950">{c.nav.how}</a>
+            <Link href="/methodology" className="hover:text-slate-950">{c.nav.methodology}</Link>
+            <Link href="/case-studies" className="hover:text-slate-950">{c.nav.cases}</Link>
+            <Link href="/faq" className="hover:text-slate-950">{c.nav.faq}</Link>
+            <Link href="/about" className="hover:text-slate-950">{c.nav.about}</Link>
+          </nav>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <Link href="/company/login" className="hidden px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-950 sm:block">{c.nav.signIn}</Link>
+            <Link href={SIGNUP} className="rounded-md px-4 py-2 text-sm font-semibold text-white" style={{ background: NAVY }}>{c.step1.cta}</Link>
+          </div>
+        </div>
       </header>
 
       {/* Hero */}
-      <section
-        className="mx-4 sm:mx-8 rounded-2xl overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #1a1f2e 0%, #1e2a3a 50%, #2a3040 100%)",
-          minHeight: 420,
-        }}
-      >
-        <div className="flex flex-col items-center justify-center text-center px-6 py-20 sm:py-28 relative">
-          {/* Pill badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#c9a647]/40 bg-[#c9a647]/10 px-4 py-1.5">
-            <span className="text-xs font-semibold tracking-widest text-[#c9a647] uppercase">
-              Compliance Intelligence
-            </span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight max-w-2xl">
-            Assess US Market Entry<br />
-            Readiness with{" "}
-            <span className="text-[#c9a647]">Confidence</span>
-          </h1>
-
-          <p className="mt-6 text-base text-white/60 max-w-xl leading-relaxed">
-            TBRAC intelligence tool helps compliance analysts evaluate company
-            readiness through automated screening, risk scoring, and
-            comprehensive reporting.
-          </p>
-
-          <div className="mt-10 flex items-center gap-4">
-            <Link
-              href="/company/login"
-              className="flex items-center gap-2 bg-[#c9a647] hover:bg-[#b8923a] text-[#1a1f2e] font-semibold text-sm px-6 py-3 rounded-lg transition-colors"
-            >
-              Create New Assessment
-              <span className="text-base">→</span>
-            </Link>
-            <Link
-              href="/company/login"
-              className="border border-white/30 text-white text-sm font-medium px-6 py-3 rounded-lg hover:bg-white/10 transition-colors"
-            >
-              Login
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Cards */}
-      <section className="mx-4 sm:mx-8 mt-6 grid gap-4 sm:grid-cols-3">
-        {[
-          {
-            icon: Shield,
-            title: "Automated Screening",
-            desc: "Instantly vet companies against thousands of compliance databases and watchlists with real-time updates.",
-          },
-          {
-            icon: Activity,
-            title: "Risk Scoring",
-            desc: "The TBRAC scoring methodology calculates a precise readiness score, highlighting critical gaps before they become blockers.",
-          },
-          {
-            icon: FileText,
-            title: "Comprehensive Reporting",
-            desc: "Generate detailed PDF reports for stakeholders with actionable insights and clear remediation steps.",
-          },
-        ].map(({ icon: Icon, title, desc }) => (
-          <div
-            key={title}
-            className="bg-white rounded-2xl p-7 flex flex-col gap-4 shadow-sm border border-[#e8e2d6]"
-          >
-            <div className="h-9 w-9 rounded-lg bg-[#f0ebe0] flex items-center justify-center">
-              <Icon className="h-5 w-5 text-[#1a1f2e]" strokeWidth={1.5} />
+      <section style={{ background: NAVY }} className="text-white">
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/80">{c.eyebrow}</p>
+            <h1 className={`${serif.className} mt-5 text-4xl font-semibold leading-[1.12] tracking-tight sm:text-5xl`}>{c.title}</h1>
+            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-slate-300">{c.lead}</p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href={SIGNUP} className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100">
+                {c.ctaFree} <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a href="#steps" className="inline-flex items-center gap-2 rounded-md border border-white/30 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10">
+                {c.ctaFull}
+              </a>
             </div>
-            <div>
-              <h3 className="font-semibold text-[#1a1f2e] text-base">{title}</h3>
-              <p className="mt-2 text-sm text-[#6b6457] leading-relaxed">{desc}</p>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* Data-Driven Section */}
-      <section className="mx-4 sm:mx-8 mt-6 rounded-2xl bg-[#eae4d8] border border-[#ddd6c8] overflow-hidden">
-        <div className="grid lg:grid-cols-2 items-center gap-0">
-          {/* Left copy */}
-          <div className="p-10 sm:p-14 space-y-6">
-            <h2 className="text-3xl font-bold text-[#1a1f2e] leading-snug">
-              Data-Driven Decisions
-            </h2>
-            <p className="text-sm text-[#6b6457] leading-relaxed max-w-sm">
-              Navigate the complex landscape of US market regulations. Our tool
-              simplifies the compliance journey from initial assessment to final
-              approval.
-            </p>
-            <div className="flex gap-4 pt-2">
-              <div className="bg-white rounded-xl px-6 py-4 shadow-sm border border-[#ddd6c8]">
-                <p className="text-2xl font-bold text-[#1a1f2e]">99.9%</p>
-                <p className="text-xs text-[#6b6457] uppercase tracking-widest mt-1">
-                  Accuracy Rate
-                </p>
-              </div>
-              <div className="bg-white rounded-xl px-6 py-4 shadow-sm border border-[#ddd6c8]">
-                <p className="text-2xl font-bold text-[#1a1f2e]">10x</p>
-                <p className="text-xs text-[#6b6457] uppercase tracking-widest mt-1">
-                  Faster Analysis
-                </p>
-              </div>
-            </div>
+            <p className="mt-5 max-w-xl border-l-2 border-sky-300/50 pl-4 text-sm leading-relaxed text-slate-300">{c.ctaNote}</p>
           </div>
 
-          {/* Right — mock dashboard card */}
-          <div className="p-8 flex items-center justify-center">
-            <div
-              className="w-full max-w-sm rounded-2xl overflow-hidden shadow-xl"
-              style={{ background: "#1a1f2e" }}
-            >
-              {/* Top bar */}
-              <div className="px-5 py-3 flex items-center justify-between border-b border-white/10">
-                <div>
-                  <p className="text-xs text-white/50">Company</p>
-                  <p className="text-sm font-semibold text-white">Nicutization Datun</p>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-white/50">
-                  <span>Market Risk</span>
-                  <span className="text-[#c9a647]">Score</span>
-                  <span>Excellent</span>
-                  <span>↑↓</span>
-                </div>
+          {/* Illustrative opinion page */}
+          <div className="self-center">
+            <div className="rounded-md bg-white p-6 text-slate-900 shadow-2xl ring-1 ring-black/5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{c.sampleLabel}</p>
+              <div className="mt-3 border-b-2 border-slate-900 pb-3">
+                <p className={`${serif.className} text-xl font-semibold`}>{c.sample.company}</p>
+                <p className="text-xs text-slate-500">{c.sample.type} · {c.sample.valid}</p>
               </div>
-              {/* Chart area */}
-              <div className="px-5 py-5">
-                <div className="flex items-end gap-1.5 h-20 mb-3">
-                  {[40, 55, 35, 65, 50, 75, 60, 80, 70, 85, 65, 90].map((h, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 rounded-sm"
-                      style={{
-                        height: `${h}%`,
-                        background:
-                          i === 11
-                            ? "#c9a647"
-                            : i >= 8
-                            ? "rgba(201,166,71,0.5)"
-                            : "rgba(255,255,255,0.15)",
-                      }}
-                    />
-                  ))}
-                </div>
-                {/* Sparkline */}
-                <svg viewBox="0 0 200 30" className="w-full h-6" preserveAspectRatio="none">
-                  <polyline
-                    points="0,25 20,20 40,22 60,15 80,18 100,10 120,13 140,8 160,6 180,4 200,2"
-                    fill="none"
-                    stroke="#c9a647"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              {/* Stats row */}
-              <div className="px-5 pb-5 grid grid-cols-3 gap-2 text-xs text-white/50">
-                {["Attrition 5% Incertations area", "Company", "Compliance"].map((label) => (
-                  <div key={label} className="bg-white/5 rounded p-2">
-                    <p className="text-white/30 text-[10px] mb-1">{label}</p>
-                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#c9a647]/60 rounded-full"
-                        style={{ width: `${Math.random() * 60 + 40}%` }}
-                      />
-                    </div>
+              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                {(language === "zh" ? [["评级", c.sample.tier], ["可信度", c.sample.confidence], ["展望", c.sample.outlook], ["状态", c.sample.status]]
+                  : [["Tier", c.sample.tier], ["Confidence", c.sample.confidence], ["Outlook", c.sample.outlook], ["Status", c.sample.status]]).map(([k, v]) => (
+                  <div key={k} className="rounded border border-slate-200 px-2.5 py-2">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-400">{k}</p>
+                    <p className="mt-0.5 font-semibold">{v}</p>
                   </div>
                 ))}
               </div>
+              <table className="mt-4 w-full text-xs">
+                <tbody className="divide-y divide-slate-100">
+                  {c.sample.rows.map(([d, t]) => (
+                    <tr key={d}>
+                      <td className="py-1.5 text-slate-600">{d}</td>
+                      <td className="py-1.5 text-right"><span className={`rounded border px-1.5 py-0.5 font-semibold ${TIER_STYLE[t]}`}>{t}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Two steps */}
+      <section id="steps" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
+        <SectionTitle title={c.stepsTitle} lead={c.stepsLead} />
+        <div className="relative mt-10 grid gap-6 lg:grid-cols-2">
+          {[{ s: c.step1, href: SIGNUP, primary: false }, { s: c.step2, href: SIGNUP, primary: true }].map(({ s, href, primary }, i) => (
+            <div key={s.name} className={`flex flex-col rounded-lg border p-8 ${primary ? "border-slate-900 shadow-lg" : "border-slate-200"}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${primary ? "text-sky-800" : "text-slate-500"}`}>{s.tag}</p>
+              <h3 className={`${serif.className} mt-2 text-2xl font-semibold`}>{s.name}</h3>
+              <p className="text-sm text-slate-500">{s.who}</p>
+              <ul className="mt-6 flex-1 space-y-3 text-[15px] text-slate-700">
+                {s.points.map((p) => (
+                  <li key={p} className="flex gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" />{p}</li>
+                ))}
+              </ul>
+              <p className="mt-6 flex gap-3 rounded-md bg-slate-50 px-4 py-3 text-sm text-slate-600"><Minus className="mt-0.5 h-4 w-4 shrink-0" />{s.limit}</p>
+              <Link href={href} className={`mt-6 inline-flex w-fit items-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold ${primary ? "text-white" : "border border-slate-300 text-slate-900 hover:bg-slate-50"}`}
+                style={primary ? { background: NAVY } : undefined}>
+                {s.cta} <ArrowRight className="h-4 w-4" />
+              </Link>
+              {i === 0 && (
+                <span aria-hidden className="absolute left-1/2 top-1/2 z-10 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow lg:flex">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Who relies on it */}
+      <section className="border-y border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-6xl px-5 py-20">
+          <SectionTitle title={c.relyTitle} />
+          <div className="mt-10 grid gap-8 md:grid-cols-3">
+            {c.rely.map((r) => (
+              <div key={r.who} className="border-t-2 border-slate-900 pt-5">
+                <h3 className="font-semibold text-slate-900">{r.who}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-slate-600">{r.what}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Process */}
+      <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
+        <SectionTitle title={c.processTitle} />
+        <ol className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2 lg:grid-cols-3">
+          {c.process.map((p) => (
+            <li key={p.n} className="flex gap-4">
+              <span className={`${serif.className} flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-300 text-base font-semibold text-slate-700`}>{p.n}</span>
+              <div>
+                <h3 className="font-semibold">{p.t}</h3>
+                <p className="mt-1 text-[15px] leading-relaxed text-slate-600">{p.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Rating scale */}
+      <section className="border-y border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-6xl px-5 py-20">
+          <SectionTitle title={c.scaleTitle} lead={c.scaleLead} />
+          <div className="mt-10 overflow-hidden rounded-lg border border-slate-200 bg-white">
+            {c.scale.map((s) => (
+              <div key={s.tier} className="grid grid-cols-[72px_1fr] items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-b-0 sm:grid-cols-[72px_220px_1fr]">
+                <span className={`w-fit rounded border px-2.5 py-1 text-sm font-bold ${TIER_STYLE[s.tier]}`}>{s.tier}</span>
+                <span className="font-semibold">{s.name}</span>
+                <span className="col-span-2 text-[15px] text-slate-600 sm:col-span-1">{s.d}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust */}
+      <section className="mx-auto max-w-6xl px-5 py-20">
+        <SectionTitle title={c.trustTitle} />
+        <div className="mt-10 grid gap-x-10 gap-y-9 md:grid-cols-2 lg:grid-cols-3">
+          {c.trust.map((x, i) => {
+            const Icon = TRUST_ICONS[i];
+            return (
+              <div key={x.t}>
+                <Icon className="h-5 w-5 text-sky-800" strokeWidth={1.75} />
+                <h3 className="mt-3 font-semibold">{x.t}</h3>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-slate-600">{x.d}</p>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-14 rounded-lg border border-slate-200 p-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{c.disclaimerTitle}</h3>
+          <p className="mt-2 text-[15px] leading-relaxed text-slate-700">{c.disclaimer}</p>
+          <Link href="/methodology" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">{c.nav.methodology} <ArrowRight className="h-3.5 w-3.5" /></Link>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section style={{ background: NAVY }} className="text-white">
+        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-5 py-16 md:flex-row md:items-center">
+          <div className="max-w-xl">
+            <h2 className={`${serif.className} text-3xl font-semibold`}>{c.finalTitle}</h2>
+            <p className="mt-2 text-slate-300">{c.finalLead}</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link href={SIGNUP} className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100">{c.ctaFree} <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/company/login" className="rounded-md border border-white/30 px-5 py-3 text-sm font-semibold hover:bg-white/10">{c.nav.signIn}</Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="mx-4 sm:mx-8 mt-6 mb-8 border-t border-[#ddd6c8] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className="text-xs text-[#9b9183]">
-          © {new Date().getFullYear()} TBRAC AI. All rights reserved.
-        </p>
-        <nav className="flex items-center gap-6">
-          <Link href="/about" className="text-xs text-[#6b6457] hover:text-[#1a1f2e] transition-colors">
-            About
-          </Link>
-          <Link href="/case-studies" className="text-xs text-[#6b6457] hover:text-[#1a1f2e] transition-colors">
-            Use Cases
-          </Link>
-          <Link href="/privacy" className="text-xs text-[#6b6457] hover:text-[#1a1f2e] transition-colors">
-            Privacy Policy
-          </Link>
-          <Link href="/terms" className="text-xs text-[#6b6457] hover:text-[#1a1f2e] transition-colors">
-            Terms of Use
-          </Link>
-          <Link
-            href="/evaluator-login"
-            className="text-xs font-medium text-[#1a1f2e] border border-[#1a1f2e] px-3 py-1.5 rounded hover:bg-[#1a1f2e] hover:text-white transition-colors"
-          >
-            Evaluator Login
-          </Link>
-        </nav>
+      <footer className="border-t border-slate-200">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:justify-between">
+          <div>
+            <Wordmark />
+            <p className="mt-3 text-xs text-slate-500">© {new Date().getFullYear()} TBRAC. {c.footer.rights}</p>
+          </div>
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+            <Link href="/methodology" className="hover:text-slate-950">{c.nav.methodology}</Link>
+            <Link href="/faq" className="hover:text-slate-950">{c.nav.faq}</Link>
+            <Link href="/contact" className="hover:text-slate-950">{c.footer.contact}</Link>
+            <Link href="/privacy" className="hover:text-slate-950">{c.footer.privacy}</Link>
+            <Link href="/terms" className="hover:text-slate-950">{c.footer.terms}</Link>
+            <Link href="/evaluator-login" className="text-slate-500 hover:text-slate-950">{c.footer.evaluator}</Link>
+          </nav>
+        </div>
       </footer>
     </div>
   );
