@@ -45,6 +45,16 @@ export interface Rating {
   domain_tiers: Record<string, string>; weights: Record<string, number>; verified_share: number | null;
   reasons: string[]; missing: string[]; methodology_version: string; error: string | null;
 }
+export interface NotifyContact { name: string; organization?: string | null; email: string }
+export interface StatusNotice {
+  id: string; report_number: string | null; kind: string; recipient_name: string | null; recipient_email: string;
+  audience: "relying_party" | "company"; status: string; status_note: string | null; test: boolean;
+  created_at: string; sent_at: string | null; attempts: number; last_error: string | null;
+}
+/** Send queued status notices now (site route; the API only queues them). */
+export const sendPendingNotices = () =>
+  fetch("/api/notices/drain", { method: "POST" }).then((r) => (r.ok ? r.json() as Promise<{ sent: number; failed: number }> : { sent: 0, failed: 0 }));
+
 export interface EngagementSummary {
   id: string; customer_id: string; customer_name: string; is_sandbox?: boolean; engagement_type: string; track: string; stage: Stage;
   methodology_version: string; lead_analyst: string | null; issued_at: string | null; valid_until: string | null;
@@ -102,6 +112,7 @@ export interface EngagementDetail extends EngagementSummary {
   review_started_at: string | null; review_due_at: string | null; review_reason: string | null; last_monitored_at: string | null;
   engagement_letter_signed_at: string | null; engagement_letter_ref: string | null;
   fee_amount: number | null; fee_currency: string; fee_status: FeeStatus; reliance_letters: RelianceLetter[];
+  notify_contacts: NotifyContact[]; notices: StatusNotice[];
   reply_shared_at: string | null; reply_due_at: string | null; reply_received_at: string | null; reply_submitted_by: string | null;
   declarations: Declaration[]; signoffs: Signoff[]; readiness: ReadinessCheck[];
   grade_support: Record<string, { items: number; independent: number; best: Grade }>;
@@ -175,7 +186,7 @@ export const engagementsApi = {
   update: (id: string, body: Partial<Pick<EngagementDetail,
     "stage" | "project_description" | "relying_parties" | "overlay" | "engagement_type" | "track" | "lead_analyst"
     | "outlook" | "statutory_findings" | "conditions" | "subject_reply" | "engagement_letter_signed_at" | "engagement_letter_ref"
-    | "fee_amount" | "fee_currency" | "fee_status" | "reliance_letters" | "ai_processing_allowed">>) =>
+    | "fee_amount" | "fee_currency" | "fee_status" | "reliance_letters" | "notify_contacts" | "ai_processing_allowed">>) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}`, json("PATCH", body)),
   addEntity: (id: string, body: Partial<Entity> & { name: string; role: string }) =>
     authenticatedRequest<Entity>(`${base}/engagements/${id}/entities`, json("POST", body)),

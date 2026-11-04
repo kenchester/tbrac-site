@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { companyViewApi, type AssistedSession } from "@/lib/company-view";
+import { sendPendingNotices, type NotifyContact } from "@/lib/engagements";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1077,8 +1078,11 @@ function Monitoring({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
   });
   const doAction = () => go(async () => {
     if (!action) return;
-    onSaved(await engagementsApi.review(eng.id, { action, trigger: action === "start" ? trigger : undefined, note }));
-    setAction(""); setNote(""); setTrigger(""); setMsg("Saved.");
+    await engagementsApi.review(eng.id, { action, trigger: action === "start" ? trigger : undefined, note });
+    const sent = await sendPendingNotices().catch(() => ({ sent: 0, failed: 0 }));
+    onSaved(await engagementsApi.get(eng.id));
+    setAction(""); setNote(""); setTrigger("");
+    setMsg(`Saved. ${sent.sent} status notice${sent.sent === 1 ? "" : "s"} sent${sent.failed ? `, ${sent.failed} failed (retried daily)` : ""}.`);
   });
   const available = ACTIONS.filter((a) => a.from.includes(eng.stage));
   const issued = eng.stage === "issued" || eng.stage === "under_review";
@@ -1140,6 +1144,8 @@ function Monitoring({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
         </Card>
       )}
 
+      <NoticeContacts eng={eng} onSaved={onSaved} />
+
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -1165,6 +1171,64 @@ function Monitoring({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
         </Card>
       )}
     </div>
+  );
+}
+
+// ------------------------------------------------------------------ status notices (§9)
+function NoticeContacts({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [rows, setRows] = useState<NotifyContact[]>(eng.notify_contacts);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => setRows(eng.notify_contacts), [eng.notify_contacts]);
+  const set = (i: number, k: keyof NotifyContact, v: string) => setRows(rows.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
+  const dirty = JSON.stringify(rows) !== JSON.stringify(eng.notify_contacts);
+  const save = async () => {
+    setBusy(true); setError("");
+    try {
+      onSaved(await engagementsApi.update(eng.id, { notify_contacts: rows.filter((r) => r.name.trim() || r.email.trim())
+        .map((r) => ({ name: r.name.trim(), organization: r.organization?.trim() || null, email: r.email.trim() })) }));
+    } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Status notices</CardTitle>
+        <p className="text-xs text-muted-foreground">When the rating goes Under Review, is affirmed, reopened, withdrawn or expires, everyone below and the
+          company are emailed the public status and a link to the verify page. Confidential findings and your notes are never included.</p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {rows.map((r, i) => (
+          <div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_1.2fr_auto]">
+            <Input placeholder="Name" value={r.name} onChange={(e) => set(i, "name", e.target.value)} />
+            <Input placeholder="Organization (e.g. Example County EDC)" value={r.organization ?? ""} onChange={(e) => set(i, "organization", e.target.value)} />
+            <Input type="email" placeholder="Email" value={r.email} onChange={(e) => set(i, "email", e.target.value)} />
+            <Button size="sm" variant="ghost" onClick={() => setRows(rows.filter((_, j) => j !== i))}>Remove</Button>
+          </div>
+        ))}
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => setRows([...rows, { name: "", organization: "", email: "" }])}>Add contact</Button>
+          {dirty && <Button size="sm" disabled={busy} onClick={save}>{busy ? "Saving…" : "Save contacts"}</Button>}
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {eng.notices.length > 0 && (
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs text-muted-foreground"><tr><th className="py-1 font-medium">Queued</th><th className="py-1 font-medium">Change</th>
+              <th className="py-1 font-medium">To</th><th className="py-1 font-medium">Sent</th></tr></thead>
+            <tbody className="divide-y">
+              {eng.notices.map((n) => (
+                <tr key={n.id}>
+                  <td className="py-1.5 pr-2 whitespace-nowrap">{new Date(n.created_at).toLocaleString()}</td>
+                  <td className="py-1.5 pr-2">{n.kind.replace("_", " ")} → {n.status}</td>
+                  <td className="py-1.5 pr-2">{n.recipient_name ? `${n.recipient_name} ` : ""}<span className="text-muted-foreground">{n.recipient_email}</span>
+                    {n.audience === "company" && <Badge variant="outline" className="ml-1">company</Badge>}</td>
+                  <td className="py-1.5">{n.sent_at ? new Date(n.sent_at).toLocaleString() : <span className="text-amber-700">{n.last_error ? `Failed: ${n.last_error}` : "Pending"}</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

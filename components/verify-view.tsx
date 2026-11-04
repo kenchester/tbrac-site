@@ -13,6 +13,7 @@ interface Verified {
   confidence: string | null; outlook: string | null; domain_tiers: Record<string, string>; methodology_version: string;
   issued_at: string; valid_until: string; status: string; status_note: string | null; fingerprint: string; checked_at: string;
   test?: boolean;
+  signature?: { algorithm: string; key_id: string; value: string; valid: boolean } | null;
 }
 
 const V = {
@@ -36,6 +37,9 @@ const V = {
     check: "Check your copy", checkText: "Paste the fingerprint printed on your report. If it matches, the rating on your copy is the one TBRAC issued.",
     fpPlaceholder: "64-character fingerprint", match: "✓ Fingerprint matches.", noMatch: "✗ Fingerprint does not match this report. Contact TBRAC before relying on your copy.",
     registerFp: "Register fingerprint",
+    sigOk: (k: string) => `Digitally signed by TBRAC (Ed25519, key ${k}). The signature checks against the published key.`,
+    sigBad: "The TBRAC signature on this entry does not check. Contact TBRAC before relying on it.",
+    sigHow: "Check it yourself",
     testTitle: "Test report: not a TBRAC opinion",
     testText: "This report was issued from dummy data while TBRAC staff tested the system. It is not about a real company and must not be relied on.",
     disclaimer: (d: string) => `A TBRAC report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, approval or license; it is not a CFIUS determination or a decision of any government agency; it is not a guarantee of future conduct; it does not override any statute; and it is not legal advice. Confidential findings are available only to the named intended users. Checked ${d}.`,
@@ -61,6 +65,9 @@ const V = {
     check: "核对您的副本", checkText: "粘贴报告上印有的数字指纹。如一致，则您副本上的评级即为 TBRAC 出具的评级。",
     fpPlaceholder: "64 位数字指纹", match: "✓ 数字指纹一致。", noMatch: "✗ 数字指纹与本报告不一致。在依赖您的副本之前，请联系 TBRAC。",
     registerFp: "登记册数字指纹",
+    sigOk: (k: string) => `已由 TBRAC 进行数字签名（Ed25519，密钥 ${k}），签名与公开密钥核验一致。`,
+    sigBad: "本条目的 TBRAC 签名核验未通过。在依赖之前，请联系 TBRAC。",
+    sigHow: "自行核验",
     testTitle: "测试报告：并非 TBRAC 意见",
     testText: "本报告由 TBRAC 工作人员在测试系统时使用虚拟数据出具，并不涉及真实企业，不得依赖。",
     disclaimer: (d: string) => `TBRAC 报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、批准或许可；不是 CFIUS 决定，也不是任何政府机构的决定；不保证企业未来的行为；不能凌驾于任何法律之上；也不构成法律意见。保密调查结果仅提供给指定的预期使用方。查询时间：${d}。`,
@@ -173,6 +180,13 @@ export function VerifyResult({ number }: { number: string }) {
           ? <p className="text-sm font-medium text-emerald-700">{t.match}</p>
           : <p className="text-sm font-medium text-red-700">{t.noMatch}</p>)}
         <p className="break-all font-mono text-xs text-slate-400">{t.registerFp}: {v.fingerprint}</p>
+        {v.signature && (
+          <p className={`flex flex-wrap items-center gap-x-2 text-sm ${v.signature.valid ? "text-emerald-700" : "text-red-700"}`}>
+            {v.signature.valid ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+            {v.signature.valid ? t.sigOk(v.signature.key_id) : t.sigBad}
+            <a href="/api/v1/public/signing-keys" className="text-sky-800 underline-offset-2 hover:underline">{t.sigHow}</a>
+          </p>
+        )}
       </section>
 
       <p className="text-xs leading-relaxed text-slate-500">{t.disclaimer(new Date(v.checked_at).toLocaleString(t.locale))}</p>

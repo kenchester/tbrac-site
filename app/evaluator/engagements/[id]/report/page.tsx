@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { engagementsApi, type EngagementDetail, type Methodology, type Rating } from "@/lib/engagements";
 import { REPORT_TEXT, DOMAIN_ZH, type ReportLang } from "@/lib/report-text";
 import { useLanguage } from "@/lib/language-context";
+import QRCode from "qrcode";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -49,6 +50,13 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     engagementsApi.get(id).then(setEng).catch((e) => setError(e instanceof Error ? e.message : "Could not load"));
     engagementsApi.methodology().then(setM).catch(() => {});
   }, [id]);
+
+  const [qr, setQr] = useState("");
+  useEffect(() => {
+    if (!eng?.report_number) return;
+    document.title = `${eng.report_number} · ${eng.customer_name}`; // file name when saved as PDF
+    QRCode.toDataURL(`https://tbrac.org/verify/${eng.report_number}`, { margin: 0, width: 240, errorCorrectionLevel: "M" }).then(setQr).catch(() => {});
+  }, [eng?.report_number, eng?.customer_name]);
 
   if (error) return <p className="p-8 text-red-600">{error}</p>;
   if (!eng || !m) return <p className="p-8 text-slate-500">Loading…</p>;
@@ -212,10 +220,14 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         )}
 
         {eng.report_number && (
-          <section className="break-inside-avoid-page rounded border border-slate-300 p-4 text-sm">
-            <p className="font-semibold">{t.report} {eng.report_number}</p>
-            <p className="mt-1 text-slate-600">{t.verifyAt(eng.report_number)}</p>
-            <p className="mt-1 break-all font-mono text-xs text-slate-500">{t.fingerprint}: {eng.report_fingerprint}</p>
+          <section className="break-inside-avoid-page flex gap-5 rounded border border-slate-300 p-4 text-sm">
+            {qr && <img src={qr} alt={`QR code: tbrac.org/verify/${eng.report_number}`} className="h-28 w-28 shrink-0" />}
+            <div>
+              <p className="font-semibold">{t.report} {eng.report_number}</p>
+              <p className="mt-1 text-slate-600">{t.verifyAt(eng.report_number)}</p>
+              <p className="mt-1 text-slate-600">{t.signedNote}</p>
+              <p className="mt-1 break-all font-mono text-xs text-slate-500">{t.fingerprint}: {eng.report_fingerprint}</p>
+            </div>
           </section>
         )}
         <footer className="border-t pt-3 text-xs text-slate-500">
