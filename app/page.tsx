@@ -254,7 +254,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:justify-between">
           <div>
             <Wordmark />
-            <p className="mt-3 text-xs text-slate-500">© {new Date().getFullYear()} TBRAC. {c.footer.rights}</p>
+            <p className="mt-3 text-xs text-slate-500">© {new Date().getFullYear()} Assurance Pacific Assessments LLC. {c.footer.rights}</p>
           </div>
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
             <Link href="/methodology" className="hover:text-slate-950">{c.nav.methodology}</Link>

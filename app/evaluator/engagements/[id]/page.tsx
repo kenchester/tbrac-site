@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventRow } from "@/components/monitoring-event-row";
+import { getModuleByKey } from "@/lib/assessment-data";
 import {
   engagementsApi, PRE_ISSUE_STAGES, stageLabel,
-  type MonitoringConfig, type FeeStatus, type ExternalMember, type EngagementDocument, type HitTriage, type ReplyMap, type DraftedConditions, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
+  type MonitoringConfig, type FeeStatus, type ExternalMember, type EngagementDocument, type HitTriage, type ReplyMap, type DraftedConditions, type Intake, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
   type AuditEntry, type DocRequest, type RequestTemplate, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
@@ -1364,9 +1365,14 @@ function RightOfReply({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: En
   const [days, setDays] = useState("14");
   const [error, setError] = useState("");
   const locked = LOCKED.has(eng.stage);
+  const [sent, setSent] = useState("");
   const share = async () => {
-    setError("");
-    try { onSaved(await engagementsApi.shareForReply(eng.id, Number(days))); } catch (e) { setError(errMsg(e)); }
+    setError(""); setSent("");
+    try {
+      onSaved(await engagementsApi.shareForReply(eng.id, Number(days)));
+      try { const r = await engagementsApi.notifyCompany(eng.id, "reply"); setSent(`Emailed ${r.to} with the deadline.`); }
+      catch (e) { setError(`Shared, but the email failed: ${errMsg(e)}. The company still sees the findings on its dashboard.`); }
+    } catch (e) { setError(errMsg(e)); }
   };
   return (
     <Card>
@@ -1379,6 +1385,7 @@ function RightOfReply({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: En
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {error && <p className="text-red-600">{error}</p>}
+        {sent && <p className="text-green-700">{sent}</p>}
         {eng.reply_shared_at ? (
           <p>Shared {new Date(eng.reply_shared_at).toLocaleDateString()} · response due {eng.reply_due_at ? new Date(eng.reply_due_at).toLocaleDateString() : "—"} ·{" "}
             {eng.reply_received_at ? <span className="text-green-700">received {new Date(eng.reply_received_at).toLocaleString()} from {eng.reply_submitted_by}</span> : "awaiting response"}</p>
@@ -1675,6 +1682,54 @@ function ReplyMapper({ eng }: { eng: EngagementDetail }) {
   );
 }
 
+// ------------------------------------------------------------------ self-assessment intake (§4 Stage 1, Appendix D)
+function IntakePanel({ eng }: { eng: EngagementDetail }) {
+  const [data, setData] = useState<Intake | null>(null);
+  const [all, setAll] = useState(false);
+  useEffect(() => { engagementsApi.intake(eng.id).then(setData).catch(() => setData(null)); }, [eng.id]);
+  if (!data) return null;
+  if (!data.assessment) return null;
+  const text = (moduleKey: string, qid: string) => getModuleByKey(moduleKey)?.questions.find((q) => q.id === qid)?.text ?? qid;
+  const rows = data.answers.filter((a) => all || a.low);
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Self-assessment intake</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          The company&apos;s own answers ({data.assessment.linked ? "the self-assessment it requested from" : "its latest submitted self-assessment"}
+          {data.assessment.submitted_at ? `, submitted ${new Date(data.assessment.submitted_at).toLocaleDateString()}` : ""}), routed by Appendix D to what they inform.
+          Use them to decide where to look first. They are never evidence above E3.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {data.red_flags.length > 0 && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-2">
+            <p className="font-medium text-red-800">Self-reported red flags</p>
+            <ul className="list-disc pl-5 text-red-800">{data.red_flags.map((f) => <li key={f.question_id}>{f.label} <span className="text-xs">({f.question_id}, {f.severity})</span></li>)}</ul>
+          </div>
+        )}
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> show all {data.answers.length} answers (default: low answers only, 4 or below out of 10)
+        </label>
+        {rows.length === 0 ? <p className="text-muted-foreground">No low answers.</p> : (
+          <table className="w-full text-xs">
+            <tbody className="divide-y">
+              {rows.map((a) => (
+                <tr key={a.question_id} className="align-top">
+                  <td className="py-1.5 pr-2 font-mono text-muted-foreground">{a.question_id}</td>
+                  <td className="py-1.5 pr-2">{text(a.module_key, a.question_id)}</td>
+                  <td className={`py-1.5 pr-2 whitespace-nowrap font-semibold ${a.low ? "text-red-700" : ""}`}>{a.value}/10</td>
+                  <td className="py-1.5 whitespace-nowrap font-mono">{a.feeds.join(" ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -1737,7 +1792,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                 <TabsContent value="audit"><AuditTrail eng={eng} /></TabsContent>
                 <TabsContent value="monitoring"><Monitoring eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
-                <TabsContent value="overview" className="space-y-4"><VersionBox eng={eng} onSaved={setEng} /><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
+                <TabsContent value="overview" className="space-y-4"><VersionBox eng={eng} onSaved={setEng} /><Overview eng={eng} m={m} onSaved={setEng} /><IntakePanel eng={eng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="documents"><Documents eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="requests"><DocumentRequests eng={eng} m={m} reload={reload} /></TabsContent>

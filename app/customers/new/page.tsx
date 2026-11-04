@@ -69,7 +69,7 @@ function NewCustomerContent() {
       errors.name = t("newCustomerErrName");
     }
 
-    if (!formData.headquarters_country.trim()) {
+    if (!(formData.headquarters_country ?? "").trim()) {
       errors.headquarters_country = t("newCustomerErrCountry");
     }
 

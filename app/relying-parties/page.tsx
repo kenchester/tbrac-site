@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { Source_Serif_4 } from "next/font/google";
 import { ArrowRight, FileText, Landmark, ListChecks, ShieldAlert, Search, Scale } from "lucide-react";
-import { LanguageToggle } from "@/components/language-toggle";
+import { LanguageToggle } from "@/components/language-toggle"
+import { Copyright } from "@/components/copyright";
 import { useLanguage } from "@/lib/language-context";
 
 const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] });
@@ -160,6 +161,7 @@ export default function RelyingPartiesPage() {
           <Link href="/methodology" className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold hover:bg-slate-50">{c.ctaMethod}</Link>
         </div>
       </main>
+      <Copyright />
     </div>
   );
 }

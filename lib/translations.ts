@@ -46,11 +46,8 @@ export const translations = {
       "Recalculation of existing reports via the provision of new information and/or reports is a new feature which will be released soon. This feature may also include a methodology whereby external organizations may request a renewed or annual report from your company. You will be able to accept or reject any request within your organizational account.",
     backToHome: "Back to Home",
 
-    regulatoryScrutiny: "Regulatory Scrutiny",
     politicalRisk: "Political & Geopolitical Risk",
     dataSecurityRisk: "Data Security & Privacy",
-    ipProtection: "IP Protection",
-    reputationalRisk: "Reputational Risk",
     nationalSecurity: "National Security",
 
     regulatoryDesc: "CFIUS review exposure, export controls, and sector-specific compliance",
@@ -83,7 +80,6 @@ export const translations = {
     primaryIndustry: "Primary Industry",
     companySize: "Company Size",
     contactName: "Contact Name",
-    contactEmail: "Contact Email",
     selectIndustry: "Select your industry",
     selectCompanySize: "Select company size",
     primaryContact: "Primary contact for this assessment",
@@ -328,7 +324,6 @@ export const translations = {
     loginBackHome: "Back to Home",
 
     // Customers list page
-    customersTitle: "Customers",
     customersSubtitle: "Manage customer records and their documents",
     customersNewBtn: "New Customer",
     customersSearchPlaceholder: "Search customers...",
@@ -352,8 +347,6 @@ export const translations = {
     customersNext: "Next",
 
     // New customer form
-    newCustomerTitle: "New Customer",
-    newCustomerSubtitle: "Create a new customer record",
     newCustomerCardTitle: "Customer Information",
     newCustomerCardDesc: "Fill in the details for the new customer",
     newCustomerBasicInfo: "Basic Information",
@@ -665,11 +658,8 @@ export const translations = {
       "通过提供新信息和/或报告来重新计算现有报告是一项即将发布的新功能。此功能还可能包括一种方法，允许外部组织请求贵公司的更新或年度报告。您将能够在您的组织账户中接受或拒绝任何请求。",
     backToHome: "返回主页",
 
-    regulatoryScrutiny: "监管审查",
     politicalRisk: "政治与地缘风险",
     dataSecurityRisk: "数据安全与隐私",
-    ipProtection: "知识产权保护",
-    reputationalRisk: "声誉风险",
     nationalSecurity: "国家安全",
 
     regulatoryDesc: "CFIUS审查风险、出口管制以及特定行业合规要求",
@@ -701,7 +691,6 @@ export const translations = {
     primaryIndustry: "主要行业",
     companySize: "公司规模",
     contactName: "联系人姓名",
-    contactEmail: "联系电子邮件",
     selectIndustry: "选择您的行业",
     selectCompanySize: "选择公司规模",
     primaryContact: "本次评估的主要联系人",

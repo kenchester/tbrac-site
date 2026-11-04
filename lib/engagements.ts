@@ -82,6 +82,11 @@ export interface MethodologyVersionInfo {
 export interface HitTriage { run_at: string; model: string; assessment: "likely_same" | "likely_different" | "unclear"; reasons: string[]; differences: string[]; to_confirm: string; confidence: string }
 export interface ReplyMap { run_at: string; model: string; items: { concerns: string; code: string | null; is_entity: boolean; kind: string; summary: string; quote: string; quote_verified: boolean; action: string }[] }
 export interface DraftedConditions { run_at: string; model: string; conditions: { text: string; codes: string[]; why: string }[] }
+export interface Intake {
+  assessment: { id: string; status: string; submitted_at: string | null; total_score: number | null; risk_tier: string | null; linked: boolean } | null;
+  answers: { question_id: string; module_key: string; module_number: number; value: number; feeds: string[]; low: boolean }[];
+  red_flags: { question_id: string; module_key: string; severity: "hard" | "soft"; label: string }[];
+}
 export interface ExternalMember { name: string; affiliation: string; independence_confirmed: boolean }
 export interface CommitteeDecision {
   id: string; decision: "approve" | "return"; chair: string; members: string[]; rationale: string;
@@ -249,6 +254,14 @@ export const engagementsApi = {
   },
   aiSelfTest: () => authenticatedRequest<{ configured: boolean; model?: string; vision_model?: string; passed?: number; total?: number;
     results: { feature: string; ok: boolean; detail: string; seconds: number }[] }>(`${base}/ai/self-test`, { method: "POST" }),
+  /** Site route: email the company (kind "requests" or "reply"). */
+  notifyCompany: async (id: string, kind: "requests" | "reply") => {
+    const res = await fetch(`/api/evaluator/engagements/${id}/notify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind }) });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail ?? "Email failed");
+    return body as { to: string };
+  },
+  intake: (id: string) => authenticatedRequest<Intake>(`${base}/engagements/${id}/intake`),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>

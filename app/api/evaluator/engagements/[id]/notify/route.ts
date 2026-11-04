@@ -7,6 +7,8 @@ import { backendFetch } from "@/lib/server-api"
 
 type Params = { params: Promise<{ id: string }> }
 interface Notice {
+  reply_shared_at: string | null
+  reply_due_at: string | null
   customer_id: string
   customer_name: string
   contact_user_id: string | null
@@ -15,9 +17,13 @@ interface Notice {
 
 const day = (d: string) => d.slice(0, 10)
 
-/** Email the company the document requests awaiting its answer (English and Chinese). */
-export async function POST(_request: Request, { params }: Params) {
+/**
+ * Email the company (English and Chinese): kind "requests" lists document requests awaiting its answer;
+ * kind "reply" says draft findings were shared for its right of reply, with the deadline.
+ */
+export async function POST(request: Request, { params }: Params) {
   const { id } = await params
+  const kind = ((await request.json().catch(() => ({}))) as { kind?: string }).kind === "reply" ? "reply" : "requests"
   const session = await auth.api.getSession({ headers: await headers() })
   if (!isEvaluator(session?.user)) return NextResponse.json({ detail: "Evaluators only" }, { status: 403 })
 
@@ -25,7 +31,8 @@ export async function POST(_request: Request, { params }: Params) {
   const res = await backendFetch(`/api/v1/engagements/${encodeURIComponent(id)}/document-requests/notice`)
   if (!res?.ok) return NextResponse.json({ detail: "Could not load the engagement" }, { status: res?.status ?? 401 })
   const n = (await res.json()) as Notice
-  if (!n.requests.length) return NextResponse.json({ detail: "No requests are awaiting the company's answer" }, { status: 422 })
+  if (kind === "requests" && !n.requests.length) return NextResponse.json({ detail: "No requests are awaiting the company's answer" }, { status: 422 })
+  if (kind === "reply" && !n.reply_shared_at) return NextResponse.json({ detail: "Findings have not been shared" }, { status: 422 })
   if (!n.contact_user_id) return NextResponse.json({ detail: "This company has no account contact" }, { status: 422 })
 
   const { rows } = await authDb.query<{ email: string; name: string | null }>(
@@ -34,6 +41,31 @@ export async function POST(_request: Request, { params }: Params) {
   if (!to) return NextResponse.json({ detail: "The company's contact user was not found" }, { status: 422 })
 
   const base = process.env.BETTER_AUTH_URL || "https://tbrac.org"
+  if (kind === "reply") {
+    const due = n.reply_due_at ? day(n.reply_due_at) : ""
+    const findingsLink = `${base}/customers/${n.customer_id}/findings`
+    const text = [
+      `Hello${rows[0].name ? ` ${rows[0].name}` : ""},`, "",
+      `TBRAC has shared its draft factual findings from the comprehensive assessment of ${n.customer_name} for your review.`,
+      "These are the facts we relied on, not the rating. Please check them and tell us about anything that is wrong or incomplete.", "",
+      `Please respond by ${due}: ${findingsLink}`,
+      "Your response is recorded and included in the report.", "", "— TBRAC", "",
+      "----------------------------------------", "",
+      "您好，", "",
+      `TBRAC 已分享对 ${n.customer_name} 全面评估的初步事实性调查结果，供您审阅。这些是我们所依据的事实，并非评级。请核对，如有错误或不完整之处请告知我们。`, "",
+      `请于 ${due} 前回复：${findingsLink}`,
+      "您的回复将被记录并纳入报告。", "", "— TBRAC",
+    ].join("\n")
+    try {
+      await sendEmail(to, `TBRAC: draft findings for your review / 初步调查结果待您审阅 — ${n.customer_name}`, text)
+    } catch (e) {
+      return NextResponse.json({ detail: `Email failed: ${e instanceof Error ? e.message : "unknown error"}` }, { status: 502 })
+    }
+    await backendFetch(`/api/v1/engagements/${encodeURIComponent(id)}/document-requests/notice`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to, kind: "reply" }),
+    })
+    return NextResponse.json({ to, kind })
+  }
   const link = `${base}/customers/${n.customer_id}/requests`
   const en = n.requests.map((r) => `- ${r.title}${r.due_date ? ` (due ${day(r.due_date)})` : ""}${r.status === "returned" ? ` — returned: ${r.reviewer_note ?? ""}` : ""}`).join("\n")
   const zh = n.requests.map((r) => `- ${r.title}${r.due_date ? `（截止 ${day(r.due_date)}）` : ""}${r.status === "returned" ? ` — 已退回：${r.reviewer_note ?? ""}` : ""}`).join("\n")

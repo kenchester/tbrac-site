@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, AlertTriangle, XCircle, Search } from "lucide-react";
 import { LanguageToggle } from "@/components/language-toggle";
+import { Copyright } from "@/components/copyright";
 import { useLanguage } from "@/lib/language-context";
 
 interface Verified {
@@ -81,6 +82,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-3xl space-y-6 px-5 py-10">{children}</main>
+      <Copyright />
     </div>
   );
 }

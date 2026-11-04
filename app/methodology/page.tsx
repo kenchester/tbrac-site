@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Source_Serif_4 } from "next/font/google"
 import { ArrowRight } from "lucide-react"
 import { LanguageToggle } from "@/components/language-toggle"
+import { Copyright } from "@/components/copyright"
 import { useLanguage } from "@/lib/language-context"
 
 const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] })
@@ -140,6 +141,7 @@ export default function MethodologyPage() {
           </div>
         </section>
       </main>
+      <Copyright />
     </div>
   )
 }
