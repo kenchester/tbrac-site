@@ -2,9 +2,12 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Source_Serif_4 } from "next/font/google";
 import { ProtectedRoute } from "@/components/protected-route";
 import { PortalHeader } from "@/components/portal-header";
 import { AssistedSessionsCard } from "@/components/assisted-sessions-card";
+import { Copyright } from "@/components/copyright";
 import {
   useCustomer,
   useUpdateCustomer,
@@ -85,10 +88,61 @@ import {
   Save,
   ClipboardList,
   Plus,
+  ArrowRight,
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { documentRequestsApi, draftFindingsApi, needsResponse } from "@/lib/document-requests";
 import { RequestAssessmentCard } from "@/components/request-assessment-card";
+
+const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] });
+
+const D = {
+  en: {
+    account: "Company account", editProfile: "Edit profile", edit: "Edit", actionTitle: "Action needed",
+    pathTitle: "Your path to TBRAC certification",
+    step1: "Step 1 · Free", step1Name: "Self-assessment",
+    step1Not: "Ten short modules across the seven risk domains. Private to your company, with AI guidance in English and Chinese as you answer.",
+    step1Prog: (n: number) => `In progress: ${n} of 10 modules completed. Your answers are saved as you go.`,
+    step1Done: "Submitted. Your indicative score and the red flags to fix first are ready.",
+    start: "Start the self-assessment", cont: "Continue", view: "View results",
+    step2: "Step 2 · Flat fee", step2Name: "Comprehensive assessment",
+    step2Locked: "Available once you submit the self-assessment. It leads to an independent private certification of your rating that US counties, state agencies and partners can verify.",
+    learn: "How the comprehensive assessment works",
+    profileTitle: "Company profile", complete: "Complete profile", notProvided: "Not provided",
+    missing: (n: number) => `${n} detail${n === 1 ? "" : "s"} missing. A complete profile helps evaluators scope your assessment.`,
+    selfTitle: "Self-assessments", newOne: "New",
+    status: { in_progress: "In progress", completed: "Completed", submitted: "Submitted" },
+    deleteAccount: "Delete this company account",
+    deleteText: (n: string) => `This permanently deletes ${n} and all of its data. This cannot be undone.`,
+  },
+  zh: {
+    account: "企业账户", editProfile: "编辑资料", edit: "编辑", actionTitle: "待办事项",
+    pathTitle: "获得 TBRAC 认证的路径",
+    step1: "第一步 · 免费", step1Name: "自我评估",
+    step1Not: "共 10 个简短模块，涵盖七个风险领域。仅贵公司可见，作答时提供中英文 AI 指导。",
+    step1Prog: (n: number) => `进行中：已完成 10 个模块中的 ${n} 个。您的回答会自动保存。`,
+    step1Done: "已提交。您的参考评分和需要优先处理的风险信号已经生成。",
+    start: "开始自我评估", cont: "继续", view: "查看结果",
+    step2: "第二步 · 固定费用", step2Name: "全面评估",
+    step2Locked: "提交自我评估后即可申请。全面评估将形成对贵公司评级的独立私营机构认证，供美国县政府、州机构和合作伙伴核验。",
+    learn: "了解全面评估的流程",
+    profileTitle: "企业资料", complete: "完善资料", notProvided: "未填写",
+    missing: (n: number) => `尚有 ${n} 项资料未填写。完整的资料有助于评估人员确定评估范围。`,
+    selfTitle: "自我评估记录", newOne: "新建",
+    status: { in_progress: "进行中", completed: "已完成", submitted: "已提交" },
+    deleteAccount: "删除此企业账户",
+    deleteText: (n: string) => `这将永久删除 ${n} 及其全部数据，且无法撤销。`,
+  },
+};
+
+function ActionRow({ title, text, cta, onClick }: { tone: "amber"; title: string; text: string; cta: string; onClick: () => void }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-5 py-4">
+      <div><p className="font-semibold text-amber-950">{title}</p><p className="text-sm text-amber-900">{text}</p></div>
+      <Button size="sm" onClick={onClick}>{cta}</Button>
+    </div>
+  );
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -111,7 +165,7 @@ function CustomerDetailContent({ params }: PageProps) {
   const { update, loading: updating } = useUpdateCustomer();
   const { deleteCustomer, loading: deleting } = useDeleteCustomer();
   const { handleError, showSuccess } = useApiToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [requests, setRequests] = useState<{ total: number; open: number } | null>(null);
   useEffect(() => {
     documentRequestsApi.list(resolvedParams.id).then((d) => {
@@ -270,393 +324,206 @@ function CustomerDetailContent({ params }: PageProps) {
     );
   }
 
+  const d = D[language] ?? D.en;
+  const latest = assessments?.items[0];
+  const submitted = assessments?.items.find((a) => a.status === "submitted" || a.status === "completed");
+  const base = `/customers/${resolvedParams.id}`;
+  const profile: [string, string | null | undefined][] = [
+    [t("customerIndustry"), customer.industry_sector ? formatIndustrySector(customer.industry_sector) : null],
+    [t("customerOwnership"), customer.ownership_type ? formatOwnershipType(customer.ownership_type) : null],
+    [t("customerStateOwnership"), customer.ownership_type ? `${customer.state_ownership_percentage ?? 0}%` : null],
+    [t("customerHQ"), customer.headquarters_country ? [customer.headquarters_country, customer.headquarters_city].filter(Boolean).join(", ") : null],
+    [t("customerUSPresence"), customer.us_presence],
+    [t("customerUSSubsidiary"), customer.us_subsidiary_name],
+    [t("customerWebsite"), customer.website],
+  ];
+  const missing = profile.filter(([, v]) => !v).length;
+  const statusLabel = (s: string) => d.status[s as keyof typeof d.status] ?? s;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       <PortalHeader />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {/* Page Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push("/company/profile")}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold">{customer.name}</h1>
-                {customer.chinese_name && (
-                  <p className="text-lg text-muted-foreground mt-1">
-                    {customer.chinese_name}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                {t("customerEdit")}
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="text-red-600">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {t("customerDelete")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t("customerDeleteTitle")}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete {customer.name} and all
-                      associated data. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("customerDeleteCancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      {deleting ? t("customerDeleting") : t("customerDelete")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
+
+      {/* Company heading */}
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-4 px-5 py-8">
+          <div className="min-w-0">
+            <p className="text-sm text-slate-500">{d.account}</p>
+            <h1 className={`${serif.className} mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl`}>{customer.name}</h1>
+            {customer.chinese_name && <p className="mt-1 text-lg text-slate-600">{customer.chinese_name}</p>}
           </div>
-
-          {/* Customer Info Card */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{t("customerInfoCard")}</CardTitle>
-                <div className="flex gap-2">
-                  <Badge variant="outline">
-                    {formatIndustrySector(customer.industry_sector)}
-                  </Badge>
-                  <Badge variant="secondary">
-                    {formatOwnershipType(customer.ownership_type)}
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <div>
-                  <Label className="text-muted-foreground">{t("customerCompanyName")}</Label>
-                  <p className="font-medium mt-1">{customer.name}</p>
-                </div>
-
-                <div>
-                  <Label className="text-muted-foreground">
-                    {t("customerIndustry")}
-                  </Label>
-                  <p className="font-medium mt-1">
-                    {formatIndustrySector(customer.industry_sector)}
-                  </p>
-                </div>
-
-                <div>
-                  <Label className="text-muted-foreground">
-                    {t("customerOwnership")}
-                  </Label>
-                  <p className="font-medium mt-1">
-                    {formatOwnershipType(customer.ownership_type)}
-                  </p>
-                </div>
-
-                {customer.state_ownership_percentage !== undefined &&
-                  customer.state_ownership_percentage !== null && (
-                    <div>
-                      <Label className="text-muted-foreground">
-                        {t("customerStateOwnership")}
-                      </Label>
-                      <p className="font-medium mt-1">
-                        {customer.state_ownership_percentage}%
-                      </p>
-                    </div>
-                  )}
-
-                <div>
-                  <Label className="text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {t("customerHQ")}
-                  </Label>
-                  <p className="font-medium mt-1">
-                    {customer.headquarters_country}
-                    {customer.headquarters_city &&
-                      `, ${customer.headquarters_city}`}
-                  </p>
-                </div>
-
-                {customer.us_presence && (
-                  <div className="md:col-span-2 lg:col-span-3">
-                    <Label className="text-muted-foreground">{t("customerUSPresence")}</Label>
-                    <p className="font-medium mt-1">{customer.us_presence}</p>
-                  </div>
-                )}
-
-                {customer.us_subsidiary_name && (
-                  <div>
-                    <Label className="text-muted-foreground">
-                      {t("customerUSSubsidiary")}
-                    </Label>
-                    <p className="font-medium mt-1">
-                      {customer.us_subsidiary_name}
-                    </p>
-                  </div>
-                )}
-
-                {customer.website && (
-                  <div>
-                    <Label className="text-muted-foreground flex items-center gap-1">
-                      <Globe className="h-3 w-3" />
-                      {t("customerWebsite")}
-                    </Label>
-                    <a
-                      href={customer.website.match(/^https?:\/\//) ? customer.website : `https://${customer.website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium mt-1 text-primary hover:underline flex items-center gap-1"
-                    >
-                      {customer.website}
-                    </a>
-                  </div>
-                )}
-
-                <div>
-                  <Label className="text-muted-foreground">{t("customerCreated")}</Label>
-                  <p className="font-medium mt-1">
-                    {formatDate(customer.created_at)}
-                  </p>
-                </div>
-
-                <div>
-                  <Label className="text-muted-foreground">{t("customerUpdated")}</Label>
-                  <p className="font-medium mt-1">
-                    {formatDate(customer.updated_at)}
-                  </p>
-                </div>
-              </div>
-
-              {customer.notes && (
-                <>
-                  <Separator className="my-6" />
-                  <div>
-                    <Label className="text-muted-foreground">{t("customerNotes")}</Label>
-                    <p className="mt-2 whitespace-pre-wrap">{customer.notes}</p>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          {drafts > 0 && (
-            <Card className="border-amber-300">
-              <CardHeader>
-                <div className="flex items-center justify-between gap-3">
-                  <div><CardTitle>{t("rrDashCard")}</CardTitle><CardDescription>{t("rrDashDesc")}</CardDescription></div>
-                  <Button size="sm" onClick={() => router.push(`/customers/${resolvedParams.id}/findings`)}>{t("rrView")}</Button>
-                </div>
-              </CardHeader>
-            </Card>
-          )}
-
-          {requests && requests.total > 0 && (
-            <Card className={requests.open ? "border-amber-300" : ""}>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <CardTitle>{t("drDashCard")}</CardTitle>
-                    <CardDescription>
-                      {requests.open ? `${requests.open} ${t("drDashOpen")}` : t("drDashNoneOpen")}
-                    </CardDescription>
-                  </div>
-                  <Button size="sm" variant={requests.open ? "default" : "outline"}
-                    onClick={() => router.push(`/customers/${resolvedParams.id}/requests`)}>
-                    {t("drView")}
-                  </Button>
-                </div>
-              </CardHeader>
-            </Card>
-          )}
-
-          {assessments && assessments.items.some((a) => a.status === "submitted" || a.status === "completed") && (
-            <RequestAssessmentCard customerId={resolvedParams.id} />
-          )}
-
-          <AssistedSessionsCard customerId={resolvedParams.id} />
-
-          {/* Recent Documents */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{t("customerRecentDocs")}</CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(`/customers/${resolvedParams.id}/documents`)
-                  }
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t("customerViewAllDocs")}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {documents && documents.items.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("customerDocFilename")}</TableHead>
-                      <TableHead>{t("customerDocType")}</TableHead>
-                      <TableHead>{t("customerDocStatus")}</TableHead>
-                      <TableHead>{t("customerDocUploaded")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {documents.items.map((doc) => (
-                      <TableRow key={doc.id}>
-                        <TableCell className="font-medium">
-                          {doc.original_filename}
-                        </TableCell>
-                        <TableCell>
-                          {formatDocumentType(doc.document_type)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {formatProcessingStatus(doc.processing_status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {formatDate(doc.uploaded_at)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="mx-auto h-8 w-8 mb-2" />
-                  <p>{t("customerNoDocsYet")}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() =>
-                      router.push(`/customers/${resolvedParams.id}/documents`)
-                    }
-                  >
-                    {t("customerUploadDocs")}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Assessments */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5" />
-                  {t("customerAssessments")}
-                  {assessments && assessments.total > 0 && (
-                    <Badge variant="secondary" className="ml-1">
-                      {assessments.total}
-                    </Badge>
-                  )}
-                </CardTitle>
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    router.push(
-                      `/customers/${resolvedParams.id}/assessments/new`,
-                    )
-                  }
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  {t("customerNewAssessment")}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {assessments && assessments.items.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("customerAssessmentStatus")}</TableHead>
-                      <TableHead>{t("customerAssessmentModules")}</TableHead>
-                      <TableHead>{t("customerAssessmentCreated")}</TableHead>
-                      <TableHead>{t("customerAssessmentSubmitted")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {assessments.items.map((a) => (
-                      <TableRow
-                        key={a.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() =>
-                          router.push(
-                            `/customers/${resolvedParams.id}/assessments/${a.id}`,
-                          )
-                        }
-                      >
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              a.status === "submitted"
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : a.status === "completed"
-                                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : "bg-yellow-50 text-yellow-700 border-yellow-200"
-                            }
-                          >
-                            {a.status.replace("_", " ")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {a.modules_completed}/10 {t("customerAssessmentModulesOf")}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {formatDate(a.created_at)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {a.submitted_at ? formatDate(a.submitted_at) : "—"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ClipboardList className="mx-auto h-8 w-8 mb-2" />
-                  <p>{t("customerNoAssessments")}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() =>
-                      router.push(
-                        `/customers/${resolvedParams.id}/assessments/new`,
-                      )
-                    }
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t("customerStartAssessment")}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+            <Edit className="mr-2 h-4 w-4" />{d.editProfile}
+          </Button>
         </div>
-      </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl space-y-8 px-5 py-8">
+        {/* Action needed */}
+        {(drafts > 0 || (requests && requests.open > 0)) && (
+          <section aria-label={d.actionTitle} className="space-y-3">
+            {drafts > 0 && (
+              <ActionRow tone="amber" title={t("rrDashCard")} text={t("rrDashDesc")} cta={t("rrView")} onClick={() => router.push(`${base}/findings`)} />
+            )}
+            {requests && requests.open > 0 && (
+              <ActionRow tone="amber" title={t("drDashCard")} text={`${requests.open} ${t("drDashOpen")}`} cta={t("drView")} onClick={() => router.push(`${base}/requests`)} />
+            )}
+          </section>
+        )}
+
+        {/* Path */}
+        <section id="self-assessment" className="scroll-mt-24">
+          <h2 className={`${serif.className} text-2xl font-semibold tracking-tight text-slate-900`}>{d.pathTitle}</h2>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="flex flex-col rounded-lg border border-slate-200 bg-white p-6">
+              <p className="text-xs font-medium text-slate-500">{d.step1}</p>
+              <h3 className="mt-1 text-lg font-semibold text-slate-900">{d.step1Name}</h3>
+              <p className="mt-2 flex-1 text-[15px] leading-relaxed text-slate-600">
+                {!latest ? d.step1Not : submitted ? d.step1Done : d.step1Prog(latest.modules_completed)}
+              </p>
+              {latest && !submitted && (
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin={0} aria-valuemax={10} aria-valuenow={latest.modules_completed}>
+                  <div className="h-full rounded-full bg-[#0b1f3a]" style={{ width: `${Math.min(100, latest.modules_completed * 10)}%` }} />
+                </div>
+              )}
+              <div className="mt-5">
+                {!latest ? (
+                  <Button onClick={() => router.push(`${base}/assessments/new`)}>{d.start} <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                ) : (
+                  <Button onClick={() => router.push(`${base}/assessments/${(submitted ?? latest).id}`)}>
+                    {submitted ? d.view : d.cont} <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {submitted ? (
+              <RequestAssessmentCard customerId={resolvedParams.id} assessmentId={submitted.id} />
+            ) : (
+              <div className="flex flex-col rounded-lg border border-dashed border-slate-300 bg-white/60 p-6">
+                <p className="text-xs font-medium text-slate-500">{d.step2}</p>
+                <h3 className="mt-1 text-lg font-semibold text-slate-900">{d.step2Name}</h3>
+                <p className="mt-2 flex-1 text-[15px] leading-relaxed text-slate-600">{d.step2Locked}</p>
+                <Link href="/for-companies" className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">
+                  {d.learn} <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          {/* Profile */}
+          <section className="rounded-lg border border-slate-200 bg-white">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+              <h2 className="font-semibold text-slate-900">{d.profileTitle}</h2>
+              <button type="button" onClick={() => setEditDialogOpen(true)} className="text-sm font-semibold text-sky-800 hover:underline">
+                {missing ? d.complete : d.edit}
+              </button>
+            </div>
+            {missing > 0 && (
+              <p className="border-b border-slate-100 bg-slate-50 px-6 py-3 text-sm text-slate-600">{d.missing(missing)}</p>
+            )}
+            <dl className="divide-y divide-slate-100">
+              {profile.map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 px-6 py-3 text-sm">
+                  <dt className="text-slate-500">{k}</dt>
+                  <dd className={v ? "text-slate-900" : "italic text-slate-400"}>
+                    {v && k === t("customerWebsite")
+                      ? <a href={v.match(/^https?:\/\//) ? v : `https://${v}`} target="_blank" rel="noopener noreferrer" className="text-sky-800 hover:underline">{v}</a>
+                      : v || d.notProvided}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          <div className="space-y-8">
+            {/* Self-assessments */}
+            <section className="rounded-lg border border-slate-200 bg-white">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+                <h2 className="font-semibold text-slate-900">{d.selfTitle}</h2>
+                {latest && (
+                  <button type="button" onClick={() => router.push(`${base}/assessments/new`)} className="inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">
+                    <Plus className="h-3.5 w-3.5" />{d.newOne}
+                  </button>
+                )}
+              </div>
+              {assessments && assessments.items.length > 0 ? (
+                <ul className="divide-y divide-slate-100">
+                  {assessments.items.map((a) => (
+                    <li key={a.id}>
+                      <button type="button" onClick={() => router.push(`${base}/assessments/${a.id}`)}
+                        className="flex w-full items-center justify-between gap-3 px-6 py-3 text-left text-sm hover:bg-slate-50">
+                        <span>
+                          <span className="font-medium text-slate-900">{formatDate(a.created_at)}</span>
+                          <span className="ml-2 text-slate-500">{a.modules_completed}/10 {t("customerAssessmentModulesOf")}</span>
+                        </span>
+                        <Badge variant="outline" className={a.status === "in_progress" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}>
+                          {statusLabel(a.status)}
+                        </Badge>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="px-6 py-6 text-sm text-slate-500">{t("customerNoAssessments")}</p>
+              )}
+            </section>
+
+            {/* Documents */}
+            <section className="rounded-lg border border-slate-200 bg-white">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+                <h2 className="font-semibold text-slate-900">{t("customerRecentDocs")}</h2>
+                <Link href={`${base}/documents`} className="text-sm font-semibold text-sky-800 hover:underline">
+                  {documents && documents.items.length > 0 ? t("customerViewAllDocs") : t("customerUploadDocs")}
+                </Link>
+              </div>
+              {documents && documents.items.length > 0 ? (
+                <ul className="divide-y divide-slate-100">
+                  {documents.items.map((doc) => (
+                    <li key={doc.id} className="flex items-center justify-between gap-3 px-6 py-3 text-sm">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <FileText className="h-4 w-4 shrink-0 text-slate-400" />
+                        <span className="truncate font-medium text-slate-900">{doc.original_filename}</span>
+                      </span>
+                      <span className="shrink-0 text-slate-500">{formatDate(doc.uploaded_at)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="px-6 py-6 text-sm text-slate-500">{t("customerNoDocsYet")}</p>
+              )}
+            </section>
+          </div>
+        </div>
+
+        <AssistedSessionsCard customerId={resolvedParams.id} />
+
+        {/* Account */}
+        <div className="flex justify-end border-t border-slate-200 pt-6">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button type="button" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-700">
+                <Trash2 className="h-3.5 w-3.5" />{d.deleteAccount}
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("customerDeleteTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>{d.deleteText(customer.name)}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("customerDeleteCancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-red-600 hover:bg-red-700">
+                  {deleting ? t("customerDeleting") : t("customerDelete")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </main>
+      <Copyright />
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

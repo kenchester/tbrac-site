@@ -7,6 +7,16 @@ import { Card, CardContent } from './ui/card'
 import { useDocumentUpload } from '@/hooks/use-documents'
 import { useApiToast } from '@/hooks/use-api-toast'
 import type { DocumentUploadResponse } from '@/lib/api-types'
+import { useLanguage } from '@/lib/language-context'
+
+const U = {
+  en: { title: 'Upload documents', drag: 'Drag files here, or choose them from your computer', formats: 'PDF, JPEG, PNG or DOCX · up to 50 MB each', select: 'Choose files',
+        selected: (n: number) => `Selected files (${n})`, uploading: 'Uploading…', upload: (n: number) => `Upload ${n} file${n === 1 ? '' : 's'}`,
+        ok: 'Upload complete', okText: (n: number) => `${n} file${n === 1 ? '' : 's'} uploaded` },
+  zh: { title: '上传文件', drag: '将文件拖到此处，或从电脑中选择', formats: 'PDF、JPEG、PNG 或 DOCX · 每个不超过 50 MB', select: '选择文件',
+        selected: (n: number) => `已选择 ${n} 个文件`, uploading: '正在上传…', upload: (n: number) => `上传 ${n} 个文件`,
+        ok: '上传完成', okText: (n: number) => `已上传 ${n} 个文件` },
+}
 
 interface DocumentUploadProps {
   customerId: string
@@ -26,6 +36,8 @@ export function DocumentUpload({
   customerId,
   onUploadComplete,
 }: DocumentUploadProps) {
+  const { language } = useLanguage()
+  const u = U[language] ?? U.en
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [uploadResults, setUploadResults] = useState<DocumentUploadResponse[]>(
@@ -105,8 +117,8 @@ export function DocumentUpload({
       if (results) {
         setUploadResults(results)
         showSuccess(
-          'Upload successful',
-          `${results.length} file(s) uploaded successfully`
+          u.ok,
+          u.okText(results.length)
         )
         setSelectedFiles([])
         if (onUploadComplete) {
@@ -141,13 +153,13 @@ export function DocumentUpload({
           >
             <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">
-              Upload Documents
+              {u.title}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Drag and drop files here or click to browse
+              {u.drag}
             </p>
             <p className="text-xs text-muted-foreground mb-4">
-              Supported formats: PDF, JPEG, PNG, DOCX • Max size: 50MB per file
+              {u.formats}
             </p>
             <input
               ref={fileInputRef}
@@ -163,7 +175,7 @@ export function DocumentUpload({
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
-              Select Files
+              {u.select}
             </Button>
           </div>
         </CardContent>
@@ -175,7 +187,7 @@ export function DocumentUpload({
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-semibold">
-                  Selected Files ({selectedFiles.length})
+                  {u.selected(selectedFiles.length)}
                 </h4>
                 <Button
                   onClick={handleUpload}
@@ -183,8 +195,8 @@ export function DocumentUpload({
                   size="sm"
                 >
                   {uploading
-                    ? 'Uploading...'
-                    : `Upload ${selectedFiles.length} file(s)`}
+                    ? u.uploading
+                    : u.upload(selectedFiles.length)}
                 </Button>
               </div>
 

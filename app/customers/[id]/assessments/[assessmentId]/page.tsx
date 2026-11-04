@@ -161,7 +161,7 @@ function AssessmentDashboardContent({ params }: PageProps) {
                   { label: customer?.name ?? "Company", href: `/customers/${customerId}` },
                   { label: t("assessmentTitle") },
                 ]} />
-                <h1 className="text-3xl font-bold">{t("assessmentTitle")}</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">{t("assessmentTitle")}</h1>
                 {customer && (
                   <p className="text-muted-foreground mt-1">{customer.name}</p>
                 )}
@@ -270,7 +270,7 @@ function AssessmentDashboardContent({ params }: PageProps) {
               <span className="font-semibold text-foreground">{completedCount}</span>{" "}
               {t("assessmentProgress")}
             </p>
-            <div className="h-2 w-48 rounded-full bg-muted overflow-hidden">
+            <div className="h-2 w-48 rounded-full bg-slate-200 overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all"
                 style={{ width: `${(completedCount / 10) * 100}%` }}

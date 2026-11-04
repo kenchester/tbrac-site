@@ -1,24 +1,52 @@
 "use client";
 
 import { use } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Source_Serif_4 } from "next/font/google";
+import { ArrowLeft, ArrowRight, Check, Lock } from "lucide-react";
 import { ProtectedRoute } from "@/components/protected-route";
 import { PortalHeader } from "@/components/portal-header";
+import { Copyright } from "@/components/copyright";
 import { useCustomer } from "@/hooks/use-customers";
 import { useCreateAssessment } from "@/hooks/use-assessments";
 import { useApiToast } from "@/hooks/use-api-toast";
-import { formatIndustrySector, formatOwnershipType } from "@/lib/format-utils";
+import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, ClipboardList, Building2, MapPin, Tag } from "lucide-react";
+
+const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] });
+
+const C = {
+  en: {
+    back: "Back to overview", step: "Step 1 · Free",
+    title: "Start the self-assessment",
+    lead: "Ten short modules cover the same seven risk domains as the comprehensive assessment. Answer them in any order; your answers are saved as you go.",
+    expectTitle: "What to expect",
+    expect: [
+      "10 modules, each with 10 questions scored on a 0–10 scale",
+      "AI guidance in English and Chinese as you answer",
+      "Optional supporting documents for each module",
+      "An indicative score and the red flags to fix first when you submit",
+    ],
+    privacy: "Private to your company. Nothing is published, and your answers are not verified, so the result is for your own preparation, not a TBRAC certification.",
+    company: "Company", cancel: "Cancel", create: "Begin the self-assessment", creating: "Creating…", created: "Self-assessment created",
+  },
+  zh: {
+    back: "返回概览", step: "第一步 · 免费",
+    title: "开始自我评估",
+    lead: "10 个简短模块涵盖与全面评估相同的七个风险领域。可按任意顺序作答，回答会自动保存。",
+    expectTitle: "评估内容",
+    expect: [
+      "共 10 个模块，每个模块 10 个问题，按 0–10 分评分",
+      "作答时提供中英文 AI 指导",
+      "可为每个模块上传支持文件（可选）",
+      "提交后获得参考评分以及需要优先处理的风险信号",
+    ],
+    privacy: "仅贵公司可见，不会公开。您的回答未经核实，因此结果仅供贵公司自行准备之用，并非 TBRAC 认证。",
+    company: "企业", cancel: "取消", create: "开始自我评估", creating: "正在创建…", created: "已创建自我评估",
+  },
+};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,17 +55,20 @@ interface PageProps {
 function NewAssessmentContent({ params }: PageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { language } = useLanguage();
+  const c = C[language] ?? C.en;
   const { data: customer, loading: customerLoading } = useCustomer(resolvedParams.id);
   const { create, loading } = useCreateAssessment();
   const { handleError, showSuccess } = useApiToast();
+  const home = `/customers/${resolvedParams.id}`;
 
   const handleCreate = async () => {
     if (!customer) return;
     try {
       const assessment = await create({ customer_id: customer.id });
       if (assessment) {
-        showSuccess("Assessment created");
-        router.push(`/customers/${resolvedParams.id}/assessments/${assessment.id}`);
+        showSuccess(c.created);
+        router.push(`${home}/assessments/${assessment.id}`);
       }
     } catch (err) {
       handleError(err);
@@ -45,107 +76,49 @@ function NewAssessmentContent({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       <PortalHeader />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push(`/customers/${resolvedParams.id}`)}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">New Assessment</h1>
-              {customer && (
-                <p className="text-muted-foreground mt-1">{customer.name}</p>
+      <main className="mx-auto max-w-3xl px-5 py-10">
+        <Link href={home} className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-950">
+          <ArrowLeft className="h-4 w-4" />{c.back}
+        </Link>
+
+        <div className="mt-6 rounded-lg border border-slate-200 bg-white">
+          <div className="border-b border-slate-100 px-7 py-7">
+            <p className="text-xs font-medium text-slate-500">{c.step}</p>
+            <h1 className={`${serif.className} mt-1 text-3xl font-semibold tracking-tight text-slate-900`}>{c.title}</h1>
+            <p className="mt-3 text-[15px] leading-relaxed text-slate-600">{c.lead}</p>
+            <div className="mt-4 text-sm text-slate-500">
+              {customerLoading ? <Skeleton className="h-4 w-64" /> : customer && (
+                <>{c.company}: <span className="font-medium text-slate-900">{customer.name}</span>
+                  {customer.chinese_name && <span className="ml-1">（{customer.chinese_name}）</span>}</>
               )}
             </div>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardList className="h-5 w-5" />
-                Start Risk Assessment
-              </CardTitle>
-              <CardDescription>
-                This will create a new assessment with 10 risk modules. You can
-                complete each module independently from the assessment dashboard.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {customerLoading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-5 w-1/2" />
-                </div>
-              ) : customer ? (
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                    Company
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="font-semibold">{customer.name}</span>
-                    {customer.chinese_name && (
-                      <span className="text-muted-foreground">
-                        ({customer.chinese_name})
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
-                    {customer.headquarters_country}
-                    {customer.headquarters_city && `, ${customer.headquarters_city}`}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <Badge variant="outline" className="text-xs">
-                      {formatIndustrySector(customer.industry_sector)}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {formatOwnershipType(customer.ownership_type)}
-                    </Badge>
-                  </div>
-                </div>
-              ) : null}
+          <div className="px-7 py-6">
+            <h2 className="text-sm font-semibold text-slate-900">{c.expectTitle}</h2>
+            <ul className="mt-3 space-y-2.5">
+              {c.expect.map((x) => (
+                <li key={x} className="flex gap-3 text-[15px] text-slate-700">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />{x}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 flex gap-3 rounded-md bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
+              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />{c.privacy}
+            </p>
+          </div>
 
-              <div className="rounded-lg border border-dashed p-4 space-y-2 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">What to expect</p>
-                <ul className="space-y-1 list-disc list-inside">
-                  <li>10 risk assessment modules created automatically</li>
-                  <li>Each module has 10 scored questions (0–10 scale)</li>
-                  <li>Upload supporting documents per module</li>
-                  <li>Complete modules in any order</li>
-                  <li>Final risk tier calculated upon submission</li>
-                </ul>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push(`/customers/${resolvedParams.id}`)}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreate}
-                  disabled={loading || customerLoading || !customer}
-                >
-                  <ClipboardList className="mr-2 h-4 w-4" />
-                  {loading ? "Creating..." : "Create Assessment"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 px-7 py-5">
+            <Button type="button" variant="outline" onClick={() => router.push(home)} disabled={loading}>{c.cancel}</Button>
+            <Button onClick={handleCreate} disabled={loading || customerLoading || !customer}>
+              {loading ? c.creating : c.create}<ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      </main>
+      <Copyright />
     </div>
   );
 }

@@ -72,21 +72,21 @@ export function AssessmentChatbot({ assessmentId, companyName }: Props) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[#c9a647] hover:bg-[#b8923a] shadow-lg flex items-center justify-center transition-all hover:scale-105"
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[#0b1f3a] hover:bg-[#152d52] shadow-lg flex items-center justify-center transition-all hover:scale-105"
           aria-label="Open TBRAC Assistant"
         >
-          <MessageCircle className="h-6 w-6 text-[#1a1f2e]" />
+          <MessageCircle className="h-6 w-6 text-white" />
         </button>
       )}
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-[380px] h-[540px] bg-white rounded-2xl shadow-2xl border border-[#e8e2d6] flex flex-col overflow-hidden">
+        <div className="fixed bottom-6 right-6 z-50 w-[380px] h-[540px] bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-[#1a1f2e] text-white shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 bg-[#0b1f3a] text-white shrink-0">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-[#c9a647] flex items-center justify-center">
-                <Bot className="h-4 w-4 text-[#1a1f2e]" />
+              <div className="h-7 w-7 rounded-full bg-white/15 flex items-center justify-center">
+                <Bot className="h-4 w-4 text-white" />
               </div>
               <div>
                 <p className="text-sm font-semibold">TBRAC Assistant</p>
@@ -102,13 +102,13 @@ export function AssessmentChatbot({ assessmentId, companyName }: Props) {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f9f7f4]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f8fafc]">
             {/* Welcome */}
             <div className="flex gap-2 items-start">
-              <div className="h-6 w-6 rounded-full bg-[#c9a647] flex items-center justify-center shrink-0 mt-0.5">
-                <Bot className="h-3.5 w-3.5 text-[#1a1f2e]" />
+              <div className="h-6 w-6 rounded-full bg-[#0b1f3a] flex items-center justify-center shrink-0 mt-0.5">
+                <Bot className="h-3.5 w-3.5 text-white" />
               </div>
-              <div className="bg-white rounded-2xl rounded-tl-sm px-3 py-2 text-sm text-[#1a1f2e] shadow-sm max-w-[280px]">
+              <div className="bg-white rounded-2xl rounded-tl-sm px-3 py-2 text-sm text-[#0b1f3a] shadow-sm max-w-[280px]">
                 {welcomeMessage}
               </div>
             </div>
@@ -120,7 +120,7 @@ export function AssessmentChatbot({ assessmentId, companyName }: Props) {
                   <button
                     key={q}
                     onClick={() => sendMessage(q)}
-                    className="text-xs text-left text-[#1a1f2e] bg-white border border-[#e8e2d6] rounded-full px-3 py-1.5 hover:border-[#c9a647] hover:bg-[#fdf9f0] transition-colors"
+                    className="text-xs text-left text-[#0b1f3a] bg-white border border-[#e2e8f0] rounded-full px-3 py-1.5 hover:border-slate-400 hover:bg-slate-50 transition-colors"
                   >
                     {q}
                   </button>
@@ -135,15 +135,15 @@ export function AssessmentChatbot({ assessmentId, companyName }: Props) {
                 className={`flex gap-2 items-start ${msg.role === "user" ? "flex-row-reverse" : ""}`}
               >
                 {msg.role === "assistant" && (
-                  <div className="h-6 w-6 rounded-full bg-[#c9a647] flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="h-3.5 w-3.5 text-[#1a1f2e]" />
+                  <div className="h-6 w-6 rounded-full bg-[#0b1f3a] flex items-center justify-center shrink-0 mt-0.5">
+                    <Bot className="h-3.5 w-3.5 text-white" />
                   </div>
                 )}
                 <div
                   className={`rounded-2xl px-3 py-2 text-sm max-w-[280px] shadow-sm whitespace-pre-wrap ${
                     msg.role === "user"
-                      ? "bg-[#1a1f2e] text-white rounded-tr-sm"
-                      : "bg-white text-[#1a1f2e] rounded-tl-sm"
+                      ? "bg-[#0b1f3a] text-white rounded-tr-sm"
+                      : "bg-white text-[#0b1f3a] rounded-tl-sm"
                   }`}
                 >
                   {msg.content}
@@ -156,11 +156,11 @@ export function AssessmentChatbot({ assessmentId, companyName }: Props) {
 
             {loading && messages[messages.length - 1]?.content === "" && (
               <div className="flex gap-2 items-start">
-                <div className="h-6 w-6 rounded-full bg-[#c9a647] flex items-center justify-center shrink-0">
-                  <Bot className="h-3.5 w-3.5 text-[#1a1f2e]" />
+                <div className="h-6 w-6 rounded-full bg-[#0b1f3a] flex items-center justify-center shrink-0">
+                  <Bot className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div className="bg-white rounded-2xl rounded-tl-sm px-3 py-2 shadow-sm">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#c9a647]" />
+                  <Loader2 className="h-4 w-4 animate-spin text-[#0b1f3a]" />
                 </div>
               </div>
             )}
@@ -169,7 +169,7 @@ export function AssessmentChatbot({ assessmentId, companyName }: Props) {
           </div>
 
           {/* Input */}
-          <div className="px-3 py-3 border-t border-[#e8e2d6] bg-white shrink-0 flex items-center gap-2">
+          <div className="px-3 py-3 border-t border-[#e2e8f0] bg-white shrink-0 flex items-center gap-2">
             <input
               ref={inputRef}
               type="text"
@@ -178,15 +178,15 @@ export function AssessmentChatbot({ assessmentId, companyName }: Props) {
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               disabled={loading}
-              className="flex-1 text-sm px-3 py-2 rounded-full border border-[#e8e2d6] bg-[#f9f7f4] focus:outline-none focus:border-[#c9a647] disabled:opacity-50 text-[#1a1f2e]"
+              className="flex-1 text-sm px-3 py-2 rounded-full border border-[#e2e8f0] bg-[#f8fafc] focus:outline-none focus:border-sky-700 disabled:opacity-50 text-[#0b1f3a]"
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="h-8 w-8 rounded-full bg-[#c9a647] hover:bg-[#b8923a] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+              className="h-8 w-8 rounded-full bg-[#0b1f3a] hover:bg-[#152d52] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
               aria-label={sendLabel}
             >
-              <Send className="h-3.5 w-3.5 text-[#1a1f2e]" />
+              <Send className="h-3.5 w-3.5 text-white" />
             </button>
           </div>
         </div>

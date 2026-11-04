@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/language-context";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -80,6 +81,21 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+const L = {
+  en: { title: "Documents", sub: "Company documents", n: (k: number) => `${k} document${k === 1 ? "" : "s"}`, failed: "Could not load documents:", retry: "Retry",
+        none: "No documents yet", noneText: "Upload documents with the form above. Only your company and, during a comprehensive assessment, its TBRAC evaluators can see them.",
+        filename: "File", size: "Size", type: "Type", status: "Status", uploaded: "Uploaded", classify: "Classify document",
+        classifyFor: (f: string) => `Choose a document type for ${f}`, docType: "Document type", selectType: "Select a document type",
+        cancel: "Cancel", save: "Save", saving: "Saving…", del: "Delete document", delText: "This permanently deletes the document. This cannot be undone.",
+        delete: "Delete", deleting: "Deleting…", classified: "Document type updated", deleted: "Document deleted" },
+  zh: { title: "文件", sub: "企业文件", n: (k: number) => `共 ${k} 份文件`, failed: "无法加载文件：", retry: "重试",
+        none: "暂无文件", noneText: "请使用上方表单上传文件。仅贵公司以及全面评估期间的 TBRAC 评估人员可以查看。",
+        filename: "文件", size: "大小", type: "类型", status: "状态", uploaded: "上传时间", classify: "设置文件类型",
+        classifyFor: (f: string) => `为 ${f} 选择文件类型`, docType: "文件类型", selectType: "选择文件类型",
+        cancel: "取消", save: "保存", saving: "正在保存…", del: "删除文件", delText: "这将永久删除该文件，且无法撤销。",
+        delete: "删除", deleting: "正在删除…", classified: "已更新文件类型", deleted: "已删除文件" },
+};
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -87,6 +103,8 @@ interface PageProps {
 function CustomerDocumentsContent({ params }: PageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { language } = useLanguage();
+  const l = L[language] ?? L.en;
   const [page, setPage] = useState(1);
   const [editingDoc, setEditingDoc] = useState<DocumentListItem | null>(null);
   const [selectedType, setSelectedType] = useState<string>("");
@@ -116,7 +134,7 @@ function CustomerDocumentsContent({ params }: PageProps) {
 
     try {
       await updateClassification(editingDoc.id, selectedType);
-      showSuccess("Document classification updated");
+      showSuccess(l.classified);
       setEditingDoc(null);
       setSelectedType("");
       refetch();
@@ -130,7 +148,7 @@ function CustomerDocumentsContent({ params }: PageProps) {
 
     try {
       await deleteDocument(deletingDocId);
-      showSuccess("Document deleted successfully");
+      showSuccess(l.deleted);
       setDeletingDocId(null);
       refetch();
     } catch (err) {
@@ -208,9 +226,9 @@ function CustomerDocumentsContent({ params }: PageProps) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Documents</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">{l.title}</h1>
               <p className="text-muted-foreground mt-1">
-                {customer ? `${customer.name}` : "Customer documents"}
+                {customer ? `${customer.name}` : l.sub}
               </p>
             </div>
           </div>
@@ -227,19 +245,19 @@ function CustomerDocumentsContent({ params }: PageProps) {
           <Card>
             <CardHeader>
               <CardTitle>
-                {data ? `${data.total} Document${data.total !== 1 ? "s" : ""}` : "Documents"}
+                {data ? l.n(data.total) : l.title}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {error && (
                 <div className="text-center py-8 text-red-600">
-                  <p>Failed to load documents: {error}</p>
+                  <p>{l.failed} {error}</p>
                   <Button
                     variant="outline"
                     className="mt-4"
                     onClick={() => refetch()}
                   >
-                    Retry
+                    {l.retry}
                   </Button>
                 </div>
               )}
@@ -262,10 +280,10 @@ function CustomerDocumentsContent({ params }: PageProps) {
                 <div className="text-center py-12">
                   <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
                   <h3 className="mt-4 text-lg font-medium">
-                    No documents uploaded
+                    {l.none}
                   </h3>
                   <p className="mt-2 text-muted-foreground">
-                    Upload documents using the form above
+                    {l.noneText}
                   </p>
                 </div>
               )}
@@ -275,12 +293,12 @@ function CustomerDocumentsContent({ params }: PageProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Filename</TableHead>
-                        <TableHead>Size</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>{l.filename}</TableHead>
+                        <TableHead>{l.size}</TableHead>
+                        <TableHead>{l.type}</TableHead>
+                        <TableHead>{l.status}</TableHead>
                         <TableHead className="hidden lg:table-cell">
-                          Uploaded
+                          {l.uploaded}
                         </TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
@@ -392,17 +410,17 @@ function CustomerDocumentsContent({ params }: PageProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Classify Document</DialogTitle>
+            <DialogTitle>{l.classify}</DialogTitle>
             <DialogDescription>
-              {editingDoc && `Update classification for ${editingDoc.original_filename}`}
+              {editingDoc && l.classifyFor(editingDoc.original_filename)}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="document-type">Document Type</Label>
+              <Label htmlFor="document-type">{l.docType}</Label>
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select document type" />
+                  <SelectValue placeholder={l.selectType} />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.values(DocumentType).map((type) => (
@@ -423,10 +441,10 @@ function CustomerDocumentsContent({ params }: PageProps) {
               }}
               disabled={classifying}
             >
-              Cancel
+              {l.cancel}
             </Button>
             <Button onClick={handleClassify} disabled={classifying}>
-              {classifying ? "Saving..." : "Save"}
+              {classifying ? l.saving : l.save}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -441,20 +459,19 @@ function CustomerDocumentsContent({ params }: PageProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogTitle>{l.del}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this document. This action cannot be
-              undone.
+              {l.delText}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>{l.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting ? l.deleting : l.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
