@@ -120,8 +120,8 @@ export const engagementsApi = {
   list: () => authenticatedRequest<EngagementSummary[]>(`${base}/engagements`),
   get: (id: string) => authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}`),
   create: (body: {
-    customer_id: string; engagement_type: string; track: string;
-    project_description?: string; relying_parties?: string[];
+    customer_id: string; engagement_type: string; track?: string;
+    project_description?: string; relying_parties?: string[]; request_id?: string;
   }) => authenticatedRequest<EngagementDetail>(`${base}/engagements`, json("POST", body)),
   update: (id: string, body: Partial<Pick<EngagementDetail,
     "stage" | "project_description" | "relying_parties" | "overlay" | "engagement_type" | "track" | "lead_analyst"

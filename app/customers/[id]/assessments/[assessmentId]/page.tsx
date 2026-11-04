@@ -3,6 +3,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/protected-route";
+import { RequestAssessmentCard } from "@/components/request-assessment-card";
 import { PortalHeader } from "@/components/portal-header";
 import { useCustomer } from "@/hooks/use-customers";
 import { useAssessment, useSubmitAssessment } from "@/hooks/use-assessments";
@@ -257,6 +258,10 @@ function AssessmentDashboardContent({ params }: PageProps) {
                 </p>
               </CardContent>
             </Card>
+          )}
+
+          {(assessment.status === "submitted" || assessment.status === "completed") && (
+            <RequestAssessmentCard customerId={customerId} assessmentId={assessment.id} />
           )}
 
           {/* Progress */}

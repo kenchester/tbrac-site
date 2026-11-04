@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { engagementsApi, stageLabel, type EngagementSummary, type MonitoringEvent } from "@/lib/engagements";
 import { EventRow } from "@/components/monitoring-event-row";
+import { AssessmentRequestsPanel } from "@/components/assessment-requests-panel";
 
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 
@@ -156,6 +157,8 @@ export default function EngagementsPage() {
         </div>
 
         {showNew && <NewEngagement onCreated={(id) => router.push(`/evaluator/engagements/${id}`)} />}
+
+        <AssessmentRequestsPanel />
 
         <Card>
           <CardHeader className="pb-2">

@@ -87,6 +87,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { documentRequestsApi, needsResponse } from "@/lib/document-requests";
+import { RequestAssessmentCard } from "@/components/request-assessment-card";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -466,6 +467,10 @@ function CustomerDetailContent({ params }: PageProps) {
                 </div>
               </CardHeader>
             </Card>
+          )}
+
+          {assessments && assessments.items.some((a) => a.status === "submitted" || a.status === "completed") && (
+            <RequestAssessmentCard customerId={resolvedParams.id} />
           )}
 
           {/* Recent Documents */}
