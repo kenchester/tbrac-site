@@ -50,7 +50,7 @@ export async function POST(_request: Request, { params }: Params) {
       text = (await mammoth.extractRawText({ buffer: Buffer.from(bytes) })).value
       method = "mammoth"
     } else {
-      return NextResponse.json({ detail: "Text extraction supports PDF and DOCX. Images need OCR, which is not available yet." }, { status: 422 })
+      return NextResponse.json({ detail: "Text extraction reads PDF and Word files. For images and scans, use OCR scan." }, { status: 422 })
     }
   } catch (e) {
     return NextResponse.json({ detail: `Could not read the file: ${e instanceof Error ? e.message : "unknown error"}` }, { status: 422 })

@@ -70,7 +70,7 @@ export interface DocAnalysis {
 }
 export interface EngagementDocument {
   id: string; filename: string; mime_type: string; size: number; uploaded_at: string | null; request: string | null;
-  has_text: boolean; text_chars: number; page_count: number | null; language: string | null; text_problem: string | null;
+  has_text: boolean; text_chars: number; page_count: number | null; language: string | null; text_problem: string | null; ocr: boolean;
   analysis: DocAnalysis | null;
 }
 export interface MethodologyVersionInfo {
@@ -240,6 +240,15 @@ export const engagementsApi = {
     authenticatedRequest<HitTriage>(`${base}/engagements/${id}/ai/screen-triage`, json("POST", hit)),
   aiReplyMap: (id: string) => authenticatedRequest<ReplyMap>(`${base}/engagements/${id}/ai/reply-map`, { method: "POST" }),
   aiConditions: (id: string) => authenticatedRequest<DraftedConditions>(`${base}/engagements/${id}/ai/conditions`, { method: "POST" }),
+  /** Site route: OCR with the vision model, page by page. */
+  ocr: async (id: string, docId: string) => {
+    const res = await fetch(`/api/evaluator/engagements/${id}/documents/${docId}/ocr`, { method: "POST" });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail ?? "OCR failed");
+    return body as { pages: number; truncated: boolean; problem: string | null };
+  },
+  aiSelfTest: () => authenticatedRequest<{ configured: boolean; model?: string; vision_model?: string; passed?: number; total?: number;
+    results: { feature: string; ok: boolean; detail: string; seconds: number }[] }>(`${base}/ai/self-test`, { method: "POST" }),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>

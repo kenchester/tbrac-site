@@ -1501,13 +1501,20 @@ function Documents({ eng, reload }: { eng: EngagementDetail; reload: () => void 
                   {d.request ? `For: ${d.request} · ` : ""}{(d.size / 1024).toFixed(0)} KB
                   {d.has_text ? ` · text extracted (${d.text_chars.toLocaleString()} characters${d.page_count ? `, ${d.page_count} pages` : ""}${d.language ? `, ${d.language === "zh" ? "Chinese" : "English"}` : ""})` : ""}
                 </p>
-                {d.text_problem && <p className="text-xs text-amber-800">{d.text_problem}</p>}
+                {d.text_problem && <p className="text-xs text-amber-800">{d.text_problem}{!d.ocr && " Try OCR scan."}</p>}
+                {d.ocr && !d.text_problem && <p className="text-xs text-muted-foreground">Text read by OCR: check quotes against the scan itself.</p>}
               </div>
               <div className="flex flex-wrap gap-2">
                 <a className="inline-flex h-8 items-center rounded-md border px-3 text-xs hover:bg-muted" href={`/api/documents/${d.id}/file`} target="_blank" rel="noreferrer">Open file</a>
                 <Button size="sm" variant="outline" disabled={!!busy} onClick={() => act(`x-${d.id}`, () => engagementsApi.extractText(d.id))}>
                   {busy === `x-${d.id}` ? "Extracting…" : d.has_text ? "Re-extract text" : "Extract text"}
                 </Button>
+                {(d.mime_type.startsWith("image/") || d.text_problem || (d.mime_type === "application/pdf" && !d.has_text)) && (
+                  <Button size="sm" variant="outline" disabled={!!busy || !eng.ai_processing_allowed} title="Read a scanned document with the vision model"
+                    onClick={() => act(`o-${d.id}`, () => engagementsApi.ocr(eng.id, d.id))}>
+                    {busy === `o-${d.id}` ? "Reading scan…" : "OCR scan"}
+                  </Button>
+                )}
                 <Button size="sm" disabled={!!busy || !d.has_text || !!d.text_problem || !eng.ai_processing_allowed} onClick={() => act(`a-${d.id}`, () => engagementsApi.analyzeDocument(eng.id, d.id))}>
                   {busy === `a-${d.id}` ? "Reading…" : d.analysis ? "AI reading again" : "AI reading"}
                 </Button>
@@ -1687,7 +1694,10 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-        <Link href="/evaluator/engagements" className="text-sm text-primary hover:underline">← All engagements</Link>
+        <div className="flex gap-4 text-sm">
+          <Link href="/evaluator/engagements" className="text-primary hover:underline">← All engagements</Link>
+          <Link href="/evaluator/guide" className="text-muted-foreground hover:underline">How to run an engagement</Link>
+        </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {(!eng || !m) && !error && <p className="text-muted-foreground">Loading…</p>}
         {eng && m && (

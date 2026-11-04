@@ -152,7 +152,9 @@ export default function EngagementsPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild><Link href="/evaluator/dashboard">Self-assessment review</Link></Button>
+            <Button variant="outline" asChild><Link href="/evaluator/guide">Guide</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/methodology">Methodology calibration</Link></Button>
+            <Button variant="outline" asChild><Link href="/evaluator/ai">AI self-test</Link></Button>
             <Button onClick={() => setShowNew((v) => !v)}>{showNew ? "Cancel" : "New engagement"}</Button>
           </div>
         </div>

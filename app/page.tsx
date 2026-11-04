@@ -70,8 +70,7 @@ export default function HomePage() {
       <section style={{ background: NAVY }} className="text-white">
         <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/80">{c.eyebrow}</p>
-            <h1 className={`${serif.className} mt-5 text-4xl font-semibold leading-[1.12] tracking-tight sm:text-5xl`}>{c.title}</h1>
+            <h1 className={`${serif.className} text-4xl font-semibold leading-[1.12] tracking-tight sm:text-5xl`}>{c.title}</h1>
             <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-slate-300">{c.lead}</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href={SIGNUP} className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100">

@@ -12,7 +12,6 @@ const NAVY = "#0b1f3a";
 // Methodology §3.1 (tracks), §8 (outputs, conditions), §9 (surveillance), §12.2 (reliance letter).
 const C = {
   en: {
-    eyebrow: "For counties, state agencies and business partners",
     title: "Using a TBRAC report in your decision",
     lead: "A TBRAC report gives you an independent, documented view of a company's ownership, state links and other risks before an incentive vote, land sale, lease or procurement. It supports your decision; it does not make it for you.",
     getTitle: "What you receive",
@@ -50,7 +49,6 @@ const C = {
     home: "Home",
   },
   zh: {
-    eyebrow: "供县政府、州机构和商业伙伴参考",
     title: "如何在决策中使用 TBRAC 报告",
     lead: "在激励投票、土地出售、租赁或采购之前，TBRAC 报告为您提供关于企业所有权、国有关联及其他风险的独立且有据可查的评估。报告为您的决策提供支持，但不代替您作出决定。",
     getTitle: "您将收到",
@@ -109,8 +107,7 @@ export default function RelyingPartiesPage() {
 
       <section style={{ background: NAVY }} className="text-white">
         <div className="mx-auto max-w-5xl px-5 py-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/80">{c.eyebrow}</p>
-          <h1 className={`${serif.className} mt-4 text-4xl font-semibold tracking-tight sm:text-5xl`}>{c.title}</h1>
+          <h1 className={`${serif.className} text-4xl font-semibold tracking-tight sm:text-5xl`}>{c.title}</h1>
           <p className="mt-5 max-w-3xl text-[17px] leading-relaxed text-slate-300">{c.lead}</p>
         </div>
       </section>

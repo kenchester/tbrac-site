@@ -17,8 +17,7 @@ interface PublicVersion {
 }
 
 const C = {
-  en: {
-    eyebrow: "Methodology", title: "How TBRAC assesses risk",
+  en: { title: "How TBRAC assesses risk",
     lead: "The comprehensive assessment applies a published, versioned methodology: red lines first, then 29 indicators across seven domains, each graded by the strength of its evidence. The rules below are the ones every rating is computed under.",
     domainsTitle: "Seven domains and their weights", weightsNote: (v: string, cal: boolean) => cal ? `Weights of version ${v}, set by the expert panel.` : `Weights of version ${v} are provisional until the expert panel calibrates them (see below).`,
     domains: { D1: "Ownership and state / Party / military linkage", D2: "National security, technology and export control", D3: "Data security and PRC access", D4: "Supply chain and forced labor", D5: "Integrity, influence and legal history", D6: "Financial integrity and governance", D7: "IP conduct" } as Record<string, string>,
@@ -39,8 +38,7 @@ const C = {
     selfText: "The self-assessment covers the same ground in 10 short modules and gives an indicative score from your own answers. It is not verified, uses simpler scoring and is not suitable for reliance by third parties. It shows where a comprehensive assessment is likely to focus.",
     selfCta: "Start the free self-assessment", fullCta: "For relying parties",
   },
-  zh: {
-    eyebrow: "评估方法", title: "TBRAC 如何评估风险",
+  zh: { title: "TBRAC 如何评估风险",
     lead: "全面评估采用公开且有版本记录的评估方法：先适用红线规则，再评估七个领域的 29 项指标，每项均按证据强度分级。以下规则即每项评级的计算依据。",
     domainsTitle: "七个领域及其权重", weightsNote: (v: string, cal: boolean) => cal ? `版本 ${v} 的权重，由专家小组确定。` : `版本 ${v} 的权重为临时权重，待专家小组校准（见下文）。`,
     domains: { D1: "所有权与国家 / 党 / 军方关联", D2: "国家安全、技术与出口管制", D3: "数据安全与中国境内访问", D4: "供应链与强迫劳动", D5: "诚信、影响力与法律记录", D6: "财务诚信与治理", D7: "知识产权行为" } as Record<string, string>,
@@ -86,8 +84,7 @@ export default function MethodologyPage() {
 
       <section style={{ background: NAVY }} className="text-white">
         <div className="mx-auto max-w-5xl px-5 py-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/80">{c.eyebrow}</p>
-          <h1 className={`${serif.className} mt-4 text-4xl font-semibold tracking-tight sm:text-5xl`}>{c.title}</h1>
+          <h1 className={`${serif.className} text-4xl font-semibold tracking-tight sm:text-5xl`}>{c.title}</h1>
           <p className="mt-5 max-w-3xl text-[17px] leading-relaxed text-slate-300">{c.lead}</p>
         </div>
       </section>
