@@ -1,5 +1,6 @@
 // Homepage copy in English and Chinese. Wording follows Methodology §1.3 and §12.5:
-// no "certify", "guarantee", "safe", "approved" or "cleared" claims, and no invented statistics.
+// TBRAC reports are a private certification: never call them a government certification or approval,
+// and make no "guarantee", "safe" or "cleared" claims and no invented statistics.
 
 export const HOME = {
   en: {
@@ -32,15 +33,15 @@ export const HOME = {
         "Documents verified against official registries and independent sources",
         "Ownership chain screened against US lists (sanctions, Entity List, UFLPA, 1260H, FCC)",
         "Scored by an analyst, checked by a second reviewer, decided by an independent committee",
-        "Rated report (T1–T4) with a restricted full report and a public summary",
+        "TBRAC certification of the rating (T1–T4), with a restricted full report, a public summary and a verifiable report number",
         "12-month validity with daily re-screening and Under Review alerts",
       ],
-      limit: "A risk opinion as of a date. Not a certification, guarantee or government determination.",
+      limit: "A private certification as of a date. Not a government certification, approval or guarantee.",
       cta: "Explore a comprehensive assessment",
     },
     relyTitle: "Built for the people who rely on it",
     rely: [
-      { who: "Counties and economic development agencies", what: "A rated opinion before incentive votes, land sales and site approvals, with conditions you can write into the agreement." },
+      { who: "Counties and economic development agencies", what: "A certified rating before incentive votes, land sales and site approvals, with conditions you can write into the agreement." },
       { who: "State agencies", what: "A Statutory Eligibility page that states, test by test, whether the company meets your state's foreign-ownership definitions, separate from the rating." },
       { who: "Landlords, lenders and business partners", what: "A consistent, documented view of ownership and control, with the evidence behind each finding." },
     ],
@@ -73,8 +74,8 @@ export const HOME = {
       { t: "Lawful methods only", d: "No pretext calls, no purchased non-public data and no mainland proxies. Every source is documented and timestamped." },
       { t: "Published methodology", d: "Weights, red lines and scoring anchors are public and versioned, so any result can be traced to the rules that produced it." },
     ],
-    disclaimerTitle: "What a TBRAC report is not",
-    disclaimer: "A TBRAC report is an independent risk opinion as of the date stated. It is not a certification, guarantee or approval; it is not a CFIUS determination or a decision of any government agency; it does not override any statute; and it is not legal advice.",
+    disclaimerTitle: "What TBRAC certification is, and is not",
+    disclaimer: "A TBRAC report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, approval or license; it is not a CFIUS determination or a decision of any government agency; it is not a guarantee of future conduct; it does not override any statute; and it is not legal advice.",
     finalTitle: "Start with the free self-assessment",
     finalLead: "See where you stand, privately. When you are ready, explore a comprehensive assessment from your results.",
     fees: { title: "Fees", text: "Every company pays the same flat fee for the same type of assessment, whatever its size, revenue or the outcome. The fee is agreed in the engagement letter and paid or escrowed before the rating committee meets, so it can never depend on the rating. Analysts never discuss fees.", design: "Design assessment", operating: "Operating assessment", monitoring: "Monitoring during validity", flat: "One flat fee", ask: "Ask for the current fee schedule" },
@@ -111,15 +112,15 @@ export const HOME = {
         "根据官方登记机构和独立来源核实文件",
         "按美国名单筛查所有权链（制裁名单、实体清单、UFLPA、1260H、FCC）",
         "由分析师评分，第二审核人复核，独立委员会作出决定",
-        "带评级的报告（T1–T4），包括限制分发的完整报告和公开摘要",
+        "TBRAC 评级认证（T1–T4），包括限制分发的完整报告、公开摘要和可核验的报告编号",
         "12 个月有效期，每日重新筛查并发出“审查中”提示",
       ],
-      limit: "截至某一日期的风险意见。并非认证、担保或政府决定。",
+      limit: "截至某一日期的私营机构认证。并非政府认证、批准或担保。",
       cta: "了解全面评估",
     },
     relyTitle: "为依赖报告的各方而设计",
     rely: [
-      { who: "县政府和经济发展机构", what: "在激励投票、土地出售和选址审批前获得带评级的意见，以及可以写入协议的条件。" },
+      { who: "县政府和经济发展机构", what: "在激励投票、土地出售和选址审批前获得经认证的评级，以及可以写入协议的条件。" },
       { who: "州政府机构", what: "“法定资格”页面逐项说明企业是否符合贵州的外国所有权定义，并与评级分开列示。" },
       { who: "房东、贷款方和商业伙伴", what: "对所有权和控制权的一致、有据可查的评估，并列明每项结论背后的证据。" },
     ],
@@ -152,8 +153,8 @@ export const HOME = {
       { t: "仅采用合法方法", d: "不使用伪装电话、不购买非公开数据、不借助境内代理。每个来源均有记录和时间戳。" },
       { t: "公开评估方法", d: "权重、红线和评分标准公开并有版本记录，任何结果都可追溯到产生它的规则。" },
     ],
-    disclaimerTitle: "TBRAC 报告不是什么",
-    disclaimer: "TBRAC 报告是截至所述日期的独立风险意见。它不是认证、担保或批准；不是 CFIUS 决定，也不是任何政府机构的决定；不能凌驾于任何法律之上；也不构成法律意见。",
+    disclaimerTitle: "TBRAC 认证是什么、不是什么",
+    disclaimer: "TBRAC 报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、批准或许可；不是 CFIUS 决定，也不是任何政府机构的决定；不保证企业未来的行为；不能凌驾于任何法律之上；也不构成法律意见。",
     finalTitle: "从免费自我评估开始",
     finalLead: "私密地了解贵公司的现状。准备就绪后，可在评估结果页面了解全面评估。",
     fees: { title: "收费", text: "同一类型的评估，所有企业支付相同的固定费用，与企业规模、收入或评估结果无关。费用在委托书中约定，并在评级委员会开会前付清或托管，因此绝不会取决于评级结果。分析师从不讨论费用。", design: "设计评估", operating: "运营评估", monitoring: "有效期内持续监测", flat: "一个固定费用", ask: "索取现行收费标准" },

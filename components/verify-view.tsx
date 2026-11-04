@@ -38,7 +38,7 @@ const V = {
     registerFp: "Register fingerprint",
     testTitle: "Test report: not a TBRAC opinion",
     testText: "This report was issued from dummy data while TBRAC staff tested the system. It is not about a real company and must not be relied on.",
-    disclaimer: (d: string) => `A TBRAC report is an independent risk opinion as of the date stated. It is not a certification, guarantee or approval; not a CFIUS determination or a decision of any government agency; it does not override any statute and is not legal advice. Confidential findings are available only to the named intended users. Checked ${d}.`,
+    disclaimer: (d: string) => `A TBRAC report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, approval or license; it is not a CFIUS determination or a decision of any government agency; it is not a guarantee of future conduct; it does not override any statute; and it is not legal advice. Confidential findings are available only to the named intended users. Checked ${d}.`,
     locale: "en-US",
   },
   zh: {
@@ -63,7 +63,7 @@ const V = {
     registerFp: "登记册数字指纹",
     testTitle: "测试报告：并非 TBRAC 意见",
     testText: "本报告由 TBRAC 工作人员在测试系统时使用虚拟数据出具，并不涉及真实企业，不得依赖。",
-    disclaimer: (d: string) => `TBRAC 报告是截至所述日期的独立风险意见。它不是认证、担保或批准；不是 CFIUS 决定或任何政府机构的决定；不能凌驾于任何法律之上，也不构成法律意见。保密调查结果仅提供给指定的预期使用方。查询时间：${d}。`,
+    disclaimer: (d: string) => `TBRAC 报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、批准或许可；不是 CFIUS 决定，也不是任何政府机构的决定；不保证企业未来的行为；不能凌驾于任何法律之上；也不构成法律意见。保密调查结果仅提供给指定的预期使用方。查询时间：${d}。`,
     locale: "zh-CN",
   },
 };

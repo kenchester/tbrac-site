@@ -52,7 +52,7 @@ const C = {
     limitsTitle: "What to expect",
     limits: [
       "The rating reflects the evidence. Some companies will receive an elevated rating, and the report will say what conditions would address it.",
-      "A TBRAC report is not a certification, guarantee or government approval, and it cannot override a state or federal law.",
+      "A TBRAC report is a private certification, not a government certification, approval or guarantee, and it cannot override a state or federal law.",
       "Each counterparty makes its own decision. The report gives them documented evidence to make it with.",
     ],
     faqTitle: "Common questions",
@@ -107,7 +107,7 @@ const C = {
     limitsTitle: "您可以预期什么",
     limits: [
       "评级反映证据。部分企业会获得较高风险评级，报告将说明哪些条件可以解决相关问题。",
-      "TBRAC 报告不是认证、担保或政府批准，也不能凌驾于州法或联邦法律之上。",
+      "TBRAC 报告是私营机构认证，而非政府认证、批准或担保，也不能凌驾于州法或联邦法律之上。",
       "各合作方自行作出决定。报告为其决定提供有据可查的证据。",
     ],
     faqTitle: "常见问题",

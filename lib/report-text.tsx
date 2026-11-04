@@ -21,7 +21,7 @@ export const REPORT_TEXT = {
     conf: { High: "High", Moderate: "Moderate", Low: "Low" } as Record<string, string>,
     outlooks: { stable: "Stable", positive: "Positive", negative: "Negative" } as Record<string, string>,
     statements: [
-      "This report is an independent risk opinion as of the date stated. It is not a certification, guarantee, warranty, surety, clearance or approval of any kind.",
+      "This report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, license, clearance or approval, and it is not a guarantee, warranty or surety of the subject's future conduct.",
       "It is not a CFIUS determination, export-control classification or decision of any government agency, and it carries no government endorsement.",
       "It does not override any statute. Where a law bars a transaction, no rating changes that result.",
       "It is not legal advice. Legal conclusions referenced here are those of the subject's counsel, collected and graded as evidence.",
@@ -81,7 +81,7 @@ export const REPORT_TEXT = {
     conf: { High: "高", Moderate: "中等", Low: "低" } as Record<string, string>,
     outlooks: { stable: "稳定", positive: "正面", negative: "负面" } as Record<string, string>,
     statements: [
-      "本报告是截至所述日期的独立风险意见。它不构成任何形式的认证、担保、保证、保函、许可或批准。",
+      "本报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、许可或批准，也不构成对被评估企业未来行为的担保、保证或保函。",
       "它不是 CFIUS 决定、出口管制分类或任何政府机构的决定，也不代表任何政府认可。",
       "它不能凌驾于任何法律之上。凡法律禁止的交易，任何评级都不会改变这一结果。",
       "它不构成法律意见。本报告提及的法律结论均为被评估方律师的意见，作为证据收集并分级。",

@@ -212,7 +212,7 @@ export const translations = {
       "In an era of increasing geopolitical complexity, the need for standardized risk assessment has never been greater. High-profile cases like TikTok have demonstrated the challenges that arise when risk evaluation is conducted reactively rather than proactively. TBRAC provides a framework for addressing these concerns before they escalate.",
     aboutApproach: "Our Approach",
     aboutApproachText:
-      "TBRAC utilizes a multi-variable assessment model that evaluates companies across 10 key risk categories. Our evaluators analyze responses, supporting documentation, and publicly available information to prepare dated, evidence-based assessment reports. A TBRAC report is an independent risk opinion; it is not a government approval, certification or guarantee.",
+      "TBRAC utilizes a multi-variable assessment model that evaluates companies across 10 key risk categories. Our evaluators analyze responses, supporting documentation, and publicly available information to prepare dated, evidence-based assessment reports. A TBRAC report is a private certification under our published methodology; it is not a government certification, approval or guarantee.",
     aboutTeam: "Built by Experts",
     aboutTeamText:
       "The TBRAC methodology was built by domain experts in cross-border business, data security, and regulatory compliance. This expertise ensures that our assessments address the real concerns of government stakeholders while providing actionable insights for companies.",
@@ -298,7 +298,7 @@ export const translations = {
       "By using the TBRAC assessment system, you agree to these Terms of Service. Please read them carefully.",
     termsUse: "Use of Services",
     termsUseText:
-      "TBRAC assessments are provided for informational purposes. Self-assessment results are based solely on information you provide and are not verified. TBRAC reports are risk opinions as of a stated date; they are not a certification, guarantee or warranty of any kind, are not endorsed by any government agency, and do not guarantee regulatory approval or market entry success.",
+      "TBRAC assessments are provided for informational purposes. Self-assessment results are based solely on information you provide and are not verified. TBRAC reports are private certifications as of a stated date, issued under TBRAC's published methodology. They are not government certifications, are not endorsed by any government agency, are not a guarantee or warranty of any kind, and do not guarantee regulatory approval or market entry success.",
     termsAccuracy: "Accuracy of Information",
     termsAccuracyText:
       "You agree to provide accurate and complete information in your assessment. Providing false or misleading information may result in inaccurate reports and potential legal consequences.",
@@ -485,7 +485,7 @@ export const translations = {
     overallRiskScore: "Overall Risk Score",
     higherScoreHigherRisk: "Higher score = higher risk",
     selfAssessmentNotice:
-      "Indicative self-assessment: based only on your own answers and not verified by TBRAC. This is not a comprehensive assessment, certification or government approval, and should not be presented as one.",
+      "Indicative self-assessment: based only on your own answers and not verified by TBRAC. This is not a comprehensive assessment or a TBRAC certification, and should not be presented as one.",
     redFlagsTitle: "Red flags",
     redFlagsIntro: "These answers override the score. A hard flag sets the tier to Very High; a soft flag sets it to at least High.",
     redFlagHard: "Hard",
@@ -534,7 +534,7 @@ export const translations = {
     moduleOf: "of",
     // Comprehensive assessment requests
     arTitle: "A comprehensive assessment",
-    arPitch: "The self-assessment is your own view. A TBRAC comprehensive assessment is a third-party risk opinion that a county, state agency or business partner can rely on: we verify your documents against official sources, screen your ownership chain against US lists, and issue a rated report with a public summary.",
+    arPitch: "The self-assessment is your own view. A TBRAC comprehensive assessment leads to an independent private certification that a county, state agency or business partner can rely on: we verify your documents against official sources, screen your ownership chain against US lists, and certify your rating in a report with a public summary.",
     arPoints: "Verified evidence, not self-reported answers|A rating committee independent of the analyst|A report you can share with the officials reviewing your project|12-month validity with ongoing monitoring",
     arStart: "Explore a comprehensive assessment",
     arContactName: "Your name",
@@ -821,7 +821,7 @@ export const translations = {
       "在地缘政治日益复杂的时代，标准化风险评估的需求从未如此迫切。TikTok等高调案例表明，当风险评估是被动而非主动进行时会出现的挑战。TBRAC提供了一个在问题升级之前解决这些担忧的框架。",
     aboutApproach: "我们的方法",
     aboutApproachText:
-      "TBRAC采用多变量评估模型，从10个关键风险类别评估公司。我们的评估员分析回答、支持文件和公开可用信息，出具注明日期、以证据为基础的评估报告。TBRAC报告是独立的风险意见，并非政府批准、认证或担保。",
+      "TBRAC采用多变量评估模型，从10个关键风险类别评估公司。我们的评估员分析回答、支持文件和公开可用信息，出具注明日期、以证据为基础的评估报告。TBRAC报告是依据公开评估方法出具的私营机构认证，并非政府认证、批准或担保。",
     aboutTeam: "专家构建",
     aboutTeamText:
       "TBRAC方法论由跨境商业、数据安全和监管合规方面的领域专家构建。这一专业知识确保我们的评估能够解决政府利益相关者的实际关切，同时为公司提供可行的见解。",
@@ -905,7 +905,7 @@ export const translations = {
     termsIntro: "使用TBRAC评估系统即表示您同意这些服务条款。请仔细阅读。",
     termsUse: "服务使用",
     termsUseText:
-      "TBRAC评估仅供参考。自我评估结果完全基于您提供的信息，未经核实。TBRAC报告是截至特定日期的风险意见，并非任何形式的认证、担保或保证，未获任何政府机构认可，也不保证监管批准或市场进入成功。",
+      "TBRAC评估仅供参考。自我评估结果完全基于您提供的信息，未经核实。TBRAC报告是截至特定日期、依据TBRAC公开评估方法出具的私营机构认证，并非政府认证，未获任何政府机构认可，不构成任何形式的担保或保证，也不保证监管批准或市场进入成功。",
     termsAccuracy: "信息准确性",
     termsAccuracyText:
       "您同意在评估中提供准确完整的信息。提供虚假或误导性信息可能导致报告不准确并可能产生法律后果。",
@@ -970,7 +970,7 @@ export const translations = {
     overallRiskScore: "综合风险评分",
     higherScoreHigherRisk: "分数越高，风险越大",
     selfAssessmentNotice:
-      "仅供参考的自我评估：完全基于您自己的回答，未经TBRAC核实。这不是全面评估、认证或政府批准，不应作为此类文件出示。",
+      "仅供参考的自我评估：完全基于您自己的回答，未经TBRAC核实。这不是全面评估或TBRAC认证，不应作为此类文件出示。",
     redFlagsTitle: "风险警示",
     redFlagsIntro: "以下回答优先于分数。严重警示会将风险等级设为极高；一般警示会将风险等级至少设为高。",
     redFlagHard: "严重",
@@ -1141,7 +1141,7 @@ export const translations = {
     moduleDocHint: "文件提示",
     // Comprehensive assessment requests
     arTitle: "全面评估",
-    arPitch: "自我评估代表贵公司自己的看法。TBRAC 全面评估是县政府、州机构或商业伙伴可以依赖的第三方风险意见：我们根据官方来源核实您的文件，按美国名单筛查您的所有权链，并出具带评级的报告和公开摘要。",
+    arPitch: "自我评估代表贵公司自己的看法。TBRAC 全面评估将形成县政府、州机构或商业伙伴可以依赖的独立私营机构认证：我们根据官方来源核实您的文件，按美国名单筛查您的所有权链，并在附有公开摘要的报告中认证您的评级。",
     arPoints: "经核实的证据，而非自报答案|独立于分析师的评级委员会|可与审查您项目的官员分享的报告|12 个月有效期并持续监测",
     arStart: "了解全面评估",
     arContactName: "您的姓名",

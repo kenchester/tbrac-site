@@ -11,7 +11,7 @@ const TRUST_ICONS = [Scale, Users, BookOpen, MessageSquareText, Gavel]
 const C = {
   en: {
     title: "A documented basis for decisions about foreign-linked investment",
-    lead: "When a company with Chinese ownership or ties seeks incentives, land, a lease or a public contract, councils, boards and economic development staff must weigh risks they often cannot verify themselves. TBRAC provides an independent assessment under a published methodology, so the decision rests on documented evidence rather than claims or headlines.",
+    lead: "When a company with Chinese ownership or ties seeks incentives, land, a lease or a public contract, councils, boards and economic development staff must weigh risks they often cannot verify themselves. TBRAC provides an independent private certification under a published methodology, much as an auditor's report supports decisions about a company before an IPO, so the decision rests on documented evidence rather than claims or headlines.",
     cta: "Ask about a government-directed assessment",
     problemTitle: "The problem",
     problem: [
@@ -22,7 +22,7 @@ const C = {
     ],
     getTitle: "What you receive",
     get: [
-      ["A rated opinion", "A tier from T1 (low identified risk) to T4 (high), with confidence, outlook and status, and the evidence behind each finding."],
+      ["A certified rating", "A tier from T1 (low identified risk) to T4 (high), with confidence, outlook and status, and the evidence behind each finding."],
       ["A Statutory Eligibility page", "For each statute you name, an explicit statement of whether the company meets its definition, with the counsel opinion relied on. It sits beside the rating and is never combined with it."],
       ["Agreement conditions", "Clawback and termination triggers, change-of-control notice, data-access and reporting covenants you can write into the incentive, land or procurement agreement."],
       ["Twelve months of monitoring", "Daily re-screening against US lists. A new listing or ownership change puts the rating Under Review, and its live status shows it."],
@@ -48,13 +48,13 @@ const C = {
       ["Government-directed (preferred)", "Your body engages TBRAC and directs the scope. The company pays the published flat fee through escrow. You own the report."],
       ["Company-engaged", "The company engages TBRAC. You receive the full report after countersigning a reliance letter that states its purpose, date and scope."],
     ],
-    notTitle: "What it is not",
-    not: "A TBRAC report is an independent risk opinion as of a date. It is not a certification, guarantee or approval; it is not a CFIUS determination or a decision of any government agency; it does not override any statute; and it is not legal advice. Your body makes its own decision.",
+    notTitle: "What it is, and is not",
+    not: "A TBRAC report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, approval or license; it is not a CFIUS determination or a decision of any government agency; it is not a guarantee of future conduct; it does not override any statute; and it is not legal advice. Your body makes its own decision.",
     more: "How to use a report", verify: "Verify a report",
   },
   zh: {
     title: "为涉外资投资决策提供有据可查的依据",
-    lead: "当具有中国所有权或关联的企业申请激励、土地、租赁或公共合同时，市议会、董事会和经济发展部门需要权衡他们往往无法自行核实的风险。TBRAC 依据公开的评估方法提供独立评估，使决策建立在有据可查的证据之上，而非企业自述或新闻报道。",
+    lead: "当具有中国所有权或关联的企业申请激励、土地、租赁或公共合同时，市议会、董事会和经济发展部门需要权衡他们往往无法自行核实的风险。TBRAC 依据公开的评估方法出具独立的私营机构认证，作用类似于上市前审计师报告对决策的支撑，使决策建立在有据可查的证据之上，而非企业自述或新闻报道。",
     cta: "咨询政府主导的评估",
     problemTitle: "面临的问题",
     problem: [
@@ -65,7 +65,7 @@ const C = {
     ],
     getTitle: "您将收到",
     get: [
-      ["带评级的意见", "从 T1（已识别风险低）到 T4（高）的评级，附可信度、展望和状态，以及每项结论背后的证据。"],
+      ["认证评级", "从 T1（已识别风险低）到 T4（高）的评级，附可信度、展望和状态，以及每项结论背后的证据。"],
       ["法定资格页面", "针对您指定的每项法律，明确说明企业是否符合其定义，并列明所依据的律师意见。该页面与评级并列，绝不与评级合并。"],
       ["协议条件", "可写入激励、土地或采购协议的追回和终止触发条件、控制权变更通知、数据访问和报告承诺。"],
       ["12 个月持续监测", "每日按美国名单重新筛查。新的列名或所有权变更将使评级进入“审查中”，其实时状态会随之显示。"],
@@ -91,8 +91,8 @@ const C = {
       ["政府主导（推荐）", "由贵机构委托 TBRAC 并确定评估范围。企业通过托管支付公布的固定费用。报告归贵机构所有。"],
       ["企业委托", "由企业委托 TBRAC。贵机构会签说明目的、日期和范围的依赖函后，方可收到完整报告。"],
     ],
-    notTitle: "报告不是什么",
-    not: "TBRAC 报告是截至某一日期的独立风险意见。它不是认证、担保或批准；不是 CFIUS 决定，也不是任何政府机构的决定；不能凌驾于任何法律之上；也不构成法律意见。贵机构自行作出决定。",
+    notTitle: "报告是什么、不是什么",
+    not: "TBRAC 报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、批准或许可；不是 CFIUS 决定，也不是任何政府机构的决定；不保证企业未来的行为；不能凌驾于任何法律之上；也不构成法律意见。贵机构自行作出决定。",
     more: "如何使用报告", verify: "核验报告",
   },
 }
