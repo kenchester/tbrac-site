@@ -61,6 +61,18 @@ export interface AiSummary {
   consistency?: { run_at: string; model: string; by: string; stale_changes: number;
     issues: { codes: string[]; issue: string; severity: "high" | "medium" | "low" }[] };
 }
+export interface DocAnalysis {
+  run_at: string; model: string; by: string; language: string | null; document_type: string; summary_en: string; truncated: boolean;
+  key_facts: { fact: string; quote: string; quote_en: string; quote_verified: boolean }[];
+  entities: { name: string; name_zh: string | null; role: string; held_by: string | null; ownership_pct: number | null;
+    jurisdiction: string | null; registry_id: string | null; state_linked: boolean; quote: string; quote_verified: boolean }[];
+  flags: { issue: string; codes: string[]; quote: string; quote_verified: boolean }[];
+}
+export interface EngagementDocument {
+  id: string; filename: string; mime_type: string; size: number; uploaded_at: string | null; request: string | null;
+  has_text: boolean; text_chars: number; page_count: number | null; language: string | null; text_problem: string | null;
+  analysis: DocAnalysis | null;
+}
 export interface ExternalMember { name: string; affiliation: string; independence_confirmed: boolean }
 export interface CommitteeDecision {
   id: string; decision: "approve" | "return"; chair: string; members: string[]; rationale: string;
@@ -196,6 +208,16 @@ export const engagementsApi = {
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/reply/share`, json("POST", days ? { days } : {})),
   aiReview: (id: string, kind: "blind_scoring" | "consistency") =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/ai-review`, json("POST", { kind })),
+  documents: (id: string) => authenticatedRequest<EngagementDocument[]>(`${base}/engagements/${id}/documents`),
+  analyzeDocument: (id: string, docId: string) =>
+    authenticatedRequest<EngagementDocument>(`${base}/engagements/${id}/documents/${docId}/ai-analyze`, { method: "POST" }),
+  /** Site route: reads the private file, extracts its text, stores it with the API. */
+  extractText: async (docId: string) => {
+    const res = await fetch(`/api/evaluator/documents/${docId}/extract`, { method: "POST" });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail ?? "Extraction failed");
+    return body as { chars: number; language: string | null; status: string };
+  },
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>

@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventRow } from "@/components/monitoring-event-row";
 import {
   engagementsApi, PRE_ISSUE_STAGES, stageLabel,
-  type MonitoringConfig, type FeeStatus, type ExternalMember, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
+  type MonitoringConfig, type FeeStatus, type ExternalMember, type EngagementDocument, type RelianceLetter, type ReadinessCheck, type MonitoringEvent, type ReviewActionName, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
   type AuditEntry, type DocRequest, type RequestTemplate, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
@@ -1425,6 +1425,121 @@ function AiAssist({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Engage
   );
 }
 
+// ------------------------------------------------------------------ documents + AI reading (§5.6)
+function Documents({ eng, reload }: { eng: EngagementDetail; reload: () => void }) {
+  const [docs, setDocs] = useState<EngagementDocument[] | null>(null);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [added, setAdded] = useState<Set<string>>(new Set());
+  const locked = LOCKED.has(eng.stage);
+  const load = useCallback(() => { engagementsApi.documents(eng.id).then(setDocs).catch((e) => setError(errMsg(e))); }, [eng.id]);
+  useEffect(() => { load(); }, [load]);
+  const act = async (key: string, f: () => Promise<unknown>) => {
+    setBusy(key); setError("");
+    try { await f(); load(); } catch (e) { setError(errMsg(e)); } finally { setBusy(""); }
+  };
+  const existing = new Set(eng.entities.map((e) => e.name.toLowerCase()));
+  const byName = (n: string | null) => eng.entities.find((e) => n && (e.name.toLowerCase() === n.toLowerCase() || e.name_zh === n));
+  const addEntity = (d: EngagementDocument, x: NonNullable<EngagementDocument["analysis"]>["entities"][number]) => act(`ent-${x.name}`, async () => {
+    await engagementsApi.addEntity(eng.id, {
+      name: x.name, name_zh: x.name_zh, role: x.role, parent_id: byName(x.held_by)?.id ?? null, ownership_pct: x.ownership_pct,
+      jurisdiction: x.jurisdiction, registry_id: x.registry_id, is_state_linked: x.state_linked,
+      notes: `From ${d.filename} (AI reading, confirmed by analyst). Quote: ${x.quote}`,
+    });
+    setAdded(new Set([...added, `${d.id}:${x.name}`])); reload();
+  });
+  const Q = ({ ok }: { ok: boolean }) => ok ? null : <span className="ml-1 rounded bg-red-50 px-1 text-[10px] font-medium text-red-700">quote not found in document</span>;
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="pt-6 text-sm text-muted-foreground space-y-1">
+          <p>The company&apos;s documents. <b>Extract text</b> reads a PDF or Word file; <b>AI reading</b> summarizes it in English (it may be in Chinese), lists key facts, owners and possible red flags.</p>
+          <p>Every item carries a verbatim quote, and TBRAC checks that the quote really appears in the document; anything flagged “quote not found” must not be relied on. AI output is never evidence: confirm facts in the document itself, and add entities only after checking them.</p>
+          {!eng.ai_processing_allowed && <p className="text-amber-800">AI reading needs the Subject&apos;s consent on the Acceptance tab.</p>}
+        </CardContent>
+      </Card>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {docs === null && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {docs?.length === 0 && <p className="text-sm text-muted-foreground">The company has not uploaded any documents.</p>}
+      {docs?.map((d) => (
+        <Card key={d.id}>
+          <CardHeader className="pb-2">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <CardTitle className="text-base">{d.filename}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {d.request ? `For: ${d.request} · ` : ""}{(d.size / 1024).toFixed(0)} KB
+                  {d.has_text ? ` · text extracted (${d.text_chars.toLocaleString()} characters${d.page_count ? `, ${d.page_count} pages` : ""}${d.language ? `, ${d.language === "zh" ? "Chinese" : "English"}` : ""})` : ""}
+                </p>
+                {d.text_problem && <p className="text-xs text-amber-800">{d.text_problem}</p>}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <a className="inline-flex h-8 items-center rounded-md border px-3 text-xs hover:bg-muted" href={`/api/documents/${d.id}/file`} target="_blank" rel="noreferrer">Open file</a>
+                <Button size="sm" variant="outline" disabled={!!busy} onClick={() => act(`x-${d.id}`, () => engagementsApi.extractText(d.id))}>
+                  {busy === `x-${d.id}` ? "Extracting…" : d.has_text ? "Re-extract text" : "Extract text"}
+                </Button>
+                <Button size="sm" disabled={!!busy || !d.has_text || !!d.text_problem || !eng.ai_processing_allowed} onClick={() => act(`a-${d.id}`, () => engagementsApi.analyzeDocument(eng.id, d.id))}>
+                  {busy === `a-${d.id}` ? "Reading…" : d.analysis ? "AI reading again" : "AI reading"}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          {d.analysis && (
+            <CardContent className="space-y-3 text-sm">
+              <p className="text-xs text-muted-foreground">AI reading {new Date(d.analysis.run_at).toLocaleString()} · {d.analysis.model} · {d.analysis.document_type}
+                {d.analysis.truncated && " · long document: only the first part was read"}</p>
+              <p>{d.analysis.summary_en}</p>
+              {d.analysis.key_facts.length > 0 && (
+                <div>
+                  <p className="font-medium">Key facts</p>
+                  <ul className="mt-1 space-y-1">{d.analysis.key_facts.map((f, i) => (
+                    <li key={i}>{f.fact}<Q ok={f.quote_verified} /><span className="block text-xs text-muted-foreground">“{f.quote}”{f.quote_en && f.quote_en !== f.quote ? ` — ${f.quote_en}` : ""}</span></li>
+                  ))}</ul>
+                </div>
+              )}
+              {d.analysis.flags.length > 0 && (
+                <div>
+                  <p className="font-medium text-amber-800">Possible red flags</p>
+                  <ul className="mt-1 space-y-1">{d.analysis.flags.map((f, i) => (
+                    <li key={i}><span className="font-mono text-xs">{f.codes.join(" ")}</span> {f.issue}<Q ok={f.quote_verified} /><span className="block text-xs text-muted-foreground">“{f.quote}”</span></li>
+                  ))}</ul>
+                </div>
+              )}
+              {d.analysis.entities.length > 0 && (
+                <div>
+                  <p className="font-medium">Entities and owners found</p>
+                  <table className="mt-1 w-full text-xs">
+                    <tbody className="divide-y">
+                      {d.analysis.entities.map((x, i) => {
+                        const done = added.has(`${d.id}:${x.name}`) || existing.has(x.name.toLowerCase());
+                        return (
+                          <tr key={i} className="align-top">
+                            <td className="py-1.5 pr-2"><span className="font-medium">{x.name}</span>{x.name_zh ? ` (${x.name_zh})` : ""}<Q ok={x.quote_verified} />
+                              <span className="block text-muted-foreground">“{x.quote}”</span></td>
+                            <td className="py-1.5 pr-2">{x.role.replace("_", " ")}{x.held_by ? `, held by ${x.held_by}` : ""}{x.ownership_pct != null ? ` ${x.ownership_pct}%` : ""}</td>
+                            <td className="py-1.5 pr-2">{[x.jurisdiction, x.registry_id, x.state_linked ? "state-linked" : null].filter(Boolean).join(" · ")}</td>
+                            <td className="py-1.5 text-right">
+                              {done ? <span className="text-muted-foreground">in entity map</span> : !locked && (
+                                <Button size="sm" variant="outline" disabled={!!busy || !x.quote_verified} title={x.quote_verified ? "Add after checking it against the document" : "Quote not found; add manually if the document supports it"}
+                                  onClick={() => addEntity(d, x)}>Add to entity map</Button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -1468,6 +1583,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                   <TabsTrigger value="acceptance">Acceptance</TabsTrigger>
                   <TabsTrigger value="entities">Entity map ({eng.entities.length})</TabsTrigger>
                   <TabsTrigger value="requests">Document requests</TabsTrigger>
+                  <TabsTrigger value="documents">Documents</TabsTrigger>
                   <TabsTrigger value="evidence">Evidence ({eng.evidence.length})</TabsTrigger>
                   <TabsTrigger value="gates">Red lines</TabsTrigger>
                   <TabsTrigger value="indicators">Indicators</TabsTrigger>
@@ -1485,6 +1601,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                 <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="overview"><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>
+                <TabsContent value="documents"><Documents eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="requests"><DocumentRequests eng={eng} m={m} reload={reload} /></TabsContent>
                 <TabsContent value="evidence"><EvidenceTab eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="gates">
