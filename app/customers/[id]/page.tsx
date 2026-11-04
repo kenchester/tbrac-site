@@ -86,6 +86,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import { documentRequestsApi, needsResponse } from "@/lib/document-requests";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -109,6 +110,13 @@ function CustomerDetailContent({ params }: PageProps) {
   const { deleteCustomer, loading: deleting } = useDeleteCustomer();
   const { handleError, showSuccess } = useApiToast();
   const { t } = useLanguage();
+  const [requests, setRequests] = useState<{ total: number; open: number } | null>(null);
+  useEffect(() => {
+    documentRequestsApi.list(resolvedParams.id).then((d) => {
+      const all = d.engagements.filter((e) => !e.closed).flatMap((e) => e.requests);
+      setRequests({ total: all.length, open: all.filter(needsResponse).length });
+    }).catch(() => setRequests(null));
+  }, [resolvedParams.id]);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [formData, setFormData] = useState<CustomerUpdate>({});
@@ -440,6 +448,25 @@ function CustomerDetailContent({ params }: PageProps) {
               )}
             </CardContent>
           </Card>
+
+          {requests && requests.total > 0 && (
+            <Card className={requests.open ? "border-amber-300" : ""}>
+              <CardHeader>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>{t("drDashCard")}</CardTitle>
+                    <CardDescription>
+                      {requests.open ? `${requests.open} ${t("drDashOpen")}` : t("drDashNoneOpen")}
+                    </CardDescription>
+                  </div>
+                  <Button size="sm" variant={requests.open ? "default" : "outline"}
+                    onClick={() => router.push(`/customers/${resolvedParams.id}/requests`)}>
+                    {t("drView")}
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
 
           {/* Recent Documents */}
           <Card>

@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   engagementsApi, STAGES, stageLabel, TIER_CLASS, TIER_LABEL,
   type EngagementDetail, type GateStatus, type Grade, type IndicatorScore, type Methodology,
-  type AuditEntry, type Outlook, type ScreenResponse, type StatutoryFinding,
+  type AuditEntry, type DocRequest, type RequestTemplate, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL, type Outlook, type ScreenResponse, type StatutoryFinding,
 } from "@/lib/engagements";
 
 const LOCKED = new Set(["issued", "withdrawn", "expired"]);
@@ -764,6 +764,174 @@ function AuditTrail({ eng }: { eng: EngagementDetail }) {
   );
 }
 
+// ------------------------------------------------------------------ document requests (Stage 2, Appendix A)
+const DOMAIN_ORDER = ["ALL", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "STATE"];
+function DocumentRequests({ eng, m, reload }: { eng: EngagementDetail; m: Methodology; reload: () => void }) {
+  const locked = LOCKED.has(eng.stage);
+  const [list, setList] = useState<Record<string, RequestTemplate> | null>(null);
+  const [rows, setRows] = useState<DocRequest[] | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [due, setDue] = useState("");
+  const [custom, setCustom] = useState({ title: "", description: "", codes: "" });
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(() => {
+    engagementsApi.requests(eng.id).then(setRows).catch((e) => setError(errMsg(e)));
+  }, [eng.id]);
+  useEffect(() => {
+    load();
+    engagementsApi.requestList().then((r) => setList(r.items)).catch((e) => setError(errMsg(e)));
+  }, [load]);
+
+  const issued = new Set((rows ?? []).map((r) => r.template_key).filter(Boolean) as string[]);
+  const domainName = (d: string) => d === "ALL" ? "Every production" : d === "STATE" ? "State-law eligibility" : `${d} ${m.domains[d]?.name ?? ""}`;
+  const run = async (f: () => Promise<unknown>) => {
+    setBusy(true); setError("");
+    try { await f(); load(); reload(); } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  const issue = () => run(async () => {
+    await engagementsApi.issueRequests(eng.id, { template_keys: [...picked], due_date: due ? new Date(due).toISOString() : null });
+    setPicked(new Set());
+  });
+  const issueCustom = () => run(async () => {
+    const codes = custom.codes.split(/[\s,]+/).filter(Boolean);
+    await engagementsApi.issueRequests(eng.id, {
+      title: custom.title, description: custom.description || undefined,
+      indicator_codes: codes.filter((c) => c in m.indicators), gate_codes: codes.filter((c) => c in m.gates),
+      due_date: due ? new Date(due).toISOString() : null,
+    });
+    setCustom({ title: "", description: "", codes: "" });
+  });
+  const review = (r: DocRequest, action: "accept" | "return" | "waive") =>
+    run(() => engagementsApi.reviewRequest(eng.id, r.id, { action, note: notes[r.id] }));
+  const counts = (rows ?? []).reduce<Record<string, number>>((a, r) => ({ ...a, [r.status]: (a[r.status] ?? 0) + 1 }), {});
+
+  return (
+    <div className="space-y-4">
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Requests ({rows?.length ?? 0})</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            The company sees these on its dashboard and answers each with documents under an officer attestation, or refuses.
+            Accepting a response records it as subject-authored evidence linked to the listed indicators and red lines.
+            A refusal you accept is recorded as a finding (grade it E4).
+          </p>
+          {rows && rows.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {Object.entries(counts).map(([k, v]) => `${REQUEST_STATUS_LABEL[k as keyof typeof REQUEST_STATUS_LABEL]} ${v}`).join(" · ")}
+            </p>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {rows === null && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {rows?.length === 0 && <p className="text-sm text-muted-foreground">No requests issued yet. Pick items from the request list below.</p>}
+          {rows?.map((r) => (
+            <div key={r.id} className="rounded-md border p-3 space-y-2">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium">{r.title}</p>
+                  {r.description && <p className="text-sm text-muted-foreground">{r.description}</p>}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {[...r.indicator_codes, ...r.gate_codes].join(" ") || "No linked codes"}
+                    {r.due_date && ` · due ${new Date(r.due_date).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <Badge variant="outline" className={REQUEST_STATUS_CLASS[r.status]}>{REQUEST_STATUS_LABEL[r.status]}</Badge>
+              </div>
+              {(r.status === "submitted" || r.status === "accepted") && (
+                <div className="text-sm space-y-1">
+                  <p className="font-medium">Documents</p>
+                  <ul className="list-disc pl-5">
+                    {r.document_ids.map((d) => (
+                      <li key={d}><a className="text-primary hover:underline" href={`/api/documents/${d}/file`} target="_blank" rel="noreferrer">Download {d.slice(0, 8)}</a></li>
+                    ))}
+                  </ul>
+                  {r.attestation && (
+                    <p className="text-xs text-muted-foreground">
+                      Attested by {r.attestation.signer_name}, {r.attestation.signer_title} ({r.attestation.email}) on {new Date(r.attestation.attested_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              )}
+              {r.company_note && <p className="text-sm"><span className="font-medium">{r.status === "refused" || (r.status === "accepted" && !r.document_ids.length) ? "Reason for refusal" : "Company note"}:</span> {r.company_note}</p>}
+              {r.reviewer_note && <p className="text-sm"><span className="font-medium">Review note:</span> {r.reviewer_note} <span className="text-xs text-muted-foreground">— {r.reviewed_by}</span></p>}
+              {!locked && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {(r.status === "submitted" || r.status === "refused") && (
+                    <>
+                      <Input className="h-8 max-w-sm" placeholder="Note to the company (required to return)" value={notes[r.id] ?? ""}
+                        onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })} />
+                      <Button size="sm" disabled={busy} onClick={() => review(r, "accept")}>{r.status === "refused" ? "Record refusal as finding" : "Accept as evidence"}</Button>
+                      <Button size="sm" variant="outline" disabled={busy} onClick={() => review(r, "return")}>Return</Button>
+                    </>
+                  )}
+                  {r.status !== "accepted" && r.status !== "waived" && (
+                    <Button size="sm" variant="ghost" disabled={busy} onClick={() => review(r, "waive")}>Waive</Button>
+                  )}
+                  {r.status === "open" && !r.submitted_at && (
+                    <Button size="sm" variant="ghost" disabled={busy} onClick={() => run(() => engagementsApi.withdrawRequest(eng.id, r.id))}>Withdraw</Button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {!locked && list && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Issue from the Document Request List (Appendix A)</CardTitle>
+            <p className="text-sm text-muted-foreground">Scale the list to the project overlay. Items already issued are greyed out.</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {DOMAIN_ORDER.map((d) => {
+              const items = Object.entries(list).filter(([, t]) => t.domain === d);
+              if (!items.length) return null;
+              return (
+                <div key={d}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-medium">{domainName(d)}</p>
+                    <button type="button" className="text-xs text-primary hover:underline" onClick={() => {
+                      const next = new Set(picked); items.forEach(([k]) => !issued.has(k) && next.add(k)); setPicked(next);
+                    }}>select all</button>
+                  </div>
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {items.map(([k, t]) => (
+                      <label key={k} className={`flex items-start gap-2 text-sm ${issued.has(k) ? "text-muted-foreground" : ""}`} title={t.description}>
+                        <input type="checkbox" className="mt-1" disabled={issued.has(k)} checked={issued.has(k) || picked.has(k)}
+                          onChange={(e) => { const n = new Set(picked); if (e.target.checked) n.add(k); else n.delete(k); setPicked(n); }} />
+                        <span>{t.title} <span className="text-xs text-muted-foreground">{[...t.indicators, ...t.gates].join(" ")}</span></span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="flex flex-wrap items-end gap-3 border-t pt-3">
+              <div className="space-y-1">
+                <Label htmlFor="due">Due date (optional)</Label>
+                <Input id="due" type="date" value={due} onChange={(e) => setDue(e.target.value)} className="h-9" />
+              </div>
+              <Button disabled={busy || picked.size === 0} onClick={issue}>Issue {picked.size || ""} request{picked.size === 1 ? "" : "s"}</Button>
+            </div>
+            <div className="border-t pt-3 space-y-2">
+              <p className="text-sm font-medium">Custom request</p>
+              <Input placeholder="Title, e.g. Board minutes 2023-2025" value={custom.title} onChange={(e) => setCustom({ ...custom, title: e.target.value })} />
+              <Textarea placeholder="What exactly to provide" value={custom.description} onChange={(e) => setCustom({ ...custom, description: e.target.value })} />
+              <Input placeholder="Indicator / red-line codes, e.g. D1.3 S2" value={custom.codes} onChange={(e) => setCustom({ ...custom, codes: e.target.value })} />
+              <Button variant="outline" disabled={busy || custom.title.trim().length < 3} onClick={issueCustom}>Issue custom request</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -805,6 +973,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                 <TabsList className="flex-wrap h-auto">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="entities">Entity map ({eng.entities.length})</TabsTrigger>
+                  <TabsTrigger value="requests">Document requests</TabsTrigger>
                   <TabsTrigger value="evidence">Evidence ({eng.evidence.length})</TabsTrigger>
                   <TabsTrigger value="gates">Red lines</TabsTrigger>
                   <TabsTrigger value="indicators">Indicators</TabsTrigger>
@@ -817,6 +986,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                 <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="overview"><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>
+                <TabsContent value="requests"><DocumentRequests eng={eng} m={m} reload={reload} /></TabsContent>
                 <TabsContent value="evidence"><EvidenceTab eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="gates">
                   <Card>

@@ -74,6 +74,24 @@ export interface ScreenResult {
 export interface ScreenResponse { screened_names: string[]; screened_at: string; csl: "ok" | "error" | "not_configured"; results: ScreenResult[] }
 
 const base = "/api/v1";
+export type RequestStatus = "open" | "submitted" | "accepted" | "returned" | "refused" | "waived";
+export interface Attestation { signer_name: string; signer_title: string; statement: string; email: string; attested_at: string }
+export interface DocRequest {
+  id: string; engagement_id: string; template_key: string | null; domain: string | null; title: string;
+  description: string | null; indicator_codes: string[]; gate_codes: string[]; due_date: string | null;
+  status: RequestStatus; document_ids: string[]; company_note: string | null; attestation: Attestation | null;
+  submitted_at: string | null; reviewer_note: string | null; reviewed_by: string | null; reviewed_at: string | null;
+  created_by: string; created_at: string;
+}
+export interface RequestTemplate { domain: string; title: string; description: string; indicators: string[]; gates: string[] }
+export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {
+  open: "Open", submitted: "Submitted", accepted: "Accepted", returned: "Returned", refused: "Refused", waived: "Waived",
+};
+export const REQUEST_STATUS_CLASS: Record<RequestStatus, string> = {
+  open: "bg-slate-100 text-slate-700", submitted: "bg-blue-100 text-blue-800", accepted: "bg-green-100 text-green-800",
+  returned: "bg-amber-100 text-amber-800", refused: "bg-red-100 text-red-800", waived: "bg-slate-100 text-slate-500",
+};
+
 const json = (method: string, body: unknown) => ({ method, body: JSON.stringify(body) });
 
 export const engagementsApi = {
@@ -103,6 +121,15 @@ export const engagementsApi = {
     authenticatedRequest<IndicatorScore>(`${base}/engagements/${id}/indicators/${code}`, json("PUT", body)),
   committee: (id: string, body: { decision: "approve" | "return"; members: string[]; rationale: string; dissent?: string | null }) =>
     authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/committee`, json("POST", body)),
+  requestList: () => authenticatedRequest<{ items: Record<string, RequestTemplate>; attestation_statement: string }>(`${base}/document-request-list`),
+  requests: (id: string) => authenticatedRequest<DocRequest[]>(`${base}/engagements/${id}/document-requests`),
+  issueRequests: (id: string, body: { template_keys?: string[]; title?: string; description?: string; domain?: string;
+    indicator_codes?: string[]; gate_codes?: string[]; due_date?: string | null }) =>
+    authenticatedRequest<DocRequest[]>(`${base}/engagements/${id}/document-requests`, json("POST", body)),
+  withdrawRequest: (id: string, rid: string) =>
+    authenticatedRequest<void>(`${base}/engagements/${id}/document-requests/${rid}`, { method: "DELETE" }),
+  reviewRequest: (id: string, rid: string, body: { action: "accept" | "return" | "waive"; note?: string }) =>
+    authenticatedRequest<DocRequest>(`${base}/engagements/${id}/document-requests/${rid}/review`, json("POST", body)),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>
