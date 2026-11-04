@@ -7,7 +7,7 @@ export type ReportLang = "en" | "zh";
 export const REPORT_TEXT = {
   en: {
     back: "← Back to workspace", restricted: "Restricted report", public: "Public summary", print: "Print / save as PDF",
-    brand: "TBRAC Independent Risk Assessment",
+    brand: "TBRAC Comprehensive Risk Assessment",
     draft: "Draft — not issued. Rating may change. Not for reliance.",
     underReview: (since: string, due: string) => `UNDER REVIEW since ${since}. The rating may change; resolution expected by ${due}.`,
     withdrawn: "Rating withdrawn. Not for reliance.", expired: "Rating expired. Not for reliance.",
@@ -67,7 +67,7 @@ export const REPORT_TEXT = {
   },
   zh: {
     back: "← 返回工作区", restricted: "限制分发报告", public: "公开摘要", print: "打印 / 另存为 PDF",
-    brand: "TBRAC 独立风险评估",
+    brand: "TBRAC 全面风险评估",
     draft: "草稿 — 尚未出具。评级可能变动，不得依赖。",
     underReview: (since: string, due: string) => `自 ${since} 起审查中。评级可能变动，预计于 ${due} 前得出结论。`,
     withdrawn: "评级已撤回，不得依赖。", expired: "评级已过期，不得依赖。",

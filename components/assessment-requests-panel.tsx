@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { assessmentRequestsApi, type AssessmentRequest } from "@/lib/assessment-requests";
 import { engagementsApi } from "@/lib/engagements";
 
-/** Evaluator view of companies asking for an independent assessment. */
+/** Evaluator view of companies asking for a comprehensive assessment. */
 export function AssessmentRequestsPanel() {
   const router = useRouter();
   const [rows, setRows] = useState<AssessmentRequest[] | null>(null);
@@ -36,7 +36,7 @@ export function AssessmentRequestsPanel() {
   return (
     <Card className="border-primary/30">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Requests for an independent assessment {rows && `(${rows.length})`}</CardTitle>
+        <CardTitle className="text-base">Requests for a comprehensive assessment {rows && `(${rows.length})`}</CardTitle>
         <p className="text-xs text-muted-foreground">From companies that completed the self-assessment. Opening an engagement links it to the request.</p>
       </CardHeader>
       <CardContent className="space-y-3">

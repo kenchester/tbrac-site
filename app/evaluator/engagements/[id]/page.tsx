@@ -1540,6 +1540,43 @@ function Documents({ eng, reload }: { eng: EngagementDetail; reload: () => void 
   );
 }
 
+// ------------------------------------------------------------------ methodology version (§13)
+function VersionBox({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [published, setPublished] = useState<string[]>([]);
+  const [target, setTarget] = useState("");
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => {
+    engagementsApi.versions().then((d) => setPublished(d.versions.filter((v) => v.status === "published").map((v) => v.version))).catch(() => {});
+  }, []);
+  const others = published.filter((v) => v !== eng.methodology_version);
+  const move = async () => {
+    setError("");
+    try { onSaved(await engagementsApi.rebase(eng.id, target, reason)); setReason(""); setTarget(""); } catch (e) { setError(errMsg(e)); }
+  };
+  return (
+    <Card>
+      <CardContent className="pt-6 space-y-2 text-sm">
+        <p>Scored under methodology <span className="font-mono font-semibold">{eng.methodology_version}</span>
+          {eng.rating.weights && Object.keys(eng.rating.weights).length > 0 && (
+            <span className="text-muted-foreground"> · weights {Object.entries(eng.rating.weights).map(([d, w]) => `${d} ${(w * 100).toFixed(0)}%`).join(", ")}</span>
+          )}</p>
+        {!LOCKED.has(eng.stage) && others.length > 0 && (
+          <div className="flex flex-wrap items-end gap-2">
+            <select className={sel} value={target} onChange={(e) => setTarget(e.target.value)}>
+              <option value="">Move to version…</option>
+              {others.map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <Input className="h-9 max-w-sm" placeholder="Reason (recorded; needs a fresh second review and committee decision)" value={reason} onChange={(e) => setReason(e.target.value)} />
+            <Button size="sm" variant="outline" disabled={!target || reason.trim().length < 10} onClick={move}>Move</Button>
+          </div>
+        )}
+        {error && <p className="text-red-600">{error}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ page
 export default function EngagementWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -1599,7 +1636,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                 <TabsContent value="audit"><AuditTrail eng={eng} /></TabsContent>
                 <TabsContent value="monitoring"><Monitoring eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
-                <TabsContent value="overview"><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
+                <TabsContent value="overview" className="space-y-4"><VersionBox eng={eng} onSaved={setEng} /><Overview eng={eng} m={m} onSaved={setEng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="documents"><Documents eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="requests"><DocumentRequests eng={eng} m={m} reload={reload} /></TabsContent>

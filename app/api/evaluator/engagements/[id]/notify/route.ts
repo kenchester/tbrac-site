@@ -40,7 +40,7 @@ export async function POST(_request: Request, { params }: Params) {
   const text = [
     `Hello${rows[0].name ? ` ${rows[0].name}` : ""},`,
     "",
-    `As part of the independent assessment of ${n.customer_name}, TBRAC has ${n.requests.length} document request(s) awaiting your response:`,
+    `As part of the comprehensive assessment of ${n.customer_name}, TBRAC has ${n.requests.length} document request(s) awaiting your response:`,
     "",
     en,
     "",
@@ -53,7 +53,7 @@ export async function POST(_request: Request, { params }: Params) {
     "",
     `您好，`,
     "",
-    `作为对 ${n.customer_name} 的独立评估的一部分，TBRAC 有 ${n.requests.length} 项文件请求等待您回复（文件标题为英文）：`,
+    `作为对 ${n.customer_name} 的全面评估的一部分，TBRAC 有 ${n.requests.length} 项文件请求等待您回复（文件标题为英文）：`,
     "",
     zh,
     "",

@@ -189,7 +189,7 @@ function DashboardContent() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => router.push("/evaluator/engagements")}>Independent assessments</Button>
+              <Button onClick={() => router.push("/evaluator/engagements")}>Comprehensive assessments</Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
@@ -198,9 +198,9 @@ function DashboardContent() {
           </div>
 
           <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            The submissions below are sample data. Paid independent assessments are run under{" "}
+            The submissions below are sample data. Paid comprehensive assessments are run under{" "}
             <button type="button" className="font-medium underline" onClick={() => router.push("/evaluator/engagements")}>
-              Independent assessments
+              Comprehensive assessments
             </button>.
           </div>
 

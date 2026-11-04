@@ -10,7 +10,7 @@ interface Created {
 }
 
 /**
- * Company asks for an independent assessment. The API creates the request (and checks
+ * Company asks for a comprehensive assessment. The API creates the request (and checks
  * ownership); this route then emails the evaluators and sends the company a confirmation.
  */
 export async function POST(request: Request) {
@@ -39,12 +39,12 @@ export async function POST(request: Request) {
     `Timeline: ${r.timeline ?? "—"}`,
     `Type: ${r.engagement_type}`,
   ].join("\n")
-  await Promise.allSettled(evaluators.map((to) => sendEmail(to, `New independent assessment request: ${company}`,
+  await Promise.allSettled(evaluators.map((to) => sendEmail(to, `New comprehensive assessment request: ${company}`,
     `${details}\n\nOpen it in the evaluator portal: ${base}/evaluator/engagements`)))
 
   const zh = body.language === "zh"
   const confirm = [
-    `Thank you. TBRAC has received your request for an independent assessment of ${company}. An analyst will contact you within two business days to discuss scope, timing and fees.`,
+    `Thank you. TBRAC has received your request for a comprehensive assessment of ${company}. An analyst will contact you within two business days to discuss scope, timing and fees.`,
     "",
     details,
     "",
@@ -53,13 +53,13 @@ export async function POST(request: Request) {
     "— TBRAC",
   ]
   const confirmZh = [
-    `感谢您的申请。TBRAC 已收到为 ${company} 进行独立评估的请求。分析师将在两个工作日内与您联系，商讨评估范围、时间安排和费用。`,
+    `感谢您的申请。TBRAC 已收到为 ${company} 进行全面评估的请求。分析师将在两个工作日内与您联系，商讨评估范围、时间安排和费用。`,
     "",
     "在与您商定评估条款之前，我们不会开展任何评估或发布任何内容。",
     "",
     "— TBRAC",
   ]
-  await sendEmail(session.user.email, zh ? `TBRAC 已收到您的独立评估申请 / Request received` : "TBRAC: your independent assessment request",
+  await sendEmail(session.user.email, zh ? `TBRAC 已收到您的全面评估申请 / Request received` : "TBRAC: your comprehensive assessment request",
     (zh ? [...confirmZh, "", "----------------------------------------", "", ...confirm] : [...confirm, "", "----------------------------------------", "", ...confirmZh]).join("\n"))
     .catch(() => {})
 

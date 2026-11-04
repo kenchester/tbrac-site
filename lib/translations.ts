@@ -100,7 +100,7 @@ export const translations = {
     expectStep2Desc: "Receive immediate feedback on your risk profile with a comprehensive 0-100 score.",
     expectStep3Title: "Expert Review & Final Report",
     expectStep3Desc:
-      "Our evaluators will review your responses, supporting data you provide, and any publicly available information about your company to provide a detailed independent assessment report.",
+      "Our evaluators will review your responses, supporting data you provide, and any publicly available information about your company to provide a detailed comprehensive assessment report.",
 
     // Assessment Form
     category: "Category",
@@ -169,7 +169,7 @@ export const translations = {
     // Results Page
     preliminaryResultsTitle: "Preliminary Results and Next Steps",
     preliminaryResultsBody:
-      "Your self-assessment is complete. Its results are indicative only: they are based on your own answers and have not been verified. If you request an independent assessment, our evaluators will verify your answers against supporting documents and official US sources and prepare a dated assessment report. You may download your self-assessment summary at any time.",
+      "Your self-assessment is complete. Its results are indicative only: they are based on your own answers and have not been verified. If you explore a comprehensive assessment, our evaluators will verify your answers against supporting documents and official US sources and prepare a dated assessment report. You may download your self-assessment summary at any time.",
     reportWillBeSentTo: "Report will be sent to:",
     downloadReports: "Download Reports",
     overallTBRACScore: "Overall TBRAC Score",
@@ -492,7 +492,7 @@ export const translations = {
     overallRiskScore: "Overall Risk Score",
     higherScoreHigherRisk: "Higher score = higher risk",
     selfAssessmentNotice:
-      "Indicative self-assessment: based only on your own answers and not verified by TBRAC. This is not an independent assessment, certification or government approval, and should not be presented as one.",
+      "Indicative self-assessment: based only on your own answers and not verified by TBRAC. This is not a comprehensive assessment, certification or government approval, and should not be presented as one.",
     redFlagsTitle: "Red flags",
     redFlagsIntro: "These answers override the score. A hard flag sets the tier to Very High; a soft flag sets it to at least High.",
     redFlagHard: "Hard",
@@ -539,11 +539,11 @@ export const translations = {
     moduleBack: "Back to Assessment",
     moduleQuestion: "Question",
     moduleOf: "of",
-    // Independent assessment requests
-    arTitle: "Request an independent assessment",
-    arPitch: "The self-assessment is your own view. A TBRAC independent assessment is a third-party risk opinion that a county, state agency or business partner can rely on: we verify your documents against official sources, screen your ownership chain against US lists, and issue a rated report with a public summary.",
+    // Comprehensive assessment requests
+    arTitle: "A comprehensive assessment",
+    arPitch: "The self-assessment is your own view. A TBRAC comprehensive assessment is a third-party risk opinion that a county, state agency or business partner can rely on: we verify your documents against official sources, screen your ownership chain against US lists, and issue a rated report with a public summary.",
     arPoints: "Verified evidence, not self-reported answers|A rating committee independent of the analyst|A report you can share with the officials reviewing your project|12-month validity with ongoing monitoring",
-    arStart: "Request an assessment",
+    arStart: "Explore a comprehensive assessment",
     arContactName: "Your name",
     arContactTitle: "Your title",
     arPhone: "Phone (optional)",
@@ -561,7 +561,7 @@ export const translations = {
     arSent: "Request sent. We have emailed you a confirmation.",
     arStatus_new: "Request received — an analyst will contact you within two business days.",
     arStatus_contacted: "An analyst is in touch with you about your request.",
-    arStatus_engaged: "Your independent assessment is under way.",
+    arStatus_engaged: "Your comprehensive assessment is under way.",
     arStatus_declined: "TBRAC is not able to take on this request. You may send a new one.",
     arRequestedOn: "Requested",
     // Right of reply
@@ -584,13 +584,13 @@ export const translations = {
     rrBack: "Back to dashboard",
     // Document requests
     drTitle: "Document requests",
-    drSubtitle: "Documents TBRAC has requested for your independent assessment. Answer each request with the documents asked for, under an officer's attestation. If you cannot provide something, say so and explain why; declining is recorded, but nothing is held against you for being clear about it.",
+    drSubtitle: "Documents TBRAC has requested for your comprehensive assessment. Answer each request with the documents asked for, under an officer's attestation. If you cannot provide something, say so and explain why; declining is recorded, but nothing is held against you for being clear about it.",
     drNone: "There are no document requests for your company.",
     drDashCard: "Requests from TBRAC",
     drDashOpen: "requests need your response",
     drDashNoneOpen: "No requests are waiting for you.",
     drView: "View requests",
-    drAssessment: "Independent assessment",
+    drAssessment: "Comprehensive assessment",
     drClosed: "This assessment is closed.",
     drDue: "Due",
     drStatus_open: "Awaiting your response",
@@ -718,7 +718,7 @@ export const translations = {
     expectStep2Desc: "通过全面的0-100分制立即了解您的风险概况反馈。",
     expectStep3Title: "专家审查与最终报告",
     expectStep3Desc:
-      "我们的评估员将审查您的回答、您提供的支持数据以及任何关于您公司的公开信息，以提供详细的独立评估报告。",
+      "我们的评估员将审查您的回答、您提供的支持数据以及任何关于您公司的公开信息，以提供详细的全面评估报告。",
 
     // Assessment Form
     category: "类别",
@@ -786,7 +786,7 @@ export const translations = {
     // Results Page
     preliminaryResultsTitle: "初步结果和下一步",
     preliminaryResultsBody:
-      "您的自我评估已完成。结果仅供参考：它基于您自己的回答，未经核实。如您申请独立评估，我们的评估员将依据证明文件和美国官方来源核实您的回答，并出具注明日期的评估报告。您可以随时下载自我评估摘要。",
+      "您的自我评估已完成。结果仅供参考：它基于您自己的回答，未经核实。如您了解全面评估，我们的评估员将依据证明文件和美国官方来源核实您的回答，并出具注明日期的评估报告。您可以随时下载自我评估摘要。",
     reportWillBeSentTo: "报告将发送至：",
     downloadReports: "下载报告",
     overallTBRACScore: "整体TBRAC分数",
@@ -981,7 +981,7 @@ export const translations = {
     overallRiskScore: "综合风险评分",
     higherScoreHigherRisk: "分数越高，风险越大",
     selfAssessmentNotice:
-      "仅供参考的自我评估：完全基于您自己的回答，未经TBRAC核实。这不是独立评估、认证或政府批准，不应作为此类文件出示。",
+      "仅供参考的自我评估：完全基于您自己的回答，未经TBRAC核实。这不是全面评估、认证或政府批准，不应作为此类文件出示。",
     redFlagsTitle: "风险警示",
     redFlagsIntro: "以下回答优先于分数。严重警示会将风险等级设为极高；一般警示会将风险等级至少设为高。",
     redFlagHard: "严重",
@@ -1150,11 +1150,11 @@ export const translations = {
     moduleUploadedCount: "已上传",
     moduleNoDocsYet: "尚未上传文件",
     moduleDocHint: "文件提示",
-    // Independent assessment requests
-    arTitle: "申请独立评估",
-    arPitch: "自我评估代表贵公司自己的看法。TBRAC 独立评估是县政府、州机构或商业伙伴可以依赖的第三方风险意见：我们根据官方来源核实您的文件，按美国名单筛查您的所有权链，并出具带评级的报告和公开摘要。",
+    // Comprehensive assessment requests
+    arTitle: "全面评估",
+    arPitch: "自我评估代表贵公司自己的看法。TBRAC 全面评估是县政府、州机构或商业伙伴可以依赖的第三方风险意见：我们根据官方来源核实您的文件，按美国名单筛查您的所有权链，并出具带评级的报告和公开摘要。",
     arPoints: "经核实的证据，而非自报答案|独立于分析师的评级委员会|可与审查您项目的官员分享的报告|12 个月有效期并持续监测",
-    arStart: "申请评估",
+    arStart: "了解全面评估",
     arContactName: "您的姓名",
     arContactTitle: "您的职务",
     arPhone: "电话（可选）",
@@ -1172,7 +1172,7 @@ export const translations = {
     arSent: "申请已发送。我们已向您发送确认邮件。",
     arStatus_new: "已收到申请 — 分析师将在两个工作日内与您联系。",
     arStatus_contacted: "分析师正在就您的申请与您联系。",
-    arStatus_engaged: "您的独立评估正在进行中。",
+    arStatus_engaged: "您的全面评估正在进行中。",
     arStatus_declined: "TBRAC 无法承接此申请。您可以重新提交。",
     arRequestedOn: "申请日期",
     // Right of reply
@@ -1195,13 +1195,13 @@ export const translations = {
     rrBack: "返回控制台",
     // Document requests
     drTitle: "文件请求",
-    drSubtitle: "TBRAC 为贵公司的独立评估所要求的文件。请针对每项请求提供所需文件，并由一名高级管理人员作出声明。如无法提供，请说明原因；拒绝提供会被记录，但清楚说明不会对贵公司不利。",
+    drSubtitle: "TBRAC 为贵公司的全面评估所要求的文件。请针对每项请求提供所需文件，并由一名高级管理人员作出声明。如无法提供，请说明原因；拒绝提供会被记录，但清楚说明不会对贵公司不利。",
     drNone: "目前没有针对贵公司的文件请求。",
     drDashCard: "TBRAC 的请求",
     drDashOpen: "项请求等待您回复",
     drDashNoneOpen: "目前没有等待您回复的请求。",
     drView: "查看请求",
-    drAssessment: "独立评估",
+    drAssessment: "全面评估",
     drClosed: "该评估已结束。",
     drDue: "截止日期",
     drStatus_open: "等待您回复",

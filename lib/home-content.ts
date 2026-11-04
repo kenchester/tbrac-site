@@ -4,14 +4,14 @@
 export const HOME = {
   en: {
     nav: { relying: "For relying parties", how: "How it works", methodology: "Methodology", cases: "Use cases", faq: "FAQ", about: "About", signIn: "Sign in" },
-    eyebrow: "Independent risk assessment · US market entry",
+    eyebrow: "Comprehensive risk assessment · US market entry",
     title: "An independent view of the risks US decision-makers ask about",
     lead: "TBRAC assesses companies with Chinese ownership or ties that plan US investments, sites or partnerships. We look at ownership and state links, national security and export controls, data security, supply chains, integrity, finances and IP, and report the result to the counties, state agencies and partners who rely on it.",
     ctaFree: "Start the free self-assessment",
-    ctaFull: "Request an independent assessment",
-    ctaNote: "Most companies start with the free self-assessment. It is private, it takes 10 short modules, and it shows where an independent assessment is likely to focus. You can request the full assessment from your results at any time.",
+    ctaFull: "Explore a comprehensive assessment",
+    ctaNote: "Most companies start with the free self-assessment. It is private, it takes 10 short modules, and it shows where a comprehensive assessment is likely to focus. You can request the full assessment from your results at any time.",
     stepsTitle: "Two steps, one path",
-    stepsLead: "Start with a self-assessment to understand your position. Move to an independent assessment when a counterparty needs a report it can rely on.",
+    stepsLead: "Start with a self-assessment to understand your position. Move to a comprehensive assessment when a counterparty needs a report it can rely on.",
     step1: {
       tag: "Step 1 · Free",
       name: "Self-assessment",
@@ -27,7 +27,7 @@ export const HOME = {
     },
     step2: {
       tag: "Step 2 · Flat fee",
-      name: "Independent assessment",
+      name: "Comprehensive assessment",
       who: "For the people who rely on you",
       points: [
         "Documents verified against official registries and independent sources",
@@ -37,7 +37,7 @@ export const HOME = {
         "12-month validity with daily re-screening and Under Review alerts",
       ],
       limit: "A risk opinion as of a date. Not a certification, guarantee or government determination.",
-      cta: "Request an assessment",
+      cta: "Explore a comprehensive assessment",
     },
     relyTitle: "Built for the people who rely on it",
     rely: [
@@ -45,7 +45,7 @@ export const HOME = {
       { who: "State agencies", what: "A Statutory Eligibility page that states, test by test, whether the company meets your state's foreign-ownership definitions, separate from the rating." },
       { who: "Landlords, lenders and business partners", what: "A consistent, documented view of ownership and control, with the evidence behind each finding." },
     ],
-    processTitle: "How an independent assessment works",
+    processTitle: "How a comprehensive assessment works",
     process: [
       { n: "1", t: "Acceptance", d: "Conflict checks for everyone involved, a signed engagement letter and a flat fee that never depends on the outcome." },
       { n: "2", t: "Documents and screening", d: "A standard document request under an officer's attestation, and screening of every entity and owner against US lists." },
@@ -77,21 +77,21 @@ export const HOME = {
     disclaimerTitle: "What a TBRAC report is not",
     disclaimer: "A TBRAC report is an independent risk opinion as of the date stated. It is not a certification, guarantee or approval; it is not a CFIUS determination or a decision of any government agency; it does not override any statute; and it is not legal advice.",
     finalTitle: "Start with the free self-assessment",
-    finalLead: "See where you stand, privately. When you are ready, request an independent assessment from your results.",
+    finalLead: "See where you stand, privately. When you are ready, explore a comprehensive assessment from your results.",
     fees: { title: "Fees", text: "Every company pays the same flat fee for the same type of assessment, whatever its size, revenue or the outcome. The fee is agreed in the engagement letter and paid or escrowed before the rating committee meets, so it can never depend on the rating. Analysts never discuss fees.", design: "Design assessment", operating: "Operating assessment", monitoring: "Monitoring during validity", flat: "One flat fee", ask: "Ask for the current fee schedule" },
     verify: { title: "Verify a report", text: "Every issued report has a report number and a fingerprint. Anyone can check its live status in the public register.", cta: "Verify a report" },
     footer: { evaluator: "Evaluator sign-in", privacy: "Privacy", terms: "Terms", contact: "Contact", rights: "All rights reserved." },
   },
   zh: {
     nav: { relying: "依赖方指南", how: "评估流程", methodology: "评估方法", cases: "案例", faq: "常见问题", about: "关于我们", signIn: "登录" },
-    eyebrow: "独立风险评估 · 进入美国市场",
+    eyebrow: "全面风险评估 · 进入美国市场",
     title: "就美国决策者关心的风险，提供独立的评估意见",
     lead: "TBRAC 为具有中国所有权或关联、计划在美国投资、设厂或合作的企业进行评估。我们审查所有权与国有关联、国家安全与出口管制、数据安全、供应链、诚信、财务和知识产权，并将结果报告给依赖这份报告的县政府、州机构和合作伙伴。",
     ctaFree: "开始免费自我评估",
-    ctaFull: "申请独立评估",
-    ctaNote: "大多数企业从免费自我评估开始。自我评估不公开，共 10 个简短模块，并能显示独立评估可能关注的重点。您可以随时在评估结果页面申请完整评估。",
+    ctaFull: "了解全面评估",
+    ctaNote: "大多数企业从免费自我评估开始。自我评估不公开，共 10 个简短模块，并能显示全面评估可能关注的重点。您可以随时在评估结果页面申请完整评估。",
     stepsTitle: "两个步骤，一条路径",
-    stepsLead: "先通过自我评估了解自身情况。当交易对方需要一份可以依赖的报告时，再进行独立评估。",
+    stepsLead: "先通过自我评估了解自身情况。当交易对方需要一份可以依赖的报告时，再进行全面评估。",
     step1: {
       tag: "第一步 · 免费",
       name: "自我评估",
@@ -107,7 +107,7 @@ export const HOME = {
     },
     step2: {
       tag: "第二步 · 固定费用",
-      name: "独立评估",
+      name: "全面评估",
       who: "用于依赖贵公司的各方",
       points: [
         "根据官方登记机构和独立来源核实文件",
@@ -117,7 +117,7 @@ export const HOME = {
         "12 个月有效期，每日重新筛查并发出“审查中”提示",
       ],
       limit: "截至某一日期的风险意见。并非认证、担保或政府决定。",
-      cta: "申请评估",
+      cta: "了解全面评估",
     },
     relyTitle: "为依赖报告的各方而设计",
     rely: [
@@ -125,7 +125,7 @@ export const HOME = {
       { who: "州政府机构", what: "“法定资格”页面逐项说明企业是否符合贵州的外国所有权定义，并与评级分开列示。" },
       { who: "房东、贷款方和商业伙伴", what: "对所有权和控制权的一致、有据可查的评估，并列明每项结论背后的证据。" },
     ],
-    processTitle: "独立评估如何进行",
+    processTitle: "全面评估如何进行",
     process: [
       { n: "1", t: "受理", d: "对所有参与人员进行利益冲突审查，签署委托书，收取与结果无关的固定费用。" },
       { n: "2", t: "文件与筛查", d: "在高级管理人员声明下提交标准文件清单，并按美国名单筛查每个实体和所有者。" },
@@ -157,7 +157,7 @@ export const HOME = {
     disclaimerTitle: "TBRAC 报告不是什么",
     disclaimer: "TBRAC 报告是截至所述日期的独立风险意见。它不是认证、担保或批准；不是 CFIUS 决定，也不是任何政府机构的决定；不能凌驾于任何法律之上；也不构成法律意见。",
     finalTitle: "从免费自我评估开始",
-    finalLead: "私密地了解贵公司的现状。准备就绪后，可在评估结果页面申请独立评估。",
+    finalLead: "私密地了解贵公司的现状。准备就绪后，可在评估结果页面了解全面评估。",
     fees: { title: "收费", text: "同一类型的评估，所有企业支付相同的固定费用，与企业规模、收入或评估结果无关。费用在委托书中约定，并在评级委员会开会前付清或托管，因此绝不会取决于评级结果。分析师从不讨论费用。", design: "设计评估", operating: "运营评估", monitoring: "有效期内持续监测", flat: "一个固定费用", ask: "索取现行收费标准" },
     verify: { title: "核验报告", text: "每份已出具的报告都有报告编号和数字指纹。任何人都可以在公开登记册中查询其实时状态。", cta: "核验报告" },
     footer: { evaluator: "评估人员登录", privacy: "隐私政策", terms: "使用条款", contact: "联系我们", rights: "保留所有权利。" },

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { engagementsApi, type EngagementDetail, type Methodology, type Rating } from "@/lib/engagements";
 import { REPORT_TEXT, DOMAIN_ZH, type ReportLang } from "@/lib/report-text";
+import { useLanguage } from "@/lib/language-context";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -36,7 +37,9 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const [eng, setEng] = useState<EngagementDetail | null>(null);
   const [m, setM] = useState<Methodology | null>(null);
   const [view, setView] = useState<"restricted" | "public">("restricted");
-  const [lang, setLang] = useState<ReportLang>("en");
+  const site = useLanguage();
+  const [lang, setLang] = useState<ReportLang>(site.language);
+  useEffect(() => site.registerToggle(), []); // eslint-disable-line react-hooks/exhaustive-deps
   const [error, setError] = useState("");
 
   useEffect(() => {

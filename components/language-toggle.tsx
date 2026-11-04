@@ -3,9 +3,11 @@
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/lib/language-context"
 import { Languages } from "lucide-react"
+import { useEffect } from "react"
 
 export function LanguageToggle() {
-  const { language, setLanguage } = useLanguage()
+  const { language, setLanguage, registerToggle } = useLanguage()
+  useEffect(() => registerToggle(), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Button

@@ -11,7 +11,7 @@ import { assessmentRequestsApi, type AssessmentRequest, type AssessmentRequestIn
 import { useLanguage } from "@/lib/language-context";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 
-/** Funnel from the free self-assessment to a paid independent assessment. */
+/** Funnel from the free self-assessment to a paid comprehensive assessment. */
 export function RequestAssessmentCard({ customerId, assessmentId }: { customerId: string; assessmentId?: string }) {
   const { t, language } = useLanguage();
   const { handleError, showSuccess } = useApiToast();

@@ -147,11 +147,12 @@ export default function EngagementsPage() {
       <main className="container mx-auto px-4 py-10 space-y-6 max-w-6xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Independent assessments</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Comprehensive assessments</h1>
             <p className="text-muted-foreground">Engagements scored under the TBRAC methodology.</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild><Link href="/evaluator/dashboard">Self-assessment review</Link></Button>
+            <Button variant="outline" asChild><Link href="/evaluator/methodology">Methodology calibration</Link></Button>
             <Button onClick={() => setShowNew((v) => !v)}>{showNew ? "Cancel" : "New engagement"}</Button>
           </div>
         </div>

@@ -73,6 +73,12 @@ export interface EngagementDocument {
   has_text: boolean; text_chars: number; page_count: number | null; language: string | null; text_problem: string | null;
   analysis: DocAnalysis | null;
 }
+export interface MethodologyVersionInfo {
+  version: string; status: "draft" | "published" | "retired"; domain_weights: Record<string, number>; changelog: string;
+  sensitivity: string | null; published_at: string | null; created_by?: string; created_at?: string; published_by?: string | null;
+  panel: { composition: { role: string; count: number }[]; size: number; rounds: number; panelist_crs: number[]; aggregate_cr: number;
+    lambda_max: number; consensus_notes: string | null; judgments?: number[][]; inconsistent_panelists?: number[] };
+}
 export interface ExternalMember { name: string; affiliation: string; independence_confirmed: boolean }
 export interface CommitteeDecision {
   id: string; decision: "approve" | "return"; chair: string; members: string[]; rationale: string;
@@ -218,6 +224,15 @@ export const engagementsApi = {
     if (!res.ok) throw new Error(body.detail ?? "Extraction failed");
     return body as { chars: number; language: string | null; status: string };
   },
+  versions: () => authenticatedRequest<{ current: string; builtin: { version: string; domain_weights: Record<string, number> };
+    versions: MethodologyVersionInfo[]; pairs: [string, string][] }>(`${base}/methodology/versions`),
+  saveVersion: (body: { version: string; judgments: number[][]; composition: { role: string; count: number }[]; rounds: number;
+    consensus_notes?: string; sensitivity?: string; changelog: string }) =>
+    authenticatedRequest<MethodologyVersionInfo>(`${base}/methodology/versions`, json("POST", body)),
+  publishVersion: (v: string) => authenticatedRequest<MethodologyVersionInfo>(`${base}/methodology/versions/${encodeURIComponent(v)}/publish`, { method: "POST" }),
+  retireVersion: (v: string) => authenticatedRequest<MethodologyVersionInfo>(`${base}/methodology/versions/${encodeURIComponent(v)}/retire`, { method: "POST" }),
+  rebase: (id: string, version: string, reason: string) =>
+    authenticatedRequest<EngagementDetail>(`${base}/engagements/${id}/rebase`, json("POST", { version, reason })),
   audit: (id: string) => authenticatedRequest<AuditEntry[]>(`${base}/engagements/${id}/audit`),
   screen: (id: string) => authenticatedRequest<ScreenResponse>(`${base}/engagements/${id}/screen`, { method: "POST" }),
   recordGate: (id: string, code: string, body: { status: GateStatus; basis?: string | null }) =>

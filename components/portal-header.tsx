@@ -6,6 +6,7 @@ import { Globe, Users, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
+import { LanguageToggle } from "@/components/language-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,12 +72,7 @@ export function PortalHeader() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setLanguage(language === "en" ? "zh" : "en")}
-              className="text-xs font-medium px-2.5 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-            >
-              {language === "en" ? "中文" : "EN"}
-            </button>
+            <LanguageToggle />
 
           {user && (
             <DropdownMenu>
