@@ -20,6 +20,22 @@ export const auth = betterAuth({
     // FastAPI parses the JWT `sub` as a UUID (customers.user_id etc.)
     database: { generateId: "uuid" },
   },
+  // Limits live in the database: serverless instances share no memory, so the default in-memory
+  // store would let a guesser spread attempts across instances. Keys are per IP and path.
+  rateLimit: {
+    enabled: process.env.NODE_ENV === "production",
+    storage: "database",
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 10 },
+      "/sign-up/email": { window: 60, max: 5 },
+      "/two-factor/verify-totp": { window: 60, max: 10 },
+      "/two-factor/verify-backup-code": { window: 60, max: 5 },
+      "/request-password-reset": { window: 300, max: 5 },
+      "/send-verification-email": { window: 300, max: 5 },
+    },
+  },
   // Verification emails prove address ownership. Company sign-in does not require
   // it yet, but evaluator access does (lib/evaluators.ts, API core/evaluators.py).
   emailVerification: {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { sendEmail } from "@/lib/email"
+import { allow, clientIp } from "@/lib/rate-limit"
 
 const API_ORIGIN = process.env.API_ORIGIN || "http://localhost:8000"
 const SITE = process.env.BETTER_AUTH_URL || "https://tbrac.org"
@@ -7,6 +8,9 @@ const SITE = process.env.BETTER_AUTH_URL || "https://tbrac.org"
 // Public: start watching a report (confirm by email), or ask for a fresh manage link.
 // The answer is the same whether or not the address was known, so it can't be used to probe.
 export async function POST(request: Request) {
+  if (!(await allow(`watch:${clientIp(request)}`, 10, 3600)) || !(await allow("watch:all", 200, 3600))) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+  }
   const body = (await request.json().catch(() => ({}))) as { email?: string; report_number?: string; organization?: string }
   const path = body.report_number ? "/api/v1/public/watch" : "/api/v1/public/watch/link"
   const res = await fetch(`${API_ORIGIN}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })

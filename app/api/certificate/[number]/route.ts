@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFPage } from "pdf-lib"
 import QRCode from "qrcode"
 import fontkit from "@pdf-lib/fontkit"
+import { allow, clientIp } from "@/lib/rate-limit"
 
 // Public, like the register: anyone holding a report number can download its certificate.
 // It is built from the live register entry, so a rating that is no longer current says so.
@@ -43,8 +44,9 @@ function centered(page: PDFPage, text: string, y: number, font: PDFFont, size: n
   page.drawText(t, { x: (page.getWidth() - font.widthOfTextAtSize(t, size)) / 2, y, size, font, color })
 }
 
-export async function GET(_: Request, { params }: { params: Promise<{ number: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ number: string }> }) {
   const { number } = await params
+  if (!(await allow(`certificate:${clientIp(request)}`, 60, 60))) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
   if (number.length > 30) return NextResponse.json({ error: "Not found" }, { status: 404 })
   const res = await fetch(`${API_ORIGIN}/api/v1/public/verify/${encodeURIComponent(number)}`, { cache: "no-store" })
   if (!res.ok) return NextResponse.json({ error: "No report with that number" }, { status: 404 })
