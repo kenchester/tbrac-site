@@ -207,7 +207,7 @@ export default function HomePage() {
                 <li key={x} className="flex justify-between px-4 py-3"><span>{x}</span><span className="font-medium text-slate-700">{c.fees.flat}</span></li>
               ))}
             </ul>
-            <Link href="/contact" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">{c.fees.ask} <ArrowRight className="h-3.5 w-3.5" /></Link>
+            <Link href="/for-companies#fees" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-sky-800 hover:underline">{c.fees.ask} <ArrowRight className="h-3.5 w-3.5" /></Link>
           </div>
           <div>
             <h2 className={`${serif.className} text-2xl font-semibold`}>{c.verify.title}</h2>

@@ -74,7 +74,10 @@ export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf
             <ul className="grid gap-1 text-sm sm:grid-cols-2">
               {t("arPoints").split("|").map((p) => <li key={p} className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />{p}</li>)}
             </ul>
-            <Button onClick={() => setOpen(true)}>{t("arStart")}</Button>
+            <div className="flex flex-wrap items-center gap-4">
+              <Button onClick={() => setOpen(true)}>{t("arStart")}</Button>
+              <a href="/for-companies#fees" target="_blank" className="text-sm font-semibold text-sky-800 hover:underline">{language === "zh" ? "查看费用" : "See the fees"}</a>
+            </div>
           </>
         ) : (
           <div className="space-y-3">

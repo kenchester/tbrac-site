@@ -3,6 +3,10 @@ import { authDb } from "@/lib/auth"
 
 export const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null
 
+/** live: real charges · test: Stripe test mode (sk_test_ key, test cards) · off: no Stripe key yet. */
+export const stripeMode = (): "live" | "test" | "off" =>
+  !process.env.STRIPE_SECRET_KEY ? "off" : process.env.STRIPE_SECRET_KEY.startsWith("sk_live_") ? "live" : "test"
+
 /**
  * Record a fee as paid: the payment, the engagement's fee status, and an audit entry (chained by the
  * database). Idempotent: a payment already marked paid is left alone. Returns false if nothing changed.

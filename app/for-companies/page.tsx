@@ -1,5 +1,6 @@
 "use client"
 
+import { FeeSchedule } from "@/components/fee-schedule"
 import Link from "next/link"
 import { ArrowRight, Check, Lock, Scale, FileText, Eye, ShieldCheck, MessageSquareText } from "lucide-react"
 import { H2, MarketingShell, NAVY, SIGNUP } from "@/components/marketing-shell"
@@ -55,6 +56,7 @@ const C = {
       "A TBRAC report is a private certification, not a government certification, approval or guarantee, and it cannot override a state or federal law.",
       "Each counterparty makes its own decision. The report gives them documented evidence to make it with.",
     ],
+    feesTitle: "Fees",
     faqTitle: "Common questions",
     faq: [
       ["Do I see the rating before it is issued?", "You see the factual findings and can correct them. The rating is decided by the committee and shown in the issued report."],
@@ -110,6 +112,7 @@ const C = {
       "TBRAC 报告是私营机构认证，而非政府认证、批准或担保，也不能凌驾于州法或联邦法律之上。",
       "各合作方自行作出决定。报告为其决定提供有据可查的证据。",
     ],
+    feesTitle: "费用",
     faqTitle: "常见问题",
     faq: [
       ["评级出具前我能看到吗？", "您可以看到事实性调查结果并加以更正。评级由委员会决定，并在出具的报告中列明。"],
@@ -172,6 +175,11 @@ export default function ForCompaniesPage() {
         <div className="mt-8 grid gap-8 md:grid-cols-2">
           {c.fair.map(([t, d]) => <div key={t} className="border-t-2 border-slate-900 pt-4"><h3 className="font-semibold">{t}</h3><p className="mt-1 text-[15px] leading-relaxed text-slate-600">{d}</p></div>)}
         </div>
+      </section>
+
+      <section id="fees" className="scroll-mt-24">
+        <H2>{c.feesTitle}</H2>
+        <div className="mt-6"><FeeSchedule /></div>
       </section>
 
       <section>

@@ -1,7 +1,7 @@
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import { auth, authDb } from "@/lib/auth"
-import { markPaid, stripe } from "@/lib/payments"
+import { stripe, stripeMode } from "@/lib/payments"
 import { backendFetch } from "@/lib/server-api"
 
 const SITE = process.env.BETTER_AUTH_URL || "https://tbrac.org"
@@ -9,8 +9,8 @@ const SITE = process.env.BETTER_AUTH_URL || "https://tbrac.org"
 interface Payment { id: string; engagement_id: string; customer_id: string; description: string; amount_cents: number; currency: string; status: string }
 
 // Starts card/bank checkout for a requested assessment fee. The API confirms the caller may see
-// this company's payments; staff assisting a client can't pay for it; dummy companies are marked
-// paid without charging anything.
+// this company's payments; staff assisting a client can't pay for it; dummy companies go through
+// a built-in test checkout that moves no money.
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const session = await auth.api.getSession({ headers: await headers() })
@@ -26,14 +26,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const ctx = await backendFetch(`/api/v1/company-view/context/${customer_id}`)
   const mode = ctx?.ok ? ((await ctx.json()) as { mode: string; customer_name: string }).mode : "owner"
   if (mode === "assist") return NextResponse.json({ error: "The company pays its own fee; TBRAC staff can't pay on its behalf" }, { status: 403 })
-  if (mode === "sandbox") {
-    await markPaid(id, { actor: `${session.user.email} (dummy-data test payment, nothing charged)`, payer: session.user.email })
-    return NextResponse.json({ url: `${SITE}/customers/${customer_id}?payment=success` })
+  // Dummy companies use TBRAC's built-in test checkout, unless Stripe test keys are set (then real Stripe test mode).
+  if (mode === "sandbox" && stripeMode() !== "test") {
+    return NextResponse.json({ url: `/checkout/sandbox/${id}?customer=${customer_id}` })
   }
   if (!stripe) return NextResponse.json({ error: "not_enabled" }, { status: 503 })
 
   const meta = { payment_id: id, engagement_id: payment.engagement_id, customer_id: customer_id! }
-  const checkout = await stripe.checkout.sessions.create({
+  let checkout
+  try {
+  checkout = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: [{ quantity: 1, price_data: { currency: payment.currency, unit_amount: payment.amount_cents,
       product_data: { name: `TBRAC · ${payment.description}`, description: "Flat fee, the same for every company; it does not depend on the outcome." } } }],
@@ -44,6 +46,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     success_url: `${SITE}/customers/${customer_id}?payment=success`,
     cancel_url: `${SITE}/customers/${customer_id}?payment=canceled`,
   }, { idempotencyKey: `checkout-${id}-${Math.floor(Date.now() / 600000)}` })
+  } catch (e) {
+    console.error("[checkout] Stripe error", e instanceof Error ? e.message : e)
+    return NextResponse.json({ error: "The payment provider could not start checkout. Please try again or contact evaluations@tbrac.org." }, { status: 502 })
+  }
   await authDb.query("update payments set stripe_session_id = $2 where id = $1 and status = 'requested'", [id, checkout.id])
   return NextResponse.json({ url: checkout.url })
 }
