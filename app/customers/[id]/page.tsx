@@ -3,7 +3,7 @@
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Source_Serif_4 } from "next/font/google";
+import { serif } from "@/lib/fonts"
 import { ProtectedRoute } from "@/components/protected-route";
 import { PortalHeader } from "@/components/portal-header";
 import { AssistedSessionsCard } from "@/components/assisted-sessions-card";
@@ -96,7 +96,6 @@ import { useLanguage } from "@/lib/language-context";
 import { documentRequestsApi, draftFindingsApi, needsResponse } from "@/lib/document-requests";
 import { RequestAssessmentCard } from "@/components/request-assessment-card";
 
-const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] });
 
 const D = {
   en: {

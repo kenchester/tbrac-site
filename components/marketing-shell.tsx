@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Source_Serif_4 } from "next/font/google"
+import { serif } from "@/lib/fonts"
 import { SiteHeader } from "@/components/site-header"
 import { Copyright } from "@/components/copyright"
 
-export const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] })
+export { serif }
 export const NAVY = "#0b1f3a"
 export const SIGNUP = "/company/login?tab=signup"
 

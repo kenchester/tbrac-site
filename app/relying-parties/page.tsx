@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Source_Serif_4 } from "next/font/google";
+import { serif } from "@/lib/fonts"
 import { ArrowRight, FileText, Landmark, ListChecks, ShieldAlert, Search, Scale } from "lucide-react";
 import { SiteHeader } from "@/components/site-header"
 import { Copyright } from "@/components/copyright";
 import { useLanguage } from "@/lib/language-context";
 
-const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] });
 const NAVY = "#0b1f3a";
 
 // Methodology §3.1 (tracks), §8 (outputs, conditions), §9 (surveillance), §12.2 (reliance letter).

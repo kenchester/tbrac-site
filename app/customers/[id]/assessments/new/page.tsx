@@ -3,7 +3,7 @@
 import { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Source_Serif_4 } from "next/font/google";
+import { serif } from "@/lib/fonts"
 import { ArrowLeft, ArrowRight, Check, Lock } from "lucide-react";
 import { ProtectedRoute } from "@/components/protected-route";
 import { PortalHeader } from "@/components/portal-header";
@@ -15,7 +15,6 @@ import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] });
 
 const C = {
   en: {

@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Source_Serif_4 } from "next/font/google"
+import { serif } from "@/lib/fonts"
 import { ArrowRight } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
 import { Copyright } from "@/components/copyright"
 import { useLanguage } from "@/lib/language-context"
 
-const serif = Source_Serif_4({ subsets: ["latin"], weight: ["600", "700"] })
 const NAVY = "#0b1f3a"
 const BUILTIN = { version: "1.1-DRAFT", weights: { D1: 0.25, D2: 0.2, D3: 0.2, D4: 0.1, D5: 0.1, D6: 0.1, D7: 0.05 } as Record<string, number> }
 
