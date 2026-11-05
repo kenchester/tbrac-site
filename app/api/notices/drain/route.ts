@@ -135,13 +135,35 @@ async function drain(): Promise<{ sent: number; failed: number }> {
   return { sent, failed }
 }
 
+/** Daily note to staff when anything needs attention: server errors, or notices that could not be delivered. */
+async function staffSummary(): Promise<boolean> {
+  const staff = (process.env.EVALUATOR_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean)
+  if (!staff.length) return false
+  const { rows: errors } = await authDb.query<{ source: string; route: string; error_type: string; message: string | null; count: number }>(
+    `select source, route, error_type, message, count from error_events where last_at > now() - interval '24 hours' order by count desc limit 25`)
+  const { rows: stuck } = await authDb.query<{ recipient_email: string; kind: string; last_error: string | null }>(
+    `select recipient_email, kind, last_error from status_notices where sent_at is null and attempts >= $1 and created_at > now() - interval '7 days' limit 25`, [MAX_ATTEMPTS])
+  if (!errors.length && !stuck.length) return false
+  const total = errors.reduce((n, e) => n + Number(e.count), 0)
+  const text = [
+    ...(errors.length ? [`Server errors in the last 24 hours: ${total}`] : []),
+    ...errors.map((e) => `- ${e.count}x [${e.source}] ${e.route}: ${e.error_type}${e.message ? ` (${e.message})` : ""}`),
+    ...(stuck.length ? ["", `Emails that could not be delivered after ${MAX_ATTEMPTS} tries: ${stuck.length}`] : []),
+    ...stuck.map((n) => `- ${n.kind} to ${n.recipient_email}: ${n.last_error ?? "unknown error"}`),
+    "", `Details: ${SITE}/evaluator/business`, "", SIGN,
+  ].join("\n")
+  await Promise.allSettled(staff.map((to) => sendEmail(to, `TBRAC daily check: ${total} error${total === 1 ? "" : "s"}, ${stuck.length} undelivered`, text)))
+  return true
+}
+
 // Vercel cron (Authorization: Bearer $CRON_SECRET).
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Not allowed" }, { status: 401 })
   }
-  return NextResponse.json(await drain())
+  const sent = await drain()
+  return NextResponse.json({ ...sent, staff_summary: await staffSummary().catch(() => false) })
 }
 
 // An evaluator, right after changing a rating's status.

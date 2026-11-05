@@ -11,6 +11,7 @@ interface Summary {
   funnel: { step: string; count: number }[]; new_companies_30_days: number; requests: Record<string, number>;
   engagements_by_stage: Record<string, number>; revenue_cents: { last_30_days: number; last_365_days: number; all_time: number };
   open_payments: { id: string; company: string; description: string; amount_cents: number; requested_at: string }[];
+  errors_7_days: { route: string; error_type: string; message: string | null; location: string | null; count: number; last_at: string }[];
   expiring_90_days: { engagement_id: string; company: string; report_number: string | null; valid_until: string; days_left: number; reevaluation_requested: boolean }[];
 }
 const usd = (c: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(c / 100);
@@ -81,6 +82,20 @@ export default function BusinessPage() {
                   <table className="w-full text-sm"><tbody className="divide-y">{s.open_payments.map((p) => (
                     <tr key={p.id}><td className="py-2">{p.company}</td><td className="py-2">{p.description}</td><td className="py-2 tabular-nums">{usd(p.amount_cents)}</td>
                       <td className="py-2 text-right text-muted-foreground">requested {day(p.requested_at)}</td></tr>
+                  ))}</tbody></table>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-base">Server errors, last 7 days</CardTitle>
+                <p className="text-xs text-muted-foreground">Admins also get a daily email when there are any. Grouped by page or endpoint; no private links are stored.</p></CardHeader>
+              <CardContent>
+                {s.errors_7_days.length === 0 ? <p className="text-sm text-green-700">None.</p> : (
+                  <table className="w-full text-sm"><tbody className="divide-y">{s.errors_7_days.map((e, i) => (
+                    <tr key={i} className="align-top"><td className="py-2 pr-3 tabular-nums">{e.count}×</td>
+                      <td className="py-2 pr-3 font-mono text-xs">{e.route}</td>
+                      <td className="py-2 pr-3">{e.error_type}{e.message ? `: ${e.message}` : ""}{e.location && <span className="block text-xs text-muted-foreground">{e.location}</span>}</td>
+                      <td className="py-2 text-right text-muted-foreground">{day(e.last_at)}</td></tr>
                   ))}</tbody></table>
                 )}
               </CardContent>
