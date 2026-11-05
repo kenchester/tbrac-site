@@ -40,6 +40,8 @@ const nextConfig = {
       { source: "/evaluator/:path*", headers: [{ key: "Cache-Control", value: "private, no-store" }] },
       { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "private, no-store" }] },
       // Private report links: never cached, never indexed, never leak the link in a Referer.
+      { source: "/panel/:path*", headers: [{ key: "Cache-Control", value: "private, no-store" }, { key: "X-Robots-Tag", value: "noindex, nofollow" },
+                                           { key: "Referrer-Policy", value: "no-referrer" }] },
       { source: "/r/:path*", headers: [{ key: "Cache-Control", value: "private, no-store" }, { key: "X-Robots-Tag", value: "noindex, nofollow" },
                                        { key: "Referrer-Policy", value: "no-referrer" }] },
     ]

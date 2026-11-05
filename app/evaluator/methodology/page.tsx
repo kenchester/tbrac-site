@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/header";
+import { ExpertPanel } from "@/components/expert-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +69,8 @@ export default function MethodologyAdminPage() {
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {msg && <p className="text-sm text-green-700">{msg}</p>}
+
+        <ExpertPanel onDrafted={load} />
 
         {data && (
           <Card>
