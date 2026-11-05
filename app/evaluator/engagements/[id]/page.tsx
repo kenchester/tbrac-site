@@ -1262,6 +1262,44 @@ function Readiness({ checks }: { checks: ReadinessCheck[] }) {
   );
 }
 
+// ------------------------------------------------------------------ fee checkout (§11)
+function FeePayments({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [reason, setReason] = useState("");
+  const open = eng.payments.find((p) => p.status === "requested");
+  const run = async (f: () => Promise<unknown>) => {
+    setBusy(true); setError("");
+    try { await f(); onSaved(await engagementsApi.get(eng.id)); } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  const usd = (c: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(c / 100);
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Fee checkout</CardTitle>
+        <p className="text-xs text-muted-foreground">Request the published flat fee for this engagement type{eng.reevaluation_of ? " (re-evaluation)" : ""}. The company sees it on its
+          dashboard and pays by card or bank transfer; the fee status becomes “paid” automatically when Stripe confirms. Use “escrowed” above for government-directed escrow instead.</p>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {eng.payments.map((p) => (
+          <p key={p.id}>{p.description} · <b>{usd(p.amount_cents)}</b> · {p.status === "paid" ? <span className="text-green-700">paid {p.paid_at ? new Date(p.paid_at).toLocaleDateString() : ""}</span>
+            : p.status === "canceled" ? <span className="text-muted-foreground">canceled ({p.canceled_reason})</span> : <span className="text-amber-700">awaiting payment</span>}</p>
+        ))}
+        {!open && !["paid", "escrowed"].includes(eng.fee_status) && (
+          <Button size="sm" disabled={busy} onClick={() => run(() => engagementsApi.requestPayment(eng.id))}>Request the fee from the company</Button>
+        )}
+        {open && (
+          <div className="flex flex-wrap gap-2">
+            <Input className="max-w-sm" placeholder="Reason to cancel the request" value={reason} onChange={(e) => setReason(e.target.value)} />
+            <Button size="sm" variant="outline" disabled={busy || reason.trim().length < 5} onClick={() => run(() => engagementsApi.cancelPayment(open.id, reason))}>Cancel request</Button>
+          </div>
+        )}
+        {error && <p className="text-red-600">{error}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ acceptance (Stage 0)
 const FEE_STATUSES: FeeStatus[] = ["none", "quoted", "invoiced", "escrowed", "paid"];
 function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
@@ -1326,6 +1364,8 @@ function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
           <Button size="sm" onClick={saveAcceptance}>Save</Button>
         </CardContent>
       </Card>
+
+      <FeePayments eng={eng} onSaved={onSaved} />
 
       <Card>
         <CardHeader className="pb-2">
@@ -1856,6 +1896,13 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
               </div>
             </div>
             {!eng.is_sandbox && <AssistedDisclosure customerId={eng.customer_id} />}
+            {eng.reevaluation_of && (
+              <p className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+                <b>Re-evaluation on new evidence.</b> Entities, relying parties and notice contacts were copied from the{" "}
+                <Link href={`/evaluator/engagements/${eng.reevaluation_of}`} className="underline">prior engagement</Link>; evidence, scores and red lines start fresh.
+                When this rating is issued, the prior report is marked Superseded and its contacts are told.
+              </p>
+            )}
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
               <Tabs defaultValue="indicators">
                 <TabsList className="flex-wrap h-auto">

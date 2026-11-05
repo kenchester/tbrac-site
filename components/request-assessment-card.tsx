@@ -12,18 +12,29 @@ import { useLanguage } from "@/lib/language-context";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 
 /** Funnel from the free self-assessment to a paid comprehensive assessment. */
-export function RequestAssessmentCard({ customerId, assessmentId }: { customerId: string; assessmentId?: string }) {
+const RE = {
+  en: { title: "Request a re-evaluation", pitch: "TBRAC rates you again on the new evidence. The flat re-evaluation fee applies; the new report replaces the current one when issued.",
+        project: "What has changed since the last assessment (ownership, controls, suppliers, documents)?" },
+  zh: { title: "申请重新评估", pitch: "TBRAC 将依据新证据重新评级。适用固定的重新评估费用；新报告出具后将取代当前报告。",
+        project: "自上次评估以来有哪些变化（所有权、内部控制、供应商、文件）？" },
+};
+
+export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf, startOpen = false }:
+  { customerId: string; assessmentId?: string; reevaluationOf?: string; startOpen?: boolean }) {
   const { t, language } = useLanguage();
   const { handleError, showSuccess } = useApiToast();
   const [latest, setLatest] = useState<AssessmentRequest | null | undefined>(undefined);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
+  const re = reevaluationOf ? RE[language as "en" | "zh"] ?? RE.en : null;
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ contact_name: "", contact_title: "", contact_phone: "", project_description: "",
     relying_party: "", timeline: "", engagement_type: "unsure" as AssessmentRequestIn["engagement_type"] });
 
   useEffect(() => {
-    assessmentRequestsApi.mine(customerId).then((rows) => setLatest(rows[0] ?? null)).catch(() => setLatest(null));
-  }, [customerId]);
+    assessmentRequestsApi.mine(customerId).then((rows) => setLatest(
+      (reevaluationOf ? rows.filter((r) => r.request_type === "reevaluation" && r.prior_report_number === reevaluationOf) : rows)[0] ?? null,
+    )).catch(() => setLatest(null));
+  }, [customerId, reevaluationOf]);
 
   if (latest === undefined) return null;
   const inProgress = latest && latest.status !== "declined";
@@ -33,7 +44,8 @@ export function RequestAssessmentCard({ customerId, assessmentId }: { customerId
   const submit = async () => {
     setBusy(true);
     try {
-      const r = await assessmentRequestsApi.create(customerId, { ...form, assessment_id: assessmentId, language });
+      const r = await assessmentRequestsApi.create(customerId, { ...form, assessment_id: assessmentId, language,
+        ...(reevaluationOf ? { request_type: "reevaluation" as const, prior_report_number: reevaluationOf } : {}) });
       setLatest(r); setOpen(false); showSuccess(t("arSent"));
     } catch (e) { handleError(e); } finally { setBusy(false); }
   };
@@ -44,8 +56,8 @@ export function RequestAssessmentCard({ customerId, assessmentId }: { customerId
         <div className="flex items-start gap-3">
           <ShieldCheck className="h-6 w-6 text-primary shrink-0 mt-0.5" />
           <div>
-            <CardTitle>{t("arTitle")}</CardTitle>
-            {!inProgress && <CardDescription className="mt-1">{t("arPitch")}</CardDescription>}
+            <CardTitle>{re ? re.title : t("arTitle")}</CardTitle>
+            {!inProgress && <CardDescription className="mt-1">{re ? re.pitch : t("arPitch")}</CardDescription>}
           </div>
         </div>
       </CardHeader>
@@ -71,7 +83,7 @@ export function RequestAssessmentCard({ customerId, assessmentId }: { customerId
               <div className="space-y-1"><Label>{t("arContactTitle")}</Label><Input value={form.contact_title} onChange={set("contact_title")} /></div>
               <div className="space-y-1"><Label>{t("arPhone")}</Label><Input value={form.contact_phone} onChange={set("contact_phone")} /></div>
             </div>
-            <div className="space-y-1"><Label>{t("arProject")}</Label><Textarea value={form.project_description} onChange={set("project_description")} /></div>
+            <div className="space-y-1"><Label>{re ? re.project : t("arProject")}</Label><Textarea value={form.project_description} onChange={set("project_description")} /></div>
             <div className="space-y-1"><Label>{t("arRelying")}</Label><Textarea value={form.relying_party} onChange={set("relying_party")} /></div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1"><Label>{t("arTimeline")}</Label><Input value={form.timeline} onChange={set("timeline")} /></div>

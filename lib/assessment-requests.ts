@@ -5,6 +5,7 @@ export interface AssessmentRequest {
   id: string; customer_id: string; assessment_id: string | null; contact_name: string; contact_title: string | null;
   contact_phone: string | null; project_description: string; relying_party: string | null; timeline: string | null;
   engagement_type: "design" | "operating" | "unsure"; status: AssessmentRequestStatus; created_at: string;
+  request_type?: "initial" | "reevaluation"; prior_report_number?: string | null;
   // evaluator view only
   customer_name?: string; requester_email?: string; language?: string; evaluator_note?: string | null;
   handled_by?: string | null; engagement_id?: string | null; updated_at?: string;
@@ -13,6 +14,7 @@ export interface AssessmentRequestIn {
   assessment_id?: string; contact_name: string; contact_title?: string; contact_phone?: string;
   project_description: string; relying_party?: string; timeline?: string;
   engagement_type: "design" | "operating" | "unsure"; language: "en" | "zh";
+  request_type?: "initial" | "reevaluation"; prior_report_number?: string;
 }
 
 export const assessmentRequestsApi = {

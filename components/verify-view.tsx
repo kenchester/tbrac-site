@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, AlertTriangle, XCircle, Search } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Search, Download, Copy } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { Copyright } from "@/components/copyright";
 import { useLanguage } from "@/lib/language-context";
@@ -40,6 +40,7 @@ const V = {
     sigOk: (k: string) => `Digitally signed by TBRAC (Ed25519, key ${k}). The signature checks against the published key.`,
     sigBad: "The TBRAC signature on this entry does not check. Contact TBRAC before relying on it.",
     sigHow: "Check it yourself",
+    download: "Download certificate (PDF)", copy: "Copy link", copied: "Copied",
     testTitle: "Test report: not a TBRAC opinion",
     testText: "This report was issued from dummy data while TBRAC staff tested the system. It is not about a real company and must not be relied on.",
     disclaimer: (d: string) => `A TBRAC report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, approval or license; it is not a CFIUS determination or a decision of any government agency; it is not a guarantee of future conduct; it does not override any statute; and it is not legal advice. Confidential findings are available only to the named intended users. Checked ${d}.`,
@@ -68,6 +69,7 @@ const V = {
     sigOk: (k: string) => `已由 TBRAC 进行数字签名（Ed25519，密钥 ${k}），签名与公开密钥核验一致。`,
     sigBad: "本条目的 TBRAC 签名核验未通过。在依赖之前，请联系 TBRAC。",
     sigHow: "自行核验",
+    download: "下载认证证书（PDF）", copy: "复制链接", copied: "已复制",
     testTitle: "测试报告：并非 TBRAC 意见",
     testText: "本报告由 TBRAC 工作人员在测试系统时使用虚拟数据出具，并不涉及真实企业，不得依赖。",
     disclaimer: (d: string) => `TBRAC 报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、批准或许可；不是 CFIUS 决定，也不是任何政府机构的决定；不保证企业未来的行为；不能凌驾于任何法律之上；也不构成法律意见。保密调查结果仅提供给指定的预期使用方。查询时间：${d}。`,
@@ -115,6 +117,16 @@ export function VerifyLanding() {
   );
 }
 
+function CopyLink({ label, done }: { label: string; done: string }) {
+  const [ok, setOk] = useState(false);
+  return (
+    <button type="button" className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
+      onClick={async () => { await navigator.clipboard.writeText(window.location.href).catch(() => {}); setOk(true); setTimeout(() => setOk(false), 2000); }}>
+      {ok ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{ok ? done : label}
+    </button>
+  );
+}
+
 export function VerifyResult({ number }: { number: string }) {
   const t = useV();
   const [v, setV] = useState<Verified | null>(null);
@@ -156,8 +168,14 @@ export function VerifyResult({ number }: { number: string }) {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <a href={`/api/certificate/${v.report_number}`} target="_blank" rel="noopener"
+          className="inline-flex items-center gap-2 rounded-md bg-[#0b1f3a] px-4 py-2 text-sm font-semibold text-white"><Download className="h-4 w-4" />{t.download}</a>
+        <CopyLink label={t.copy} done={t.copied} />
+      </div>
+
       <section className="rounded-lg border border-slate-200 bg-white p-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t.summary}</p>
+        <p className="text-sm font-medium text-slate-500">{t.summary}</p>
         <h1 className="mt-1 text-2xl font-semibold">{v.subject}</h1>
         <p className="text-sm text-slate-600">{t.assessment[v.engagement_type] ?? v.engagement_type} · {t.methodology} {v.methodology_version} · {t.issued} {day(v.issued_at)} · {t.validUntil} {day(v.valid_until)}</p>
         {v.scope && <p className="mt-2 text-sm"><span className="font-medium">{t.scope}:</span> {v.scope}</p>}

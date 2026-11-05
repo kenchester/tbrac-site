@@ -45,6 +45,10 @@ export interface Rating {
   domain_tiers: Record<string, string>; weights: Record<string, number>; verified_share: number | null;
   reasons: string[]; missing: string[]; methodology_version: string; error: string | null;
 }
+export interface FeePayment {
+  id: string; fee_type: string; description: string; amount_cents: number; currency: string; status: "requested" | "paid" | "canceled";
+  requested_at: string; paid_at: string | null; requested_by: string; canceled_reason: string | null;
+}
 export interface NotifyContact { name: string; organization?: string | null; email: string }
 export interface StatusNotice {
   id: string; report_number: string | null; kind: string; recipient_name: string | null; recipient_email: string;
@@ -112,7 +116,7 @@ export interface EngagementDetail extends EngagementSummary {
   review_started_at: string | null; review_due_at: string | null; review_reason: string | null; last_monitored_at: string | null;
   engagement_letter_signed_at: string | null; engagement_letter_ref: string | null;
   fee_amount: number | null; fee_currency: string; fee_status: FeeStatus; reliance_letters: RelianceLetter[];
-  notify_contacts: NotifyContact[]; notices: StatusNotice[];
+  notify_contacts: NotifyContact[]; notices: StatusNotice[]; reevaluation_of: string | null; payments: FeePayment[];
   reply_shared_at: string | null; reply_due_at: string | null; reply_received_at: string | null; reply_submitted_by: string | null;
   declarations: Declaration[]; signoffs: Signoff[]; readiness: ReadinessCheck[];
   grade_support: Record<string, { items: number; independent: number; best: Grade }>;
@@ -183,6 +187,8 @@ export const engagementsApi = {
     customer_id: string; engagement_type: string; track?: string;
     project_description?: string; relying_parties?: string[]; request_id?: string;
   }) => authenticatedRequest<EngagementDetail>(`${base}/engagements`, json("POST", body)),
+  requestPayment: (id: string) => authenticatedRequest<FeePayment>(`${base}/engagements/${id}/payment-request`, json("POST", {})),
+  cancelPayment: (paymentId: string, reason: string) => authenticatedRequest<FeePayment>(`${base}/payments/${paymentId}/cancel`, json("POST", { reason })),
   update: (id: string, body: Partial<Pick<EngagementDetail,
     "stage" | "project_description" | "relying_parties" | "overlay" | "engagement_type" | "track" | "lead_analyst"
     | "outlook" | "statutory_findings" | "conditions" | "subject_reply" | "engagement_letter_signed_at" | "engagement_letter_ref"

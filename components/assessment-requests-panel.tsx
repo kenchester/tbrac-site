@@ -46,7 +46,8 @@ export function AssessmentRequestsPanel() {
           <div key={r.id} className="rounded-md border p-3 space-y-2 text-sm">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <p className="font-medium">{r.customer_name}</p>
+                <p className="font-medium">{r.customer_name}
+                  {r.request_type === "reevaluation" && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">Re-evaluation of {r.prior_report_number}</span>}</p>
                 <p className="text-muted-foreground">
                   {r.contact_name}{r.contact_title ? `, ${r.contact_title}` : ""} · <a className="text-primary hover:underline" href={`mailto:${r.requester_email}`}>{r.requester_email}</a>
                   {r.contact_phone ? ` · ${r.contact_phone}` : ""}{r.language === "zh" ? " · prefers Chinese" : ""}

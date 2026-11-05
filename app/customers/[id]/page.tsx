@@ -8,6 +8,8 @@ import { ProtectedRoute } from "@/components/protected-route";
 import { PortalHeader } from "@/components/portal-header";
 import { AssistedSessionsCard } from "@/components/assisted-sessions-card";
 import { Copyright } from "@/components/copyright";
+import { PaymentsCard } from "@/components/payments-card";
+import { CertificationsCard } from "@/components/certifications-card";
 import {
   useCustomer,
   useUpdateCustomer,
@@ -370,6 +372,9 @@ function CustomerDetailContent({ params }: PageProps) {
             )}
           </section>
         )}
+
+        <PaymentsCard customerId={resolvedParams.id} />
+        <CertificationsCard customerId={resolvedParams.id} />
 
         {/* Path */}
         <section id="self-assessment" className="scroll-mt-24">

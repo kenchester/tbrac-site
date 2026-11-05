@@ -9,10 +9,10 @@ const C: Record<"en" | "zh", { title: string; lead: string; updated: string; blo
   en: {
     title: "Terms of service",
     lead: "The terms for using tbrac.org, the free self-assessment and TBRAC reports.",
-    updated: "Effective November 5, 2026",
+    updated: "Effective November 5, 2026 · Last updated November 5, 2026",
     blocks: [
       { h: "Agreement", p: [
-        `These terms are an agreement between you and Assurance Pacific Assessments LLC ("TBRAC", "we"), which operates TBRAC at tbrac.org. By creating an account or using the site you accept them. If you use TBRAC for a company, you confirm you are authorized to act for it, and these terms bind the company.`,
+        `These terms are an agreement between you and Assurance Pacific Assessments LLC, a Michigan limited liability company based in California ("TBRAC", "we"), which operates TBRAC at tbrac.org. By creating an account or using the site you accept them. If you use TBRAC for a company, you confirm you are authorized to act for it, and these terms bind the company.`,
         "A comprehensive assessment is also governed by its signed engagement letter. Where the engagement letter and these terms differ, the engagement letter prevails.",
       ] },
       { h: "Your account", list: [
@@ -54,6 +54,9 @@ const C: Record<"en" | "zh", { title: string; lead: string; updated: string; blo
       { h: "Ending use", p: [
         "You may stop using TBRAC and delete your company account at any time; the privacy policy explains what is kept afterwards. We may suspend or close accounts that break these terms.",
       ] },
+      { h: "Governing law and disputes", p: [
+        "These terms, and any dispute arising from them or from the services, are governed by the laws of the State of California, without regard to its conflict-of-laws rules. The state and federal courts located in California have exclusive jurisdiction, and you and TBRAC consent to them, except where the law gives you a right to bring a claim elsewhere. A signed engagement letter may set out a different dispute process, which then applies to that engagement.",
+      ] },
       { h: "Changes and contact", p: [
         `We may update these terms. We will change the date above and tell account holders by email about significant changes; continuing to use TBRAC after that means you accept them. Questions: ${EMAIL}.`,
       ] },
@@ -65,7 +68,7 @@ const C: Record<"en" | "zh", { title: string; lead: string; updated: string; blo
     updated: "生效日期：2026 年 11 月 5 日",
     blocks: [
       { h: "协议", p: [
-        `本条款是您与运营 TBRAC（tbrac.org）的 Assurance Pacific Assessments LLC（“TBRAC”或“我们”）之间的协议。创建账户或使用本网站即表示您接受本条款。如您代表企业使用 TBRAC，即确认您有权代表该企业行事，本条款对该企业具有约束力。`,
+        `本条款是您与运营 TBRAC（tbrac.org）的 Assurance Pacific Assessments LLC（一家在密歇根州注册、总部位于加利福尼亚州的有限责任公司，“TBRAC”或“我们”）之间的协议。创建账户或使用本网站即表示您接受本条款。如您代表企业使用 TBRAC，即确认您有权代表该企业行事，本条款对该企业具有约束力。`,
         "全面评估同时受双方签署的委托书约束。委托书与本条款不一致的，以委托书为准。",
       ] },
       { h: "您的账户", list: [
@@ -106,6 +109,9 @@ const C: Record<"en" | "zh", { title: string; lead: string; updated: string; blo
       ] },
       { h: "终止使用", p: [
         "您可以随时停止使用 TBRAC 并删除企业账户；删除后保留哪些内容见隐私政策。对于违反本条款的账户，我们可以暂停或关闭。",
+      ] },
+      { h: "适用法律与争议解决", p: [
+        "本条款以及因本条款或服务产生的任何争议，均适用美国加利福尼亚州法律，不适用其冲突法规则。加利福尼亚州境内的州法院和联邦法院享有专属管辖权，您与 TBRAC 均同意接受其管辖，但法律赋予您在其他地方提起诉讼权利的除外。已签署的委托书可约定不同的争议解决程序，该程序适用于相应评估。",
       ] },
       { h: "条款变更与联系方式", p: [
         `我们可能更新本条款。我们将更新上方日期，并就重大变更通过电子邮件通知账户持有人；此后继续使用 TBRAC 即表示您接受变更。如有疑问，请联系：${EMAIL}。`,
