@@ -12,7 +12,7 @@ export default function LegacyReviewPage({ params }: PageProps) {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/evaluator/dashboard");
+    router.replace("/evaluator/engagements");
   }, [router]);
 
   return null;

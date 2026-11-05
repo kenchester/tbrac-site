@@ -68,7 +68,7 @@ export const translations = {
     // Assessment Start Page
     startYourAssessment: "Start Your TBRAC Assessment",
     assessmentWelcome:
-      "Welcome to the Trans-Border Risk Assessment and Certification process. This comprehensive evaluation covers 10 key risk categories to help you understand your readiness for US market entry.",
+      "Welcome to the TBRAC self-assessment. It covers 10 modules across the seven risk domains to help you understand your readiness for US market entry.",
     riskCategories: "Risk Categories",
     assessmentQuestions: "Assessment Questions",
     minutesToComplete: "Minutes to Complete",
@@ -91,7 +91,7 @@ export const translations = {
     // What to Expect
     whatToExpect: "What to Expect",
     expectStep1Title: "Category-by-Category Assessment",
-    expectStep1Desc: "Answer questions across 10 key risk categories. You can save progress and return anytime.",
+    expectStep1Desc: "Answer 10 short modules across the seven risk domains. Your progress is saved, so you can return anytime.",
     expectStep2Title: "Instant Scoring",
     expectStep2Desc: "Receive immediate feedback on your risk profile with a comprehensive 0-100 score.",
     expectStep3Title: "Expert Review & Final Report",
@@ -239,7 +239,7 @@ export const translations = {
     contactEmail: "evaluations@tbrac.org",
     contactResponseTime: "We typically respond within 1-2 business days.",
     contactOffice: "Office Location",
-    contactOfficeText: "Assurance Pacific Assessments LLC operates globally with a distributed team of experts.",
+    contactOfficeText: "Assurance Pacific Assessments LLC, a Michigan limited liability company based in California.",
 
     // Case Studies Page
     caseStudiesPageTitle: "Case Studies",
@@ -680,7 +680,7 @@ export const translations = {
     // Assessment Start Page
     startYourAssessment: "开始您的TBRAC评估",
     assessmentWelcome:
-      "欢迎来到跨境风险评估与认证流程。这项全面评估涵盖10个关键风险类别，帮助您了解进入美国市场的准备情况。",
+      "欢迎使用 TBRAC 自我评估。它包含 10 个模块，涵盖七个风险领域，帮助您了解进入美国市场的准备情况。",
     riskCategories: "风险类别",
     assessmentQuestions: "评估问题",
     minutesToComplete: "完成所需分钟数",
@@ -702,7 +702,7 @@ export const translations = {
     // What to Expect
     whatToExpect: "预期内容",
     expectStep1Title: "逐类别评估",
-    expectStep1Desc: "回答10个关键风险类别的问题。您可以保存进度并随时返回。",
+    expectStep1Desc: "完成涵盖七个风险领域的 10 个简短模块。进度会自动保存，您可以随时返回。",
     expectStep2Title: "即时评分",
     expectStep2Desc: "通过全面的0-100分制立即了解您的风险概况反馈。",
     expectStep3Title: "专家审查与最终报告",
@@ -847,7 +847,7 @@ export const translations = {
     contactEmail: "evaluations@tbrac.org",
     contactResponseTime: "我们通常在1-2个工作日内回复。",
     contactOffice: "办公地点",
-    contactOfficeText: "Assurance Pacific Assessments LLC在全球范围内运营，拥有分布式专家团队。",
+    contactOfficeText: "Assurance Pacific Assessments LLC，在密歇根州注册、总部位于加利福尼亚州的有限责任公司。",
 
     // Case Studies Page
     caseStudiesPageTitle: "案例研究",

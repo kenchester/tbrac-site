@@ -337,7 +337,7 @@ function NewCustomerContent() {
                         onChange={(e) =>
                           updateField("us_subsidiary_name", e.target.value)
                         }
-                        placeholder="e.g., TikTok Inc."
+                        placeholder="e.g., Example Battery Materials Co."
                       />
                     </div>
                   </div>

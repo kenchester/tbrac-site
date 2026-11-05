@@ -38,7 +38,7 @@ export default function EvaluatorLoginPage() {
     setError("");
     const { error: err } = await authClient.sendVerificationEmail({
       email,
-      callbackURL: "/evaluator/dashboard",
+      callbackURL: "/evaluator/engagements",
     });
     if (err) setError(err.message || "Could not send the verification email.");
     else setVerificationSent(true);

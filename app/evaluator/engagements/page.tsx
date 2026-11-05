@@ -155,7 +155,6 @@ export default function EngagementsPage() {
           <div className="flex gap-2">
             <Button variant="outline" asChild><Link href="/evaluator/business">Business</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/company-view">Company view</Link></Button>
-            <Button variant="outline" asChild><Link href="/evaluator/dashboard">Self-assessment review</Link></Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild><Button variant="outline">More</Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">

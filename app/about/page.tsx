@@ -1,180 +1,111 @@
 "use client"
 
-import { Header } from "@/components/header"
-import { Card, CardContent } from "@/components/ui/card"
-import { Target, Shield, Cpu, Calendar } from "lucide-react"
+import { H2, MarketingShell } from "@/components/marketing-shell"
+import { useLanguage } from "@/lib/language-context"
 
-const TEAM = [
-  {
-    name: "Yanyu Zhang",
-    role: "Co-Founder · Methodology Lead",
-    contribution:
-      "Leads the development of TBRAC's core methodology and assessment framework. She created the substantive framework, including the cross-border risk architecture and evaluation model.",
-    background:
-      "Over a decade of experience building an education company in China, with experience in publishing and knowledge-system design.",
+const C = {
+  en: {
+    title: "About TBRAC",
+    lead: "TBRAC (Trans-Border Risk Assessment and Certification) gives US decision-makers a documented, independent view of companies with Chinese ownership or ties, and gives those companies a fair way to show where they stand.",
+    whatTitle: "What we do",
+    what: [
+      "We assess companies under a published methodology and issue a rating that is a private certification as of its date: red lines first, then 29 indicators across seven risk domains, each finding graded by the strength of its evidence and decided by a committee.",
+      "Before that, any company can take a free, private self-assessment to see where a comprehensive assessment is likely to focus.",
+      "A TBRAC report is not legal advice, not a government certification or approval and not a CFIUS determination. The people who rely on it make their own decisions.",
+    ],
+    whyTitle: "Why we exist",
+    why: "Counties, state agencies and business partners are increasingly asked to decide on investments, land, incentives and contracts involving companies with Chinese ownership or ties. State laws differ and change, federal review does not cover every local transaction, and questionnaires answered by the company cannot be verified. TBRAC was built to give those decisions a documented basis, and to give companies a consistent, fair process instead of guesswork.",
+    milestonesTitle: "Milestones",
+    milestones: [
+      ["January 2024", "Concept and framework direction developed."],
+      ["June 2024", "Assurance Pacific Assessments LLC formed."],
+      ["June 2025", "Published Trans-Border Risk Assessment and Certification for Chinese Companies Exploring US Market Entry."],
+      ["March 2026", "Website launched and first client assessments initiated."],
+    ],
+    teamTitle: "Founding team",
+    background: "Background",
+    team: [
+      ["Yanyu Zhang", "Co-Founder · Methodology Lead", "Leads the development of TBRAC's core methodology and assessment framework, including the cross-border risk architecture and evaluation model.",
+        "Over a decade of experience building an education company in China, with experience in publishing and knowledge-system design."],
+      ["Ken Chester", "Co-Founder · Market Entry Lead", "Leads market entry strategy and the application of risk frameworks to real-world commercial expansion.",
+        "Serial entrepreneur with a background in technology, investment, and U.S.-China commercial relations. Regional NSF Innovation Corps grant recipient."],
+      ["Ashwin Dhanasamy", "Co-Founder · Platform Engineering Lead", "Leads the technical architecture and engineering development, transforming the TBRAC framework into a functional digital system.",
+        "Experienced machine learning and AI engineer focused on developing decentralized protocols and autonomous agent infrastructure for global commerce."],
+    ],
+    entity: "TBRAC is operated by Assurance Pacific Assessments LLC, a Michigan limited liability company based in California.",
   },
-  {
-    name: "Ken Chester",
-    role: "Co-Founder · Market Entry Lead",
-    contribution:
-      "Leads market entry strategy and the application of risk frameworks to real-world commercial expansion.",
-    background:
-      "Serial entrepreneur with a background in technology, investment, and U.S.-China commercial relations. Regional NSF Innovation Corps grant recipient.",
+  zh: {
+    title: "关于 TBRAC",
+    lead: "TBRAC（跨境风险评估与认证）为美国决策者提供有关具有中国所有权或关联企业的、有据可查的独立评估，并为这些企业提供展示自身状况的公平途径。",
+    whatTitle: "我们做什么",
+    what: [
+      "我们依据公开的评估方法对企业进行评估，并出具评级，该评级为截至出具日期的私营机构认证：首先检查红线，然后对七个风险领域的 29 项指标评分，每项调查结果依据证据强度分级，并由委员会作出决定。",
+      "在此之前，任何企业都可以先进行免费、保密的自我评估，了解全面评估可能关注的重点。",
+      "TBRAC 报告不构成法律意见，不是政府认证或批准，也不是 CFIUS 决定。依赖报告的各方自行作出决定。",
+    ],
+    whyTitle: "我们为何存在",
+    why: "县政府、州机构和商业伙伴越来越多地需要就涉及中国所有权或关联企业的投资、土地、激励和合同作出决定。各州法律不同且不断变化，联邦审查并不涵盖所有地方交易，而企业自行填写的问卷又无法核实。TBRAC 的建立，是为了让这些决定有据可查，也让企业获得一致、公平的流程，而不是凭猜测行事。",
+    milestonesTitle: "发展历程",
+    milestones: [
+      ["2024 年 1 月", "形成概念和框架方向。"],
+      ["2024 年 6 月", "成立 Assurance Pacific Assessments LLC。"],
+      ["2025 年 6 月", "发布《面向探索美国市场的中国企业的跨境风险评估与认证》。"],
+      ["2026 年 3 月", "网站上线，首批客户评估启动。"],
+    ],
+    teamTitle: "创始团队",
+    background: "背景",
+    team: [
+      ["Yanyu Zhang", "联合创始人 · 评估方法负责人", "负责 TBRAC 核心评估方法和评估框架的开发，包括跨境风险架构和评估模型。",
+        "在中国创办教育企业十余年，具有出版和知识体系设计经验。"],
+      ["Ken Chester", "联合创始人 · 市场进入负责人", "负责市场进入战略，以及风险框架在实际商业扩张中的应用。",
+        "连续创业者，拥有科技、投资和中美商业关系背景。美国国家科学基金会（NSF）区域创新团队（I-Corps）资助获得者。"],
+      ["Ashwin Dhanasamy", "联合创始人 · 平台工程负责人", "负责技术架构和工程开发，将 TBRAC 框架转化为可运行的数字系统。",
+        "经验丰富的机器学习和 AI 工程师，专注于为全球商业开发去中心化协议和自主代理基础设施。"],
+    ],
+    entity: "TBRAC 由 Assurance Pacific Assessments LLC 运营，该公司为在密歇根州注册、总部位于加利福尼亚州的有限责任公司。",
   },
-  {
-    name: "Ashwin Dhanasamy",
-    role: "Co-Founder · Platform Engineering Lead",
-    contribution:
-      "Leads the technical architecture and engineering development, transforming the TBRAC framework into a functional digital system.",
-    background:
-      "Experienced machine learning and AI engineer focused on developing decentralized protocols and autonomous agent infrastructure for global commerce.",
-  },
-]
-
-const MILESTONES = [
-  { date: "January 2024", event: "Concept and framework direction developed." },
-  { date: "June 2024", event: "Assurance Pacific Assessments LLC formed." },
-  {
-    date: "June 2025",
-    event: "Published Trans-Border Risk Assessment and Certification for Chinese Companies Exploring US Market Entry.",
-  },
-  { date: "March 2026", event: "Website launched and first client assessments initiated." },
-]
+}
 
 export default function AboutPage() {
+  const { language } = useLanguage()
+  const c = C[language] ?? C.en
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-primary via-primary/95 to-accent py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-primary-foreground mb-4">
-            About TBRAC
-          </h1>
-          <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto">
-            A structured cross-border risk assessment platform built for the complexity of US market entry.
-          </p>
+    <MarketingShell title={c.title} lead={c.lead}>
+      <section className="grid gap-10 md:grid-cols-2">
+        <div>
+          <H2>{c.whatTitle}</H2>
+          <div className="mt-4 space-y-3 text-[15px] leading-relaxed text-slate-700">{c.what.map((x) => <p key={x}>{x}</p>)}</div>
+        </div>
+        <div>
+          <H2>{c.whyTitle}</H2>
+          <p className="mt-4 text-[15px] leading-relaxed text-slate-700">{c.why}</p>
         </div>
       </section>
 
-      <section className="py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto space-y-12">
+      <section>
+        <H2>{c.milestonesTitle}</H2>
+        <ol className="mt-6 space-y-4 border-l-2 border-slate-200 pl-6">
+          {c.milestones.map(([d, e]) => (
+            <li key={d}><p className="text-sm font-semibold text-slate-900">{d}</p><p className="text-[15px] text-slate-600">{e}</p></li>
+          ))}
+        </ol>
+      </section>
 
-            {/* What TBRAC Is */}
-            <Card className="border-border">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Target className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">What We Do</h2>
-                    <p className="text-muted-foreground leading-relaxed mb-4">
-                      TBRAC is a structured cross-border risk assessment and reporting platform designed to help
-                      organizations navigate international business decisions.
-                    </p>
-                    <div className="space-y-2 text-sm text-muted-foreground">
-                      <p>
-                        <span className="font-medium text-foreground">Purpose:</span> To provide clarity, consistency,
-                        and usability in assessing regulatory, operational, geopolitical, and reputational risks.
-                      </p>
-                      <p>
-                        <span className="font-medium text-foreground">Nature:</span> A framework-driven system to
-                        support decision-making — not legal advice or formal due diligence.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Why TBRAC Exists */}
-            <Card className="border-border">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-secondary/10 flex items-center justify-center">
-                    <Shield className="h-6 w-6 text-secondary" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">Why We Exist</h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Chinese companies face an increasingly complex regulatory and geopolitical landscape when
-                      entering the US market. CFIUS scrutiny, export controls, entity list exposure, and data
-                      sovereignty requirements create risk that is difficult to assess without a structured framework.
-                      TBRAC was built to give companies a clear, consistent picture of where they stand before
-                      they encounter these barriers — not after.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Platform Milestones */}
-            <Card className="border-border">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-accent" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-foreground mb-6">Platform Milestones</h2>
-                    <div className="space-y-4">
-                      {MILESTONES.map((m, i) => (
-                        <div key={i} className="flex gap-4">
-                          <div className="flex flex-col items-center">
-                            <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                            {i < MILESTONES.length - 1 && (
-                              <div className="w-px flex-1 bg-border mt-1" />
-                            )}
-                          </div>
-                          <div className="pb-4">
-                            <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-0.5">
-                              {m.date}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{m.event}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Founding Team */}
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Cpu className="h-6 w-6 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold text-foreground">Founding Team</h2>
-              </div>
-              <div className="space-y-6">
-                {TEAM.map((member) => (
-                  <Card key={member.name} className="border-border">
-                    <CardContent className="p-8">
-                      <div className="mb-1">
-                        <h3 className="text-lg font-bold text-foreground">{member.name}</h3>
-                        <p className="text-sm text-primary font-medium">{member.role}</p>
-                      </div>
-                      <p className="text-muted-foreground text-sm leading-relaxed mt-3 mb-3">
-                        {member.contribution}
-                      </p>
-                      <p className="text-xs text-muted-foreground/70 leading-relaxed border-t border-border pt-3">
-                        <span className="font-medium text-muted-foreground">Background: </span>
-                        {member.background}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+      <section>
+        <H2>{c.teamTitle}</H2>
+        <div className="mt-6 grid gap-6 md:grid-cols-3">
+          {c.team.map(([name, role, does, bg]) => (
+            <div key={name} className="border-t-2 border-slate-900 pt-4">
+              <h3 className="font-semibold text-slate-900">{name}</h3>
+              <p className="text-sm text-sky-800">{role}</p>
+              <p className="mt-3 text-[15px] leading-relaxed text-slate-700">{does}</p>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500"><span className="font-medium text-slate-600">{c.background}: </span>{bg}</p>
             </div>
-
-          </div>
+          ))}
         </div>
       </section>
-    </div>
+
+      <p className="text-sm text-slate-500">{c.entity}</p>
+    </MarketingShell>
   )
 }
