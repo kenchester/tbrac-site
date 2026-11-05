@@ -1,0 +1,32 @@
+name: Uptime
+
+# Checks the live service every 10 minutes. A failed run makes GitHub email the repository
+# owner, so an outage, a broken deploy or a lost database connection is noticed quickly.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Site, API, database, register and signing key
+        run: |
+          set -u
+          fail=0
+          check() {  # name url expected-status [must-contain]
+            code=$(curl -s -o body.txt -w "%{http_code}" --max-time 20 --retry 2 --retry-delay 10 "$2")
+            if [ "$code" != "$3" ] || { [ -n "${4:-}" ] && ! grep -q "$4" body.txt; }; then
+              echo "::error::$1 failed: HTTP $code from $2"; fail=1
+            else
+              echo "ok  $1 ($code)"
+            fi
+          }
+          check "Homepage"            https://tbrac.org/                                   200 "Trans-Border Risk Assessment and Certification"
+          check "API and database"    https://tbrac-api.vercel.app/health/ready            200 '"overall":"healthy"'
+          check "Report register"     https://tbrac.org/api/v1/public/verify/TBRAC-0000-0000-AAAAA 404 "REPORT_NOT_FOUND"
+          check "Signing key"         https://tbrac.org/api/v1/public/signing-keys         200 '"key_id"'
+          check "Verify page"         https://tbrac.org/verify                             200
+          exit $fail
