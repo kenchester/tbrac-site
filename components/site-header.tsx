@@ -16,7 +16,7 @@ const FULL_NAME = { en: "Trans-Border Risk Assessment and Certification", zh: "�
 const T = {
   en: {
     primary: [["/for-companies", "For companies"], ["/for-government", "For US public bodies"], ["/methodology", "Methodology"], ["/verify", "Verify a report"]],
-    more: [["/#how", "How it works"], ["/relying-parties", "How to use a report"], ["/case-studies", "Use cases"], ["/faq", "FAQ"], ["/about", "About"], ["/contact", "Contact"]],
+    more: [["/#how", "How it works"], ["/relying-parties", "How to use a report"], ["/case-studies", "Use cases"], ["/faq", "FAQ"], ["/watch", "Status alerts"], ["/about", "About"], ["/contact", "Contact"]],
     moreLabel: "More", menu: "Menu", haveAccount: "Already have an account?", signIn: "Sign in", startFree: "Start free",
     menuNote: "Choose where to start",
     free: "Start the free self-assessment", freeNote: "Private, 10 short modules. Most companies start here.",
@@ -24,7 +24,7 @@ const T = {
   },
   zh: {
     primary: [["/for-companies", "企业指南"], ["/for-government", "美国公共机构"], ["/methodology", "评估方法"], ["/verify", "核验报告"]],
-    more: [["/#how", "评估流程"], ["/relying-parties", "如何使用报告"], ["/case-studies", "案例"], ["/faq", "常见问题"], ["/about", "关于我们"], ["/contact", "联系我们"]],
+    more: [["/#how", "评估流程"], ["/relying-parties", "如何使用报告"], ["/case-studies", "案例"], ["/faq", "常见问题"], ["/watch", "状态提醒"], ["/about", "关于我们"], ["/contact", "联系我们"]],
     moreLabel: "更多", menu: "菜单", haveAccount: "已有账户？", signIn: "登录", startFree: "免费开始",
     menuNote: "选择起点",
     free: "开始免费自我评估", freeNote: "保密，共 10 个简短模块。大多数企业从这里开始。",

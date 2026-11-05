@@ -51,6 +51,13 @@ function reminder(n: Notice): { subject: string; text: string } | null {
       "如需继续向依赖该评级的县政府、机构和合作伙伴提供有效评级，请在概览页面申请重新评估。重新评估将依据最新证据重新评级，并重新开始 12 个月有效期。",
       `您的概览页面：${dash}`, "", SIGN].join("\n") }
   }
+  if (n.kind === "letter_sent") {
+    return { subject: `${test}Please sign your TBRAC engagement letter`, text: [
+      `TBRAC has sent the engagement letter for the comprehensive assessment of ${n.subject_name}. An officer of the company can read and sign it online in your TBRAC account; it takes a few minutes.`,
+      `Your dashboard: ${dash}`, "", "———", "",
+      `TBRAC 已发送 ${n.subject_name} 全面评估的委托书。企业高管可登录 TBRAC 账户在线阅读并签署，只需几分钟。`,
+      `您的概览页面：${dash}`, "", SIGN].join("\n") }
+  }
   if (n.kind === "requests_overdue") {
     return { subject: `${test}TBRAC: ${a} document request${a === "1" ? "" : "s"} past due`, text: [
       `${a} document request${a === "1" ? " is" : "s are"} past due in the comprehensive assessment of ${n.subject_name}. Please answer, or tell TBRAC why an item can't be provided; a refusal with a reason is recorded, not held against you without explanation.`,

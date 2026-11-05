@@ -23,7 +23,7 @@ export function MarketingShell({ title, lead, children, cta }: {
           <p className="mt-5 max-w-3xl text-[17px] leading-relaxed text-slate-300">{lead}</p>
         </div>
       </section>
-      <main className="mx-auto max-w-5xl space-y-16 px-5 py-16">{children}</main>
+      <main id="main" className="mx-auto max-w-5xl space-y-16 px-5 py-16">{children}</main>
       <Copyright />
     </div>
   )

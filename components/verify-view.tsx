@@ -6,13 +6,14 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, AlertTriangle, XCircle, Search, Download, Copy } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { Copyright } from "@/components/copyright";
+import { WatchForm } from "@/components/watch-form";
 import { useLanguage } from "@/lib/language-context";
 
 interface Verified {
   report_number: string; subject: string; engagement_type: string; scope: string | null; tier: string | null;
   confidence: string | null; outlook: string | null; domain_tiers: Record<string, string>; methodology_version: string;
   issued_at: string; valid_until: string; status: string; status_note: string | null; fingerprint: string; checked_at: string;
-  test?: boolean;
+  test?: boolean; subject_zh?: string;
   signature?: { algorithm: string; key_id: string; value: string; valid: boolean } | null;
 }
 
@@ -87,7 +88,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <SiteHeader />
-      <main className="mx-auto max-w-3xl space-y-6 px-5 py-10">{children}</main>
+      <main id="main" className="mx-auto max-w-3xl space-y-6 px-5 py-10">{children}</main>
       <Copyright />
     </div>
   );
@@ -177,6 +178,7 @@ export function VerifyResult({ number }: { number: string }) {
       <section className="rounded-lg border border-slate-200 bg-white p-6">
         <p className="text-sm font-medium text-slate-500">{t.summary}</p>
         <h1 className="mt-1 text-2xl font-semibold">{v.subject}</h1>
+        {v.subject_zh && <p className="text-lg text-slate-600">{v.subject_zh}</p>}
         <p className="text-sm text-slate-600">{t.assessment[v.engagement_type] ?? v.engagement_type} · {t.methodology} {v.methodology_version} · {t.issued} {day(v.issued_at)} · {t.validUntil} {day(v.valid_until)}</p>
         {v.scope && <p className="mt-2 text-sm"><span className="font-medium">{t.scope}:</span> {v.scope}</p>}
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -206,6 +208,8 @@ export function VerifyResult({ number }: { number: string }) {
           </p>
         )}
       </section>
+
+      {!v.test && <WatchForm reportNumber={v.report_number} />}
 
       <p className="text-xs leading-relaxed text-slate-500">{t.disclaimer(new Date(v.checked_at).toLocaleString(t.locale))}</p>
     </Shell>

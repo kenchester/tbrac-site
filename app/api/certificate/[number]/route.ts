@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFPage } from "pdf-lib"
 import QRCode from "qrcode"
+import fontkit from "@pdf-lib/fontkit"
 
 // Public, like the register: anyone holding a report number can download its certificate.
 // It is built from the live register entry, so a rating that is no longer current says so.
@@ -19,6 +20,18 @@ interface Entry {
   report_number: string; subject: string; engagement_type: string; tier: string | null; confidence: string | null; outlook: string | null;
   domain_tiers: Record<string, string>; methodology_version: string; issued_at: string; valid_until: string; status: string;
   status_note: string | null; fingerprint: string; checked_at: string; test?: boolean; signature?: { key_id: string; valid: boolean } | null
+  subject_zh?: string
+}
+
+/** A Noto Sans SC subset holding just the characters of `text` (Google Fonts serves TrueType subsets on request). */
+async function chineseFont(text: string): Promise<ArrayBuffer | null> {
+  try {
+    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@600&text=${encodeURIComponent(text)}`)).text()
+    const url = /src:\s*url\(([^)]+)\)\s*format\('truetype'\)/.exec(css)?.[1]
+    return url ? await (await fetch(url)).arrayBuffer() : null
+  } catch {
+    return null
+  }
 }
 
 // Standard PDF fonts cover Latin text only; anything else becomes "?" rather than failing.
@@ -59,19 +72,29 @@ export async function GET(_: Request, { params }: { params: Promise<{ number: st
   const name = safe(e.subject, serifBold)
   const nameSize = Math.min(28, (W - 140) / Math.max(1, serifBold.widthOfTextAtSize(name, 1)))
   centered(page, name, H - 214, serifBold, nameSize)
+  let shift = 0
+  if (e.subject_zh) {
+    const bytes = await chineseFont(e.subject_zh)
+    if (bytes) {
+      pdf.registerFontkit(fontkit)
+      const zh = await pdf.embedFont(bytes, { subset: true })
+      page.drawText(e.subject_zh, { x: (W - zh.widthOfTextAtSize(e.subject_zh, 15)) / 2, y: H - 236, size: 15, font: zh, color: NAVY })
+      shift = 16
+    }
+  }
   const kind = e.engagement_type === "operating" ? "an operating" : "a design"
-  centered(page, `was assessed in ${kind} assessment under TBRAC methodology ${e.methodology_version} and rated`, H - 240, serif, 12, GREY)
-  centered(page, e.tier ? TIER[e.tier] ?? e.tier : "Not rated", H - 276, serifBold, 24)
-  centered(page, `Confidence: ${e.confidence ?? "-"}    ·    Outlook: ${e.outlook ? e.outlook[0].toUpperCase() + e.outlook.slice(1) : "-"}`, H - 298, sans, 10, GREY)
+  centered(page, `was assessed in ${kind} assessment under TBRAC methodology ${e.methodology_version} and rated`, H - 240 - shift, serif, 12, GREY)
+  centered(page, e.tier ? TIER[e.tier] ?? e.tier : "Not rated", H - 276 - shift, serifBold, 24)
+  centered(page, `Confidence: ${e.confidence ?? "-"}    ·    Outlook: ${e.outlook ? e.outlook[0].toUpperCase() + e.outlook.slice(1) : "-"}`, H - 298 - shift, sans, 10, GREY)
 
   // Domain ratings
   const domains = Object.entries(e.domain_tiers)
   const colW = (W - 160) / Math.max(1, domains.length)
   domains.forEach(([d, t], i) => {
     const x = 80 + i * colW
-    page.drawText(t, { x: x + colW / 2 - sansBold.widthOfTextAtSize(t, 11) / 2, y: H - 334, size: 11, font: sansBold, color: NAVY })
+    page.drawText(t, { x: x + colW / 2 - sansBold.widthOfTextAtSize(t, 11) / 2, y: H - 334 - shift, size: 11, font: sansBold, color: NAVY })
     const label = safe(DOMAIN[d] ?? d, sans)
-    const words = label.split(" "); let line = "", y = H - 348
+    const words = label.split(" "); let line = "", y = H - 348 - shift
     for (const w of words) {
       const next = line ? `${line} ${w}` : w
       if (sans.widthOfTextAtSize(next, 7) > colW - 8) { page.drawText(line, { x: x + colW / 2 - sans.widthOfTextAtSize(line, 7) / 2, y, size: 7, font: sans, color: GREY }); line = w; y -= 9 }

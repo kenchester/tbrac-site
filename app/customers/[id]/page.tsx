@@ -9,6 +9,7 @@ import { PortalHeader } from "@/components/portal-header";
 import { AssistedSessionsCard } from "@/components/assisted-sessions-card";
 import { Copyright } from "@/components/copyright";
 import { PaymentsCard } from "@/components/payments-card";
+import { EngagementLetterCard } from "@/components/engagement-letter-card";
 import { CertificationsCard } from "@/components/certifications-card";
 import {
   useCustomer,
@@ -359,7 +360,7 @@ function CustomerDetailContent({ params }: PageProps) {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl space-y-8 px-5 py-8">
+      <main id="main" className="mx-auto max-w-6xl space-y-8 px-5 py-8">
         {/* Action needed */}
         {(drafts > 0 || (requests && requests.open > 0)) && (
           <section aria-label={d.actionTitle} className="space-y-3">
@@ -372,6 +373,7 @@ function CustomerDetailContent({ params }: PageProps) {
           </section>
         )}
 
+        <EngagementLetterCard customerId={resolvedParams.id} />
         <PaymentsCard customerId={resolvedParams.id} />
         <CertificationsCard customerId={resolvedParams.id} />
 

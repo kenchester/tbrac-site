@@ -13,9 +13,12 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TBRAC - Trans-Border Risk Assessment and Certification",
+  metadataBase: new URL("https://tbrac.org"),
+  title: { default: "TBRAC - Trans-Border Risk Assessment and Certification", template: "%s · TBRAC" },
   description:
-    "Comprehensive risk assessment for companies with Chinese ownership or ties entering the US market, relied on by counties, state agencies and partners.",
+    "Comprehensive risk assessment and private certification for companies with Chinese ownership or ties entering the US market, relied on by counties, state agencies and partners.",
+  openGraph: { siteName: "TBRAC", type: "website", locale: "en_US", alternateLocale: ["zh_CN"] },
+  twitter: { card: "summary_large_image" },
 };
 
 export default async function RootLayout({
@@ -32,6 +35,9 @@ export default async function RootLayout({
   return (
     <html lang={language === "zh" ? "zh-CN" : "en"}>
       <body className={`${inter.className} antialiased`}>
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow">
+          Skip to content
+        </a>
         <AuthProvider>
           <LanguageProvider initial={language}>
             {children}

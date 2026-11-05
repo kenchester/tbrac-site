@@ -48,7 +48,7 @@ export default function HomePage() {
       <SiteHeader />
 
       {/* Hero */}
-      <section style={{ background: NAVY }} className="text-white">
+      <section id="main" style={{ background: NAVY }} className="text-white">
         <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
           <div>
             <h1 className={`${serif.className} text-4xl font-semibold leading-[1.12] tracking-tight sm:text-5xl`}>{c.title}</h1>

@@ -1342,6 +1342,39 @@ function ReportShares({ eng }: { eng: EngagementDetail }) {
   );
 }
 
+// ------------------------------------------------------------------ engagement letter online (§12.1)
+interface LetterRow { id: string; status: string; sent_by: string; sent_at: string; signer_name: string | null; signer_title: string | null; signer_email: string | null;
+  signed_at: string | null; ai_consent: boolean | null; body_hash: string; void_reason: string | null }
+function LetterOnline({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
+  const [rows, setRows] = useState<LetterRow[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const load = useCallback(() => { authenticatedRequest<LetterRow[]>(`/api/v1/engagements/${eng.id}/letters`).then(setRows).catch(() => {}); }, [eng.id]);
+  useEffect(load, [load, eng.engagement_letter_signed_at]);
+  const send = async () => {
+    setBusy(true); setError("");
+    try { await authenticatedRequest(`/api/v1/engagements/${eng.id}/letter`, { method: "POST" }); load(); onSaved(await engagementsApi.get(eng.id)); }
+    catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  const open = rows.find((r) => r.status === "sent");
+  const signed = rows.find((r) => r.status === "signed");
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Engagement letter online</CardTitle>
+        <p className="text-xs text-muted-foreground">Generates the letter from this engagement (type, scope, intended users, the published fee) and sends it to the company to sign in its portal.
+          The text is frozen and fingerprinted; the signature records name, title, email, time and IP, sets the letter as signed above, and records the AI consent.</p>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        {signed && <p className="text-green-700">Signed by {signed.signer_name}, {signed.signer_title} ({signed.signer_email}) on {new Date(signed.signed_at!).toLocaleString()} · AI consent {signed.ai_consent ? "given" : "not given"} · SHA-256 {signed.body_hash.slice(0, 16)}…</p>}
+        {open && <p>Sent {new Date(open.sent_at).toLocaleString()} by {open.sent_by}; awaiting the company&apos;s signature.</p>}
+        {!signed && <Button size="sm" variant={open ? "outline" : "default"} disabled={busy} onClick={send}>{open ? "Regenerate and resend" : "Send the engagement letter"}</Button>}
+        {error && <p className="text-red-600">{error}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ fee checkout (§11)
 function FeePayments({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
   const [busy, setBusy] = useState(false);
@@ -1445,6 +1478,7 @@ function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Enga
         </CardContent>
       </Card>
 
+      <LetterOnline eng={eng} onSaved={onSaved} />
       <FeePayments eng={eng} onSaved={onSaved} />
 
       <Card>

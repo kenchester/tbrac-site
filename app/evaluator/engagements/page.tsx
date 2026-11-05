@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AuditIntegrityCard } from "@/components/audit-integrity-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -152,12 +153,16 @@ export default function EngagementsPage() {
             <p className="text-muted-foreground">Engagements scored under the TBRAC methodology.</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" asChild><Link href="/evaluator/business">Business</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/company-view">Company view</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/dashboard">Self-assessment review</Link></Button>
-            <Button variant="outline" asChild><Link href="/evaluator/guide">Guide</Link></Button>
-            <Button variant="outline" asChild><Link href="/evaluator/methodology">Methodology calibration</Link></Button>
-            <Button variant="outline" asChild><Link href="/evaluator/ai">AI self-test</Link></Button>
-            <Button variant="outline" asChild><Link href="/evaluator/retention">Data retention</Link></Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild><Button variant="outline">More</Button></DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {[["/evaluator/guide", "Guide"], ["/evaluator/methodology", "Methodology and expert panel"], ["/evaluator/ai", "AI self-test"], ["/evaluator/retention", "Data retention"]]
+                  .map(([href, label]) => <DropdownMenuItem key={href} asChild><Link href={href}>{label}</Link></DropdownMenuItem>)}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button onClick={() => setShowNew((v) => !v)}>{showNew ? "Cancel" : "New engagement"}</Button>
           </div>
         </div>

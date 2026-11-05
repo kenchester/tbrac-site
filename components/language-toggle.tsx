@@ -16,6 +16,7 @@ export function LanguageToggle() {
       onClick={() => setLanguage(language === "en" ? "zh" : "en")}
       className="gap-2"
       title={language === "en" ? "Switch to Chinese" : "切换到英文"}
+      aria-label={language === "en" ? "Switch to Chinese (中文)" : "切换到英文 (English)"}
     >
       <Languages className="h-4 w-4" />
       <span className="hidden sm:inline">{language === "en" ? "中文" : "English"}</span>

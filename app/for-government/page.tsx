@@ -26,7 +26,7 @@ const C = {
       ["A Statutory Eligibility page", "For each statute you name, an explicit statement of whether the company meets its definition, with the counsel opinion relied on. It sits beside the rating and is never combined with it."],
       ["Agreement conditions", "Clawback and termination triggers, change-of-control notice, data-access and reporting covenants you can write into the incentive, land or procurement agreement."],
       ["Twelve months of monitoring", "Daily re-screening against US lists. A new listing or ownership change puts the rating Under Review, and its live status shows it."],
-      ["Status you can check", "Every report has a number and fingerprint. Check its live status at any time at tbrac.org/verify."],
+      ["Status you can check", "Every report has a number, a fingerprint and a TBRAC digital signature. Check its live status at any time at tbrac.org/verify, or follow it there to be emailed whenever it changes."],
     ],
     trustTitle: "Why it can be relied on",
     trust: [
@@ -69,7 +69,7 @@ const C = {
       ["法定资格页面", "针对您指定的每项法律，明确说明企业是否符合其定义，并列明所依据的律师意见。该页面与评级并列，绝不与评级合并。"],
       ["协议条件", "可写入激励、土地或采购协议的追回和终止触发条件、控制权变更通知、数据访问和报告承诺。"],
       ["12 个月持续监测", "每日按美国名单重新筛查。新的列名或所有权变更将使评级进入“审查中”，其实时状态会随之显示。"],
-      ["可查询的状态", "每份报告均有编号和数字指纹，可随时在 tbrac.org/verify 查询其实时状态。"],
+      ["可查询的状态", "每份报告均有编号、数字指纹和 TBRAC 数字签名，可随时在 tbrac.org/verify 查询其实时状态，也可在该页面关注报告，状态变更时将收到电子邮件提醒。"],
     ],
     trustTitle: "为何值得依赖",
     trust: [
