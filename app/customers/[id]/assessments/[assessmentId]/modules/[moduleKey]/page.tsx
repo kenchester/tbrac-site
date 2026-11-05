@@ -1,5 +1,6 @@
 "use client";
 
+import { docZh } from "@/lib/assessment-docs-zh";
 import { use, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -89,7 +90,7 @@ function QuestionSlider({
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="max-w-xs">
-                  <p className="text-xs">{question.document_hint}</p>
+                  <p className="text-xs">{docZh(question.document_hint, language)}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -172,7 +173,7 @@ function ModulePageContent({ params }: PageProps) {
         complete,
         analyst_notes: analystNotes || undefined,
       });
-      showSuccess(complete ? "Module completed" : "Progress saved");
+      showSuccess(language === "zh" ? (complete ? "模块已完成" : "进度已保存") : (complete ? "Module completed" : "Progress saved"));
       setIsDirty(false);
       if (complete) {
         router.push(`/customers/${customerId}/assessments/${assessmentId}`);
@@ -299,7 +300,7 @@ function ModulePageContent({ params }: PageProps) {
                 )}
               </div>
               <p className="text-muted-foreground text-sm mt-0.5">
-                Module {moduleDef.number} · {language === "zh" ? moduleDef.description_zh : moduleDef.description}
+                {language === "zh" ? `模块 ${moduleDef.number}` : `Module ${moduleDef.number}`} · {language === "zh" ? moduleDef.description_zh : moduleDef.description}
               </p>
             </div>
           </div>
@@ -407,7 +408,7 @@ function ModulePageContent({ params }: PageProps) {
                   {/* Recommended doc types */}
                   {moduleDef.document_types.length > 0 && (
                     <div className="rounded-lg bg-muted/50 p-3 space-y-1.5">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      <p className="text-xs font-medium text-muted-foreground">
                         {t("moduleRecommendedDocs")}
                       </p>
                       <ul className="space-y-1">
@@ -417,7 +418,7 @@ function ModulePageContent({ params }: PageProps) {
                             className="text-xs text-muted-foreground flex items-start gap-1.5"
                           >
                             <span className="mt-0.5">·</span>
-                            {dt}
+                            {docZh(dt, language)}
                           </li>
                         ))}
                       </ul>
