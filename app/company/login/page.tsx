@@ -34,11 +34,11 @@ import { authClient, clearAccessToken } from "@/lib/auth-client";
 
 const L = {
   en: { email: "Please enter a valid email address", pw: "Password must be at least 8 characters", name: "Company name must be at least 2 characters", match: "Passwords don't match",
-        signIn: "Sign In", create: "Create Account", creating: "Creating account...", company: "Company name", emailL: "Email", password: "Password", confirm: "Confirm password",
+        newTitle: "Create your company account", newLead: "Start with the free, private self-assessment.", signIn: "Sign In", create: "Create Account", creating: "Creating account...", company: "Company name", emailL: "Email", password: "Password", confirm: "Confirm password",
         code: "6-digit code from your authenticator app", backup: "Backup code", useBackup: "Lost your phone? Use a backup code", useApp: "Use the authenticator app instead", verify: "Verify",
         badCode: "That code didn't work. Try the current code from your authenticator app.", placeholder: "Example Battery Materials Co." },
   zh: { email: "请输入有效的电子邮箱", pw: "密码至少需要 8 个字符", name: "企业名称至少需要 2 个字符", match: "两次输入的密码不一致",
-        signIn: "登录", create: "创建账户", creating: "正在创建账户...", company: "企业名称", emailL: "电子邮箱", password: "密码", confirm: "确认密码",
+        newTitle: "创建企业账户", newLead: "从免费、保密的自我评估开始。", signIn: "登录", create: "创建账户", creating: "正在创建账户...", company: "企业名称", emailL: "电子邮箱", password: "密码", confirm: "确认密码",
         code: "身份验证器应用中的 6 位验证码", backup: "备用验证码", useBackup: "手机丢失？使用备用验证码", useApp: "改用身份验证器应用", verify: "验证",
         badCode: "验证码无效，请输入身份验证器应用中当前显示的验证码。", placeholder: "示例电池材料有限公司" },
 };
@@ -153,9 +153,9 @@ export default function CompanyLoginPage() {
               </div>
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              {t("loginWelcome")}
+              {tab === "signup" ? l.newTitle : t("loginWelcome")}
             </h1>
-            <p className="text-muted-foreground">{t("loginSubtitle")}</p>
+            <p className="text-muted-foreground">{tab === "signup" ? l.newLead : t("loginSubtitle")}</p>
           </div>
 
           <Card>
