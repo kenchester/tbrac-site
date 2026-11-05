@@ -63,7 +63,7 @@ export function PortalHeader() {
             </span>
           </Link>
           {nav.length > 0 && (
-            <nav className="hidden items-center gap-1 text-sm lg:flex" aria-label={t.portal}>
+            <nav data-portal-nav className="hidden items-center gap-1 text-sm lg:flex" aria-label={t.portal}>
               {nav.map((n) => (
                 <Link key={n.href} href={n.href} aria-current={isActive(n) ? "page" : undefined}
                   className={`whitespace-nowrap rounded-md px-3 py-2 transition-colors ${isActive(n) ? "bg-slate-100 font-semibold text-slate-950" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"}`}>
@@ -74,15 +74,15 @@ export function PortalHeader() {
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <div data-portal-actions className="flex shrink-0 items-center gap-1 sm:gap-2">
           <LanguageToggle />
           {user && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="hidden items-center gap-2 rounded-md px-2 py-1.5 text-sm text-slate-700 outline-none hover:bg-slate-50 sm:flex">
+              <DropdownMenuTrigger aria-label={user.email} title={user.email} className="hidden items-center gap-2 rounded-md px-2 py-1.5 text-sm text-slate-700 outline-none hover:bg-slate-50 sm:flex">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white" style={{ background: NAVY }}>
                   {user.email?.[0]?.toUpperCase()}
                 </span>
-                <span className="max-w-[180px] truncate">{user.email}</span>
+                <span className="max-w-[180px] truncate lg:hidden">{user.email}</span>
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
