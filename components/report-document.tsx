@@ -33,8 +33,8 @@ function Table({ head, rows, none }: { head: string[]; rows: (string | null | un
 export type ReportView = "restricted" | "public";
 
 /** The TBRAC report document (restricted or public view), shared by the evaluator page and the relying-party link. */
-export function ReportDocument({ eng, m, lang, view, sharedWith }: {
-  eng: EngagementDetail; m: Methodology; lang: ReportLang; view: ReportView; sharedWith?: string;
+export function ReportDocument({ eng, m, lang, view, sharedWith, warning }: {
+  eng: EngagementDetail; m: Methodology; lang: ReportLang; view: ReportView; sharedWith?: string; warning?: string;
 }) {
   const [qr, setQr] = useState("");
   useEffect(() => {
@@ -57,6 +57,7 @@ export function ReportDocument({ eng, m, lang, view, sharedWith }: {
 
   return (
       <article className="mx-auto my-6 max-w-4xl space-y-8 bg-white p-10 text-slate-900 shadow print:my-0 print:max-w-none print:p-0 print:shadow-none">
+        {warning && <p className="rounded border-2 border-red-400 bg-red-50 px-4 py-2 text-center text-sm font-semibold text-red-800">{warning}</p>}
         {sharedWith && (
           <p className="border-b border-slate-200 pb-2 text-center text-xs text-slate-500">{sharedWith}</p>
         )}

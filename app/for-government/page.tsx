@@ -50,7 +50,7 @@ const C = {
     ],
     notTitle: "What it is, and is not",
     not: "A TBRAC report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, approval or license; it is not a CFIUS determination or a decision of any government agency; it is not a guarantee of future conduct; it does not override any statute; and it is not legal advice. Your body makes its own decision.",
-    more: "How to use a report", verify: "Verify a report",
+    more: "How to use a report", sample: "See a sample report", verify: "Verify a report",
   },
   zh: {
     title: "为涉外资投资决策提供有据可查的依据",
@@ -93,7 +93,7 @@ const C = {
     ],
     notTitle: "报告是什么、不是什么",
     not: "TBRAC 报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、批准或许可；不是 CFIUS 决定，也不是任何政府机构的决定；不保证企业未来的行为；不能凌驾于任何法律之上；也不构成法律意见。贵机构自行作出决定。",
-    more: "如何使用报告", verify: "核验报告",
+    more: "如何使用报告", sample: "查看报告样本", verify: "核验报告",
   },
 }
 
@@ -101,7 +101,7 @@ export default function ForGovernmentPage() {
   const { language } = useLanguage()
   const c = C[language] ?? C.en
   return (
-    <MarketingShell title={c.title} lead={c.lead} cta={{ href: "/contact", label: c.cta }}>
+    <MarketingShell title={c.title} lead={c.lead} cta={{ href: "/for-government/inquiry", label: c.cta }}>
       <section>
         <H2>{c.problemTitle}</H2>
         <div className="mt-8 grid gap-8 md:grid-cols-2">
@@ -148,8 +148,9 @@ export default function ForGovernmentPage() {
       </section>
 
       <div className="flex flex-wrap gap-3">
-        <Link href="/contact" className="inline-flex items-center gap-2 rounded-md px-5 py-3 text-sm font-semibold text-white" style={{ background: NAVY }}>{c.cta} <ArrowRight className="h-4 w-4" /></Link>
+        <Link href="/for-government/inquiry" className="inline-flex items-center gap-2 rounded-md px-5 py-3 text-sm font-semibold text-white" style={{ background: NAVY }}>{c.cta} <ArrowRight className="h-4 w-4" /></Link>
         <Link href="/relying-parties" className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold hover:bg-slate-50"><Check className="h-4 w-4" />{c.more}</Link>
+        <Link href="/sample-report" className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold hover:bg-slate-50">{c.sample}</Link>
         <Link href="/verify" className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold hover:bg-slate-50">{c.verify}</Link>
       </div>
     </MarketingShell>

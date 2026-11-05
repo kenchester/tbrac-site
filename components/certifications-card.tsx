@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Copy, Download, ExternalLink, Mail, RefreshCw } from "lucide-react";
+import { Check, Copy, Download, ExternalLink, FileText, Mail, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RequestAssessmentCard } from "@/components/request-assessment-card";
 import { certificateUrl, companyApi, verifyUrl, type Certification } from "@/lib/certifications";
@@ -18,7 +18,7 @@ const T = {
   en: {
     title: "Your TBRAC certification", report: "Report", valid: "Valid until", status: "Status", rating: "Rating",
     share: "Share link", shareNote: "Anyone with this link sees the live status, the public summary and the TBRAC signature. Confidential findings are never shown.",
-    copy: "Copy link", copied: "Copied", download: "Download certificate (PDF)", open: "Open public page", email: "Email it",
+    copy: "Copy link", copied: "Copied", fullReport: "View your full report", download: "Download certificate (PDF)", open: "Open public page", email: "Email it",
     emailSubject: (n: string) => `TBRAC certification ${n}`, emailBody: (u: string) => `Our TBRAC certification and its live status: ${u}`,
     earlier: "Earlier reports", reeval: "Request a re-evaluation",
     reevalNote: "Improved your ownership structure, controls or paperwork? A re-evaluation rates you again on new evidence, replaces this report when issued and starts a new 12-month validity.",
@@ -29,7 +29,7 @@ const T = {
   zh: {
     title: "贵公司的 TBRAC 认证", report: "报告", valid: "有效期至", status: "状态", rating: "评级",
     share: "分享链接", shareNote: "任何获得此链接的人都可以查看实时状态、公开摘要和 TBRAC 签名，保密调查结果绝不会显示。",
-    copy: "复制链接", copied: "已复制", download: "下载认证证书（PDF）", open: "打开公开页面", email: "通过邮件发送",
+    copy: "复制链接", copied: "已复制", fullReport: "查看完整报告", download: "下载认证证书（PDF）", open: "打开公开页面", email: "通过邮件发送",
     emailSubject: (n: string) => `TBRAC 认证 ${n}`, emailBody: (u: string) => `我们的 TBRAC 认证及其实时状态：${u}`,
     earlier: "以往报告", reeval: "申请重新评估",
     reevalNote: "已改善所有权结构、内部控制或文件资料？重新评估将依据新证据重新评级，出具后取代本报告，并重新开始 12 个月有效期。",
@@ -86,6 +86,7 @@ export function CertificationsCard({ customerId }: { customerId: string }) {
           <p className="text-xs text-slate-500">{t.shareNote}</p>
           <div className="flex flex-wrap gap-2 pt-1">
             <Button asChild size="sm"><a href={certificateUrl(c.report_number)} target="_blank" rel="noopener"><Download className="mr-1.5 h-4 w-4" />{t.download}</a></Button>
+            {c.full_report && <Button asChild size="sm" variant="outline"><Link href={`/customers/${customerId}/report/${c.engagement_id}`}><FileText className="mr-1.5 h-4 w-4" />{t.fullReport}</Link></Button>}
             <Button asChild size="sm" variant="outline"><Link href={`/verify/${c.report_number}`} target="_blank"><ExternalLink className="mr-1.5 h-4 w-4" />{t.open}</Link></Button>
             <Button asChild size="sm" variant="outline">
               <a href={`mailto:?subject=${encodeURIComponent(t.emailSubject(c.report_number))}&body=${encodeURIComponent(t.emailBody(url))}`}><Mail className="mr-1.5 h-4 w-4" />{t.email}</a>

@@ -145,7 +145,7 @@ export default function RelyingPartiesPage() {
 
         <div className="flex flex-wrap gap-3">
           <Link href="/verify" className="inline-flex items-center gap-2 rounded-md px-5 py-3 text-sm font-semibold text-white" style={{ background: NAVY }}>{c.ctaVerify} <ArrowRight className="h-4 w-4" /></Link>
-          <Link href="/contact" className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold hover:bg-slate-50">{c.ctaContact}</Link>
+          <Link href="/for-government/inquiry" className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold hover:bg-slate-50">{c.ctaContact}</Link>
           <Link href="/methodology" className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold hover:bg-slate-50">{c.ctaMethod}</Link>
         </div>
       </main>

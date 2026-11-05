@@ -3,7 +3,7 @@ import { authenticatedRequest } from "./api-client";
 export interface Certification {
   report_number: string; engagement_id: string; status: string; status_note: string | null; tier: string | null;
   confidence: string | null; outlook: string | null; issued_at: string; valid_until: string; fingerprint: string;
-  test: boolean; can_reevaluate: boolean;
+  test: boolean; can_reevaluate: boolean; full_report: boolean;
 }
 export interface Payment {
   id: string; engagement_id: string; customer_id: string; fee_type: string; description: string; amount_cents: number;

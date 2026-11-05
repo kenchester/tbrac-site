@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
+import { AgencyInquiriesPanel } from "@/components/agency-inquiries-panel";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AuditIntegrityCard } from "@/components/audit-integrity-card";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,7 @@ export default function EngagementsPage() {
 
         {showNew && <NewEngagement onCreated={(id) => router.push(`/evaluator/engagements/${id}`)} />}
 
+        <AgencyInquiriesPanel />
         <AssessmentRequestsPanel />
 
         <AuditIntegrityCard />

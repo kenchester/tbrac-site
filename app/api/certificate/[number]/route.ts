@@ -24,6 +24,12 @@ interface Entry {
   subject_zh?: string
 }
 
+const SAMPLE: Entry = {
+  report_number: "SAMPLE-NOT-A-REPORT", subject: "Example Battery Materials Co.", engagement_type: "design", tier: "T2", confidence: "Moderate", outlook: "stable",
+  domain_tiers: { D1: "T2", D2: "T1", D3: "T2", D4: "T2", D5: "T1", D6: "T2", D7: "T1" }, methodology_version: "1.1 (sample)", issued_at: "2026-06-15T12:00:00Z",
+  valid_until: "2027-06-15T12:00:00Z", status: "Sample", status_note: null, fingerprint: "0".repeat(64), checked_at: "2026-06-15T12:00:00Z",
+}
+
 /** A Noto Sans SC subset holding just the characters of `text` (Google Fonts serves TrueType subsets on request). */
 async function chineseFont(text: string): Promise<ArrayBuffer | null> {
   try {
@@ -48,9 +54,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ numb
   const { number } = await params
   if (!(await allow(`certificate:${clientIp(request)}`, 60, 60))) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
   if (number.length > 30) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  const res = await fetch(`${API_ORIGIN}/api/v1/public/verify/${encodeURIComponent(number)}`, { cache: "no-store" })
-  if (!res.ok) return NextResponse.json({ error: "No report with that number" }, { status: 404 })
-  const e = (await res.json()) as Entry
+  const sample = number === "sample"
+  const res = sample ? null : await fetch(`${API_ORIGIN}/api/v1/public/verify/${encodeURIComponent(number)}`, { cache: "no-store" })
+  if (res && !res.ok) return NextResponse.json({ error: "No report with that number" }, { status: 404 })
+  const e = sample ? SAMPLE : ((await res!.json()) as Entry)
 
   const pdf = await PDFDocument.create()
   pdf.setTitle(`TBRAC certificate ${e.report_number}`)
@@ -106,7 +113,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ numb
   })
 
   // Facts and QR code
-  const url = `${SITE}/verify/${e.report_number}`
+  const url = sample ? `${SITE}/verify` : `${SITE}/verify/${e.report_number}`
   const qr = await pdf.embedPng(await QRCode.toBuffer(url, { margin: 0, width: 300, errorCorrectionLevel: "M" }))
   page.drawImage(qr, { x: W - 80 - 92, y: 104, width: 92, height: 92 })
   const facts: [string, string][] = [
@@ -129,7 +136,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ numb
   }
   page.drawText(line, { x: 80, y, size: 7, font: sans, color: GREY })
 
-  const stamp = e.test ? "TEST · NOT A TBRAC OPINION" : e.status !== "Current" ? `NOT CURRENT · ${e.status.toUpperCase()}` : null
+  const stamp = sample ? "SAMPLE · FICTIONAL COMPANY" : e.test ? "TEST · NOT A TBRAC OPINION" : e.status !== "Current" ? `NOT CURRENT · ${e.status.toUpperCase()}` : null
   if (stamp) {
     const size = 44
     page.drawText(stamp, { x: W / 2 - sansBold.widthOfTextAtSize(stamp, size) / 2 * 0.87, y: H / 2 - 150, size, font: sansBold,

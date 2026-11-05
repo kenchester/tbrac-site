@@ -13,7 +13,7 @@ const C = {
     write: "Write to us", paths: "Where to start",
     rows: [
       ["Companies", "Start with the free self-assessment. From your results you can request a comprehensive assessment; an analyst will contact you.", SIGNUP, "Start the free self-assessment"],
-      ["Counties, agencies and partners", "Ask about a government-directed assessment, a reliance letter, or access to a report a company has shared with you.", `mailto:${EMAIL}?subject=Government-directed%20assessment`, "Email about an assessment"],
+      ["Counties, agencies and partners", "Ask about a government-directed assessment, a reliance letter, or access to a report a company has shared with you.", "/for-government/inquiry", "Send an inquiry"],
       ["Checking a report", "Enter the report number to see its live status, fingerprint and signature, and sign up for status alerts.", "/verify", "Verify a report"],
     ],
     entity: "Assurance Pacific Assessments LLC, a Michigan limited liability company based in California, operates TBRAC.",
@@ -24,7 +24,7 @@ const C = {
     write: "发送邮件", paths: "从哪里开始",
     rows: [
       ["企业", "请先进行免费自我评估。您可以根据评估结果申请全面评估，分析师将与您联系。", SIGNUP, "开始免费自我评估"],
-      ["县政府、机构和合作伙伴", "咨询政府主导的评估、依赖函，或获取企业已与您分享的报告。", `mailto:${EMAIL}?subject=Government-directed%20assessment`, "就评估发送邮件"],
+      ["县政府、机构和合作伙伴", "咨询政府主导的评估、依赖函，或获取企业已与您分享的报告。", "/for-government/inquiry", "发送咨询"],
       ["核验报告", "输入报告编号，查看实时状态、数字指纹和签名，并订阅状态提醒。", "/verify", "核验报告"],
     ],
     entity: "TBRAC 由 Assurance Pacific Assessments LLC 运营，该公司为在密歇根州注册、总部位于加利福尼亚州的有限责任公司。",
