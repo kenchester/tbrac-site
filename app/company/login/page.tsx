@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -54,7 +55,7 @@ type SignupForm = z.infer<typeof signupSchema>;
 export default function CompanyLoginPage() {
   const router = useRouter();
   const { user, signIn, signUp } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState("login");
@@ -270,6 +271,10 @@ export default function CompanyLoginPage() {
                         {isLoading ? "Creating account..." : "Create Account"}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
+                      <p className="text-center text-xs text-muted-foreground">
+                        {language === "zh" ? <>创建账户即表示您同意<Link href="/terms" className="underline">服务条款</Link>和<Link href="/privacy" className="underline">隐私政策</Link>。</>
+                          : <>By creating an account you agree to the <Link href="/terms" className="underline">Terms of service</Link> and <Link href="/privacy" className="underline">Privacy policy</Link>.</>}
+                      </p>
                     </form>
                   </Form>
                 </TabsContent>

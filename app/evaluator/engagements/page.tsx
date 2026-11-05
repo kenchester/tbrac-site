@@ -156,6 +156,7 @@ export default function EngagementsPage() {
             <Button variant="outline" asChild><Link href="/evaluator/guide">Guide</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/methodology">Methodology calibration</Link></Button>
             <Button variant="outline" asChild><Link href="/evaluator/ai">AI self-test</Link></Button>
+            <Button variant="outline" asChild><Link href="/evaluator/retention">Data retention</Link></Button>
             <Button onClick={() => setShowNew((v) => !v)}>{showNew ? "Cancel" : "New engagement"}</Button>
           </div>
         </div>
