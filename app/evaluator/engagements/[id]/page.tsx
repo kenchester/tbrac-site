@@ -3,6 +3,7 @@
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/header";
+import { authenticatedRequest } from "@/lib/api-client";
 import { companyViewApi, type AssistedSession } from "@/lib/company-view";
 import { sendPendingNotices, type NotifyContact } from "@/lib/engagements";
 import { Button } from "@/components/ui/button";
@@ -1262,6 +1263,85 @@ function Readiness({ checks }: { checks: ReadinessCheck[] }) {
   );
 }
 
+// ------------------------------------------------------------------ secure report links (§8.3, §12.2)
+interface Share {
+  id: string; report_number: string; relying_party: string; recipient_name: string; recipient_email: string; created_by: string;
+  created_at: string; expires_at: string; revoked_at: string | null; accepted_at: string | null; accepted_name: string | null;
+  accepted_title: string | null; accepted_organization: string | null; views: number; last_viewed_at: string | null;
+}
+function ReportShares({ eng }: { eng: EngagementDetail }) {
+  const [rows, setRows] = useState<Share[]>([]);
+  const [f, setF] = useState({ relying_party: eng.relying_parties[0] ?? "", recipient_name: "", recipient_email: "", days: 30 });
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [link, setLink] = useState("");
+  const [error, setError] = useState("");
+  const load = useCallback(() => { authenticatedRequest<Share[]>(`/api/v1/engagements/${eng.id}/shares`).then(setRows).catch(() => {}); }, [eng.id]);
+  useEffect(load, [load]);
+  const issued = ["issued", "under_review"].includes(eng.stage) && !!eng.report_number;
+  const create = async () => {
+    setBusy(true); setError(""); setMsg(""); setLink("");
+    try {
+      const r = await fetch(`/api/evaluator/engagements/${eng.id}/shares`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(f) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.detail || j.error || "Could not share");
+      setLink(j.link); setMsg(j.emailed ? `Emailed to ${j.recipient_email}.` : "Created, but the email could not be sent: send the link yourself.");
+      setF({ ...f, recipient_name: "", recipient_email: "" }); load();
+    } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
+  };
+  const [withdrawing, setWithdrawing] = useState("");
+  const [reason, setReason] = useState("");
+  const revoke = async (id: string) => {
+    try { await authenticatedRequest(`/api/v1/shares/${id}/revoke`, { method: "POST", body: JSON.stringify({ reason }) }); setWithdrawing(""); setReason(""); load(); }
+    catch (e) { setError(errMsg(e)); }
+  };
+  const d = (x: string | null) => (x ? new Date(x).toLocaleDateString() : "—");
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Share the restricted report</CardTitle>
+        <p className="text-xs text-muted-foreground">Sends one named person at a relying party a private link. Before the report opens they accept the reliance terms
+          (name, title, organization, time and IP recorded); every view is logged; the link expires and can be withdrawn. They are added to the status-notice contacts.</p>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {!issued ? <p className="text-muted-foreground">Available once the rating is issued.</p> : (
+          <div className="grid gap-2 sm:grid-cols-[1.2fr_1fr_1.2fr_90px_auto]">
+            <Input placeholder="Relying party (e.g. Example County EDC)" value={f.relying_party} onChange={(e) => setF({ ...f, relying_party: e.target.value })} />
+            <Input placeholder="Recipient name" value={f.recipient_name} onChange={(e) => setF({ ...f, recipient_name: e.target.value })} />
+            <Input type="email" placeholder="Recipient email" value={f.recipient_email} onChange={(e) => setF({ ...f, recipient_email: e.target.value })} />
+            <Input type="number" min={1} max={90} title="Days until the link expires" value={f.days} onChange={(e) => setF({ ...f, days: Number(e.target.value) || 30 })} />
+            <Button size="sm" className="h-9" disabled={busy || f.relying_party.trim().length < 2 || f.recipient_name.trim().length < 2 || !f.recipient_email.includes("@")} onClick={create}>
+              {busy ? "Sharing…" : "Share"}</Button>
+          </div>
+        )}
+        {msg && <p className="text-green-700">{msg}</p>}
+        {link && <p className="break-all rounded bg-muted px-2 py-1 font-mono text-xs">{link}</p>}
+        {error && <p className="text-red-600">{error}</p>}
+        {rows.length > 0 && (
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs text-muted-foreground"><tr><th className="py-1 font-medium">Recipient</th><th className="py-1 font-medium">Accepted</th>
+              <th className="py-1 font-medium">Views</th><th className="py-1 font-medium">Expires</th><th /></tr></thead>
+            <tbody className="divide-y">
+              {rows.map((s) => (
+                <tr key={s.id} className={s.revoked_at ? "text-muted-foreground" : ""}>
+                  <td className="py-1.5 pr-2">{s.recipient_name} · {s.relying_party}<span className="block text-xs text-muted-foreground">{s.recipient_email}</span></td>
+                  <td className="py-1.5 pr-2">{s.accepted_at ? `${d(s.accepted_at)} by ${s.accepted_name}, ${s.accepted_title}` : "Not yet"}</td>
+                  <td className="py-1.5 pr-2">{s.views}{s.last_viewed_at ? ` (last ${d(s.last_viewed_at)})` : ""}</td>
+                  <td className="py-1.5 pr-2">{s.revoked_at ? "Withdrawn" : d(s.expires_at)}</td>
+                  <td className="py-1.5 text-right">{!s.revoked_at && (withdrawing === s.id ? (
+                    <span className="inline-flex gap-1"><Input className="h-8 w-40" placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+                      <Button size="sm" variant="outline" disabled={reason.trim().length < 3} onClick={() => revoke(s.id)}>Confirm</Button></span>
+                  ) : <Button size="sm" variant="ghost" onClick={() => { setWithdrawing(s.id); setReason(""); }}>Withdraw</Button>)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ fee checkout (§11)
 function FeePayments({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
   const [busy, setBusy] = useState(false);
@@ -1925,7 +2005,7 @@ export default function EngagementWorkspace({ params }: { params: Promise<{ id: 
                 <TabsContent value="reply"><RightOfReply eng={eng} onSaved={setEng} /></TabsContent>
                 <TabsContent value="audit"><AuditTrail eng={eng} /></TabsContent>
                 <TabsContent value="monitoring"><Monitoring eng={eng} onSaved={setEng} /></TabsContent>
-                <TabsContent value="report"><ReportInputs eng={eng} onSaved={setEng} /></TabsContent>
+                <TabsContent value="report"><div className="space-y-4"><ReportShares eng={eng} /><ReportInputs eng={eng} onSaved={setEng} /></div></TabsContent>
                 <TabsContent value="overview" className="space-y-4"><VersionBox eng={eng} onSaved={setEng} /><Overview eng={eng} m={m} onSaved={setEng} /><IntakePanel eng={eng} /></TabsContent>
                 <TabsContent value="entities"><Entities eng={eng} reload={reload} /></TabsContent>
                 <TabsContent value="documents"><Documents eng={eng} reload={reload} /></TabsContent>

@@ -39,6 +39,9 @@ const nextConfig = {
       // Evaluator pages and API answers carry confidential data: never cache them.
       { source: "/evaluator/:path*", headers: [{ key: "Cache-Control", value: "private, no-store" }] },
       { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "private, no-store" }] },
+      // Private report links: never cached, never indexed, never leak the link in a Referer.
+      { source: "/r/:path*", headers: [{ key: "Cache-Control", value: "private, no-store" }, { key: "X-Robots-Tag", value: "noindex, nofollow" },
+                                       { key: "Referrer-Policy", value: "no-referrer" }] },
     ]
   },
   images: {

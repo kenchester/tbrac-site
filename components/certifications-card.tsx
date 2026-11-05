@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RequestAssessmentCard } from "@/components/request-assessment-card";
 import { certificateUrl, companyApi, verifyUrl, type Certification } from "@/lib/certifications";
 import { useLanguage } from "@/lib/language-context";
+import { authenticatedRequest } from "@/lib/api-client";
 
 const TIER = {
   en: { T1: "T1 · Low identified risk", T2: "T2 · Moderate", T3: "T3 · Elevated", T4: "T4 · High", UA: "Unable to assess" } as Record<string, string>,
@@ -22,6 +23,8 @@ const T = {
     earlier: "Earlier reports", reeval: "Request a re-evaluation",
     reevalNote: "Improved your ownership structure, controls or paperwork? A re-evaluation rates you again on new evidence, replaces this report when issued and starts a new 12-month validity.",
     test: "Test report from dummy data", locale: "en-US",
+    holders: "Who has your full report", holdersNote: "TBRAC shares the restricted report only with named people at relying parties, after they accept the reliance terms.",
+    opened: (n: number) => `opened ${n} time${n === 1 ? "" : "s"}`, notOpened: "not opened yet", withdrawn: "link withdrawn", expired: "link expired",
   },
   zh: {
     title: "贵公司的 TBRAC 认证", report: "报告", valid: "有效期至", status: "状态", rating: "评级",
@@ -31,6 +34,8 @@ const T = {
     earlier: "以往报告", reeval: "申请重新评估",
     reevalNote: "已改善所有权结构、内部控制或文件资料？重新评估将依据新证据重新评级，出具后取代本报告，并重新开始 12 个月有效期。",
     test: "测试报告（虚拟数据）", locale: "zh-CN",
+    holders: "已获得完整报告的人员", holdersNote: "TBRAC 仅在依赖方指定人员接受依赖条款后，向其提供限制分发报告。",
+    opened: (n: number) => `已打开 ${n} 次`, notOpened: "尚未打开", withdrawn: "链接已撤回", expired: "链接已过期",
   },
 };
 
@@ -42,7 +47,11 @@ export function CertificationsCard({ customerId }: { customerId: string }) {
   const [rows, setRows] = useState<Certification[]>([]);
   const [copied, setCopied] = useState(false);
   const [reeval, setReeval] = useState(false);
-  useEffect(() => { companyApi.certifications(customerId).then(setRows).catch(() => setRows([])); }, [customerId]);
+  const [shares, setShares] = useState<{ id: string; recipient_name: string; relying_party: string; views: number; revoked_at: string | null; expires_at: string; accepted_at: string | null }[]>([]);
+  useEffect(() => {
+    companyApi.certifications(customerId).then(setRows).catch(() => setRows([]));
+    authenticatedRequest<typeof shares>(`/api/v1/customers/${customerId}/report-shares`).then(setShares).catch(() => setShares([]));
+  }, [customerId]);
   if (!rows.length) return null;
   const [c, ...older] = rows;
   const url = verifyUrl(c.report_number);
@@ -87,6 +96,16 @@ export function CertificationsCard({ customerId }: { customerId: string }) {
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
             <p className="max-w-2xl text-sm text-slate-600">{t.reevalNote}</p>
             {!reeval && <Button size="sm" variant="outline" onClick={() => setReeval(true)}><RefreshCw className="mr-1.5 h-4 w-4" />{t.reeval}</Button>}
+          </div>
+        )}
+        {shares.length > 0 && (
+          <div className="border-t border-slate-100 px-6 py-4 text-sm">
+            <p className="font-medium text-slate-900">{t.holders}</p>
+            <p className="text-xs text-slate-500">{t.holdersNote}</p>
+            <ul className="mt-2 space-y-1">{shares.map((x) => (
+              <li key={x.id} className="text-slate-700">{x.recipient_name} · {x.relying_party}
+                <span className="ml-2 text-slate-500">{x.revoked_at ? t.withdrawn : new Date(x.expires_at) < new Date() ? t.expired : x.views ? t.opened(x.views) : t.notOpened}</span></li>
+            ))}</ul>
           </div>
         )}
         {older.length > 0 && (
