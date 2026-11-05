@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
+import { AuditIntegrityCard } from "@/components/audit-integrity-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -164,6 +165,8 @@ export default function EngagementsPage() {
         {showNew && <NewEngagement onCreated={(id) => router.push(`/evaluator/engagements/${id}`)} />}
 
         <AssessmentRequestsPanel />
+
+        <AuditIntegrityCard />
 
         <Card>
           <CardHeader className="pb-2">
