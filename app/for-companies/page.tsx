@@ -23,7 +23,7 @@ const C = {
     stepsTitle: "Two steps",
     steps: [
       ["1. Free self-assessment", "Ten short modules, in English or Chinese, covering the same risk areas as the full assessment. You get an indicative score and the issues to address first. It is private and nothing is published."],
-      ["2. Comprehensive assessment", "TBRAC verifies your information against official registries and independent sources, screens your ownership chain against US lists, and an independent committee issues a rated report with a public summary, valid for 12 months."],
+      ["2. Comprehensive assessment", "TBRAC verifies your information against official registries and independent sources, screens your ownership chain against US lists, and a committee with an independent chair decides a rated report with a public summary, valid for 12 months."],
     ],
     provideTitle: "What you will be asked to provide",
     provideLead: "A standard document list, scaled to your project. Every production is made under an officer's attestation.",
@@ -48,7 +48,7 @@ const C = {
       ["Right of reply", "Before any decision, you see the draft factual findings and can correct them. Your response is included in the report."],
       ["One flat fee", "The same fee for every company, whatever its size, agreed in advance and never linked to the result."],
       ["No conflicts", "TBRAC does not provide consulting to companies it assesses, which is what makes the report credible to the other side."],
-      ["Decided by a committee", "Analysts score; a second reviewer checks; an independent committee decides and records its reasons."],
+      ["Decided by a committee", "Analysts score; a second reviewer checks; a committee with an independent chair decides and records its reasons."],
     ],
     limitsTitle: "What to expect",
     limits: [
@@ -79,7 +79,7 @@ const C = {
     stepsTitle: "两个步骤",
     steps: [
       ["1. 免费自我评估", "10 个简短模块，提供中英文版本，涵盖与完整评估相同的风险领域。您将获得参考分数及需要优先处理的问题。自我评估不公开，也不会发布任何内容。"],
-      ["2. 全面评估", "TBRAC 根据官方登记机构和独立来源核实您的信息，按美国名单筛查您的所有权链，由独立委员会出具带评级的报告和公开摘要，有效期 12 个月。"],
+      ["2. 全面评估", "TBRAC 根据官方登记机构和独立来源核实您的信息，按美国名单筛查您的所有权链，由设独立主席的委员会决定带评级的报告和公开摘要，有效期 12 个月。"],
     ],
     provideTitle: "您需要提供什么",
     provideLead: "一份按项目调整的标准文件清单。每次提交均需由一名高级管理人员作出声明。",
@@ -104,7 +104,7 @@ const C = {
       ["答辩权", "在任何决定作出之前，您可以查看初步事实性调查结果并加以更正。您的回复将纳入报告。"],
       ["一个固定费用", "无论企业规模大小，费用均相同，事先约定，且绝不与结果挂钩。"],
       ["没有利益冲突", "TBRAC 不为其评估的企业提供咨询，这正是报告能获得对方信任的原因。"],
-      ["由委员会决定", "分析师评分，第二审核人复核，独立委员会作出决定并记录理由。"],
+      ["由委员会决定", "分析师评分，第二审核人复核，设独立主席的委员会作出决定并记录理由。"],
     ],
     limitsTitle: "您可以预期什么",
     limits: [

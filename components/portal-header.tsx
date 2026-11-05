@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { ChevronDown, LogOut, Menu } from "lucide-react";
+import { ChevronDown, LogOut, Menu, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -21,9 +21,9 @@ const NAVY = "#0b1f3a";
 const FULL_NAME = { en: "Trans-Border Risk Assessment and Certification", zh: "跨境风险评估与认证" };
 const T = {
   en: { overview: "Overview", self: "Self-assessment", docs: "Documents", requests: "Document requests", findings: "Draft findings",
-        signOut: "Sign out", menu: "Menu", account: "Signed in as", portal: "Company portal" },
+        signOut: "Sign out", security: "Sign-in security", menu: "Menu", account: "Signed in as", portal: "Company portal" },
   zh: { overview: "概览", self: "自我评估", docs: "文件", requests: "文件请求", findings: "调查结果草稿",
-        signOut: "退出登录", menu: "菜单", account: "当前账户", portal: "企业门户" },
+        signOut: "退出登录", security: "登录安全", menu: "菜单", account: "当前账户", portal: "企业门户" },
 };
 
 /** Header for the signed-in company pages: wordmark, company sections, language and account. */
@@ -91,6 +91,7 @@ export function PortalHeader() {
                   <p className="truncate text-sm font-medium">{user.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="cursor-pointer"><Link href="/company/security"><ShieldCheck className="mr-2 h-4 w-4" />{t.security}</Link></DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />{t.signOut}
                 </DropdownMenuItem>
@@ -119,6 +120,7 @@ export function PortalHeader() {
                 <div className="border-t border-slate-200 px-5 py-4">
                   <p className="text-xs text-slate-500">{t.account}</p>
                   <p className="truncate text-sm font-medium">{user.email}</p>
+                  <SheetClose asChild><Link href="/company/security" className="mt-3 block rounded-md border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold hover:bg-slate-50">{t.security}</Link></SheetClose>
                   <button type="button" onClick={handleSignOut}
                     className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">
                     <LogOut className="h-4 w-4" />{t.signOut}

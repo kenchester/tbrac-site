@@ -12,7 +12,7 @@ const C = {
     more: "Another question?", contact: "Contact us",
     qa: [
       ["What is TBRAC?", "TBRAC (Trans-Border Risk Assessment and Certification) assesses companies with Chinese ownership or ties that plan US investments, sites or partnerships, and reports the result to the counties, state agencies and partners who rely on it. It is operated by Assurance Pacific Assessments LLC."],
-      ["What is the difference between the self-assessment and the comprehensive assessment?", "The free self-assessment is 10 modules your company answers itself. It is private, not verified, and gives an indicative score and the red flags to fix first. The comprehensive assessment is carried out by TBRAC: documents are verified, the ownership chain is screened against US lists, findings are graded by their evidence, and an independent committee decides a rating that TBRAC certifies."],
+      ["What is the difference between the self-assessment and the comprehensive assessment?", "The free self-assessment is 10 modules your company answers itself. It is private, not verified, and gives an indicative score and the red flags to fix first. The comprehensive assessment is carried out by TBRAC: documents are verified, the ownership chain is screened against US lists, findings are graded by their evidence, and a committee with an independent chair decides a rating that TBRAC certifies."],
       ["Is a TBRAC report a certification?", "Yes, a private one. A TBRAC report is a private certification issued by Assurance Pacific Assessments LLC under its published methodology, as of the date stated. It is not a government certification, approval or license, not a CFIUS determination and not a guarantee of the company's future conduct."],
       ["Who uses TBRAC reports?", "Counties, economic development agencies, state agencies, landlords, lenders and business partners who need a documented view of a company's ownership, links and controls before an incentive, land sale, lease or contract. The company itself uses the self-assessment to prepare."],
       ["How long does it take?", "The self-assessment usually takes under an hour and can be done in several sittings. The timing of a comprehensive assessment depends mainly on how quickly the company answers TBRAC's document requests; the timetable is set out in the engagement letter."],
@@ -31,7 +31,7 @@ const C = {
     more: "还有其他问题？", contact: "联系我们",
     qa: [
       ["什么是 TBRAC？", "TBRAC（跨境风险评估与认证）对计划在美国投资、设厂或合作、具有中国所有权或关联的企业进行评估，并将结果报告给依赖该结果的县政府、州机构和合作伙伴。TBRAC 由 Assurance Pacific Assessments LLC 运营。"],
-      ["自我评估与全面评估有何区别？", "免费自我评估共 10 个模块，由贵公司自行作答，仅贵公司可见，未经核实，提供参考评分和需要优先处理的风险信号。全面评估由 TBRAC 开展：核实文件，按美国名单筛查所有权链，依据证据强度对调查结果分级，并由独立委员会决定评级，由 TBRAC 予以认证。"],
+      ["自我评估与全面评估有何区别？", "免费自我评估共 10 个模块，由贵公司自行作答，仅贵公司可见，未经核实，提供参考评分和需要优先处理的风险信号。全面评估由 TBRAC 开展：核实文件，按美国名单筛查所有权链，依据证据强度对调查结果分级，并由设独立主席的委员会决定评级，由 TBRAC 予以认证。"],
       ["TBRAC 报告是认证吗？", "是的，是私营机构认证。TBRAC 报告是 Assurance Pacific Assessments LLC 依据其公开的评估方法、截至所述日期出具的私营机构认证。它不是政府认证、批准或许可，不是 CFIUS 决定，也不保证企业未来的行为。"],
       ["谁会使用 TBRAC 报告？", "县政府、经济发展机构、州机构、房东、贷款方和商业伙伴，在作出激励、土地出售、租赁或合同决定前，需要对企业的所有权、关联关系和内部控制有书面依据。企业本身则使用自我评估进行准备。"],
       ["需要多长时间？", "自我评估通常不到一小时即可完成，并可分多次作答。全面评估的时间主要取决于企业回复 TBRAC 文件请求的速度；具体时间安排在委托书中约定。"],

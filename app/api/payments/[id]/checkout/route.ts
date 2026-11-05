@@ -15,6 +15,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return NextResponse.json({ error: "Sign in first" }, { status: 401 })
+  if (!session.user.emailVerified) return NextResponse.json({ error: "Confirm your email address first" }, { status: 403 })
   const { customer_id } = (await request.json().catch(() => ({}))) as { customer_id?: string }
   if (!/^[0-9a-f-]{36}$/.test(customer_id ?? "") || !/^[0-9a-f-]{36}$/.test(id)) return NextResponse.json({ error: "Invalid request" }, { status: 400 })
 

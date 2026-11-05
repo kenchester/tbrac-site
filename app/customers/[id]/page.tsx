@@ -9,6 +9,7 @@ import { PortalHeader } from "@/components/portal-header";
 import { AssistedSessionsCard } from "@/components/assisted-sessions-card";
 import { Copyright } from "@/components/copyright";
 import { PaymentsCard } from "@/components/payments-card";
+import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { AssessmentProgress } from "@/components/assessment-progress";
 import { EngagementLetterCard } from "@/components/engagement-letter-card";
 import { CertificationsCard } from "@/components/certifications-card";
@@ -374,6 +375,7 @@ function CustomerDetailContent({ params }: PageProps) {
           </section>
         )}
 
+        <VerifyEmailBanner />
         <AssessmentProgress customerId={resolvedParams.id} />
         <EngagementLetterCard customerId={resolvedParams.id} />
         <PaymentsCard customerId={resolvedParams.id} />

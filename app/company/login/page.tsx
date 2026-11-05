@@ -30,32 +30,44 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, Mail, Lock, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
+import { authClient, clearAccessToken } from "@/lib/auth-client";
 
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+const L = {
+  en: { email: "Please enter a valid email address", pw: "Password must be at least 8 characters", name: "Company name must be at least 2 characters", match: "Passwords don't match",
+        signIn: "Sign In", create: "Create Account", creating: "Creating account...", company: "Company name", emailL: "Email", password: "Password", confirm: "Confirm password",
+        code: "6-digit code from your authenticator app", backup: "Backup code", useBackup: "Lost your phone? Use a backup code", useApp: "Use the authenticator app instead", verify: "Verify",
+        badCode: "That code didn't work. Try the current code from your authenticator app.", placeholder: "Example Battery Materials Co." },
+  zh: { email: "请输入有效的电子邮箱", pw: "密码至少需要 8 个字符", name: "企业名称至少需要 2 个字符", match: "两次输入的密码不一致",
+        signIn: "登录", create: "创建账户", creating: "正在创建账户...", company: "企业名称", emailL: "电子邮箱", password: "密码", confirm: "确认密码",
+        code: "身份验证器应用中的 6 位验证码", backup: "备用验证码", useBackup: "手机丢失？使用备用验证码", useApp: "改用身份验证器应用", verify: "验证",
+        badCode: "验证码无效，请输入身份验证器应用中当前显示的验证码。", placeholder: "示例电池材料有限公司" },
+};
+
+const schemas = (l: (typeof L)["en"]) => ({
+  login: z.object({ email: z.string().email(l.email), password: z.string().min(1, l.pw) }),
+  signup: z.object({
+    companyName: z.string().min(2, l.name), email: z.string().email(l.email), password: z.string().min(8, l.pw), confirmPassword: z.string(),
+  }).refine((d) => d.password === d.confirmPassword, { message: l.match, path: ["confirmPassword"] }),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginForm = { email: string; password: string };
+type SignupForm = { companyName: string; email: string; password: string; confirmPassword: string };
 
-const signupSchema = z
-  .object({
-    companyName: z.string().min(2, "Company name must be at least 2 characters"),
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type SignupForm = z.infer<typeof signupSchema>;
+/** Only same-site paths, so a crafted link can't send people elsewhere after sign-in. */
+const safeNext = () => {
+  const n = new URLSearchParams(window.location.search).get("next") ?? "";
+  return n.startsWith("/") && !n.startsWith("//") && !n.includes("\\") ? n : null;
+};
 
 export default function CompanyLoginPage() {
   const router = useRouter();
   const { user, signIn, signUp } = useAuth();
   const { t, language } = useLanguage();
+  const l = L[language] ?? L.en;
+  const sc = schemas(l);
+  const [codeStep, setCodeStep] = useState(false);
+  const [code, setCode] = useState("");
+  const [useBackup, setUseBackup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState("login");
@@ -64,19 +76,19 @@ export default function CompanyLoginPage() {
   }, []);
 
   const loginForm = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(sc.login),
     defaultValues: { email: "", password: "" },
   });
 
   const signupForm = useForm<SignupForm>({
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(sc.signup),
     defaultValues: { companyName: "", email: "", password: "", confirmPassword: "" },
   });
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      router.push("/company/profile");
+      router.push(safeNext() ?? "/company/profile");
     }
   }, [user, router]);
 
@@ -84,13 +96,27 @@ export default function CompanyLoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await signIn(data.email, data.password);
-      router.push("/company/profile");
+      const { twoFactor } = await signIn(data.email, data.password);
+      if (twoFactor) { setCodeStep(true); return; }
+      router.push(safeNext() ?? "/company/profile");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    const { error: err } = useBackup
+      ? await authClient.twoFactor.verifyBackupCode({ code: code.trim() })
+      : await authClient.twoFactor.verifyTotp({ code: code.replace(/\s/g, "") });
+    setIsLoading(false);
+    if (err) { setError(l.badCode); return; }
+    clearAccessToken();
+    window.location.assign(safeNext() ?? "/company/profile");
   };
 
   const handleSignup = async (data: SignupForm) => {
@@ -104,7 +130,7 @@ export default function CompanyLoginPage() {
         name: data.companyName,
       });
 
-      router.push(`/customers/${customer.id}`);
+      router.push(safeNext() ?? `/customers/${customer.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
@@ -140,10 +166,18 @@ export default function CompanyLoginPage() {
                 </div>
               )}
 
+              {codeStep ? (
+                <form onSubmit={handleCode} className="space-y-3">
+                  <label className="block text-sm font-medium" htmlFor="code">{useBackup ? l.backup : l.code}</label>
+                  <Input id="code" autoFocus inputMode={useBackup ? "text" : "numeric"} autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
+                  <button type="button" className="text-xs text-muted-foreground underline" onClick={() => { setUseBackup(!useBackup); setCode(""); }}>{useBackup ? l.useApp : l.useBackup}</button>
+                  <Button type="submit" className="w-full" disabled={isLoading || !code.trim()}>{l.verify}</Button>
+                </form>
+              ) : (
               <Tabs value={tab} onValueChange={setTab}>
                 <TabsList className="w-full mb-6">
-                  <TabsTrigger value="login" className="flex-1">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup" className="flex-1">Create Account</TabsTrigger>
+                  <TabsTrigger value="login" className="flex-1">{l.signIn}</TabsTrigger>
+                  <TabsTrigger value="signup" className="flex-1">{l.create}</TabsTrigger>
                 </TabsList>
 
                 {/* Login tab */}
@@ -208,11 +242,11 @@ export default function CompanyLoginPage() {
                         name="companyName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Company Name</FormLabel>
+                            <FormLabel>{l.company}</FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="Acme Corp" className="pl-10" {...field} />
+                                <Input placeholder={l.placeholder} className="pl-10" {...field} />
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -224,7 +258,7 @@ export default function CompanyLoginPage() {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel>{l.emailL}</FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -240,7 +274,7 @@ export default function CompanyLoginPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel>{l.password}</FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -256,7 +290,7 @@ export default function CompanyLoginPage() {
                         name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
+                            <FormLabel>{l.confirm}</FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -268,7 +302,7 @@ export default function CompanyLoginPage() {
                         )}
                       />
                       <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? "Creating account..." : "Create Account"}
+                        {isLoading ? l.creating : l.create}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                       <p className="text-center text-xs text-muted-foreground">
@@ -279,6 +313,7 @@ export default function CompanyLoginPage() {
                   </Form>
                 </TabsContent>
               </Tabs>
+              )}
             </CardContent>
           </Card>
 

@@ -31,8 +31,8 @@ const C = {
     trustTitle: "Why it can be relied on",
     trust: [
       ["Independent", "One flat fee for every company, paid or escrowed before the committee meets and never linked to the result. TBRAC does no consulting for companies it assesses."],
-      ["Decided by a committee", "An analyst scores, a second reviewer checks, and a committee of at least three with an independent chair decides. Counsel reviews every elevated or high rating."],
-      ["Published, calibrated method", "Red lines, 29 indicators, evidence grades and weights are published and versioned; weights are set by an expert panel. Every report states the version it was rated under."],
+      ["Decided by a committee", "No rating can issue until an analyst has scored it, a second reviewer has checked it and a committee of at least three with an independent chair has decided. Elevated and high ratings also require counsel review."],
+      ["Published, versioned method", "Red lines, 29 indicators, evidence grades and weights are published and versioned. Weights are calibrated by an expert panel; until that calibration is published they are marked provisional. Every report states the version it was rated under."],
       ["Fair to the company", "The company sees the factual findings and can correct them before any decision; its reply is in the report. That makes the result harder to dispute."],
       ["Fully recorded", "Every score, change, document access and decision is in an audit trail. AI helps analysts read and cross-check, but never decides."],
     ],
@@ -74,8 +74,8 @@ const C = {
     trustTitle: "为何值得依赖",
     trust: [
       ["独立", "所有企业支付相同的固定费用，在委员会开会前付清或托管，且绝不与结果挂钩。TBRAC 不为其评估的企业提供咨询。"],
-      ["由委员会决定", "分析师评分，第二审核人复核，由至少三人组成、设独立主席的委员会作出决定。律师审查每一项较高或高风险评级。"],
-      ["公开且经校准的方法", "红线、29 项指标、证据等级和权重均公开并有版本记录；权重由专家小组确定。每份报告均注明其所依据的版本。"],
+      ["由委员会决定", "评级出具前，必须经分析师评分、第二审核人复核，并由至少三人组成、设独立主席的委员会作出决定。较高和高风险评级还须经律师审查。"],
+      ["公开且有版本记录的方法", "红线、29 项指标、证据等级和权重均公开并有版本记录。权重由专家小组校准；在校准结果发布前，权重标注为临时权重。每份报告均注明其所依据的版本。"],
       ["对企业公平", "企业在任何决定作出前可查看并更正事实性调查结果，其回复纳入报告，使结果更难被质疑。"],
       ["全程记录", "每项评分、更改、文件访问和决定均记入审计记录。AI 协助分析师阅读和交叉核对，但绝不作出决定。"],
     ],
