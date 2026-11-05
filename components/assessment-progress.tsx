@@ -20,7 +20,7 @@ const T = {
     } as Record<string, string>,
     todoTitle: "Waiting for you",
     todo: { sign_letter: "Sign the engagement letter", pay_fee: "Pay the assessment fee", reply: "Reply to the draft findings" } as Record<string, string>,
-    requests: (n: number) => `Answer ${n} document request${n === 1 ? "" : "s"}`, by: "by", locale: "en-US",
+    requests: (n: number) => `Answer ${n} document request${n === 1 ? "" : "s"}`, by: "by", locale: "en-US", stepOf: (a: number, b: number) => `Step ${a} of ${b}`,
   },
   zh: {
     title: { design: "贵公司的全面评估", operating: "贵公司的全面评估", reevaluation: "贵公司的重新评估" } as Record<string, string>,
@@ -34,7 +34,7 @@ const T = {
     } as Record<string, string>,
     todoTitle: "等待您处理",
     todo: { sign_letter: "签署委托书", pay_fee: "支付评估费用", reply: "回复调查结果草稿" } as Record<string, string>,
-    requests: (n: number) => `回复 ${n} 项文件请求`, by: "截止", locale: "zh-CN",
+    requests: (n: number) => `回复 ${n} 项文件请求`, by: "截止", locale: "zh-CN", stepOf: (a: number, b: number) => `第 ${a} 步（共 ${b} 步）`,
   },
 };
 
@@ -58,12 +58,13 @@ export function AssessmentProgress({ customerId }: { customerId: string }) {
               {p.steps.map((s, i) => (
                 <li key={s} className="min-w-0" aria-current={i === p.current ? "step" : undefined}>
                   <div className={`h-1.5 rounded-full ${i < p.current ? "bg-[#0b1f3a]" : i === p.current ? "bg-sky-600" : "bg-slate-200"}`} />
-                  <p className={`mt-2 flex items-center gap-1 truncate text-xs ${i === p.current ? "font-semibold text-slate-900" : "text-slate-500"}`}>
-                    {i < p.current && <Check className="hidden h-3 w-3 shrink-0 text-[#0b1f3a] sm:block" />}<span className={i === p.current ? "" : "hidden sm:inline"}>{t.steps[s]}</span>
+                  <p className={`mt-2 hidden items-center gap-1 truncate text-xs sm:flex ${i === p.current ? "font-semibold text-slate-900" : "text-slate-500"}`}>
+                    {i < p.current && <Check className="h-3 w-3 shrink-0 text-[#0b1f3a]" />}<span>{t.steps[s]}</span>
                   </p>
                 </li>
               ))}
             </ol>
+            <p className="mt-2 text-sm font-semibold text-slate-900 sm:hidden">{t.stepOf(p.current + 1, p.steps.length)}: {t.steps[step]}</p>
             <p className="mt-4 text-[15px] leading-relaxed text-slate-600">{t.now[step]}</p>
             {todo.length > 0 && (
               <div className="mt-3 text-sm"><p className="font-medium text-slate-900">{t.todoTitle}</p>

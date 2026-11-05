@@ -16,7 +16,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Table({ head, rows, none }: { head: string[]; rows: (string | null | undefined)[][]; none: string }) {
   return (
-    <table className="w-full border-collapse text-sm">
+    <div className="overflow-x-auto print:overflow-visible"><table className="w-full border-collapse text-sm">
       <thead>
         <tr className="border-b-2 border-slate-800 text-left">{head.map((h) => <th key={h} className="py-1.5 pr-3 font-semibold">{h}</th>)}</tr>
       </thead>
@@ -26,7 +26,7 @@ function Table({ head, rows, none }: { head: string[]; rows: (string | null | un
           <tr key={i} className="border-b border-slate-200 align-top">{r.map((c, j) => <td key={j} className="py-1.5 pr-3">{c ?? "—"}</td>)}</tr>
         ))}
       </tbody>
-    </table>
+    </table></div>
   );
 }
 
@@ -56,7 +56,7 @@ export function ReportDocument({ eng, m, lang, view, sharedWith, warning }: {
   const domainRows = Object.entries(r.domain_tiers).map(([d, tier]) => [`${d} ${domainName(d)}`, tier]);
 
   return (
-      <article className="mx-auto my-6 max-w-4xl space-y-8 bg-white p-10 text-slate-900 shadow print:my-0 print:max-w-none print:p-0 print:shadow-none">
+      <article className="mx-auto my-6 max-w-4xl space-y-8 bg-white p-5 text-slate-900 shadow sm:p-10 print:my-0 print:max-w-none print:p-0 print:shadow-none">
         {warning && <p className="rounded border-2 border-red-400 bg-red-50 px-4 py-2 text-center text-sm font-semibold text-red-800">{warning}</p>}
         {sharedWith && (
           <p className="border-b border-slate-200 pb-2 text-center text-xs text-slate-500">{sharedWith}</p>
@@ -87,7 +87,7 @@ export function ReportDocument({ eng, m, lang, view, sharedWith, warning }: {
         </header>
 
         <Section title={t.opinion}>
-          <div className="grid gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               [t.tier, r.tier ? t.tiers[r.tier] ?? r.tier : t.incomplete],
               [t.confidence, r.confidence ? t.conf[r.confidence] ?? r.confidence : "—"],
