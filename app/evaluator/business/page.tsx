@@ -9,7 +9,7 @@ import { authenticatedRequest } from "@/lib/api-client";
 
 interface Summary {
   funnel: { step: string; count: number }[]; new_companies_30_days: number; requests: Record<string, number>;
-  engagements_by_stage: Record<string, number>; revenue_cents: { last_30_days: number; last_365_days: number; all_time: number };
+  engagements_by_stage: Record<string, number>; revenue_cents: { last_30_days: number; last_365_days: number; all_time: number }; fees_waived?: number;
   open_payments: { id: string; company: string; description: string; amount_cents: number; requested_at: string }[];
   errors_7_days: { route: string; error_type: string; message: string | null; location: string | null; count: number; last_at: string }[];
   expiring_90_days: { engagement_id: string; company: string; report_number: string | null; valid_until: string; days_left: number; reevaluation_requested: boolean }[];
@@ -58,6 +58,7 @@ export default function BusinessPage() {
                   <div className="flex flex-wrap gap-2">{Object.entries(s.requests).map(([k, v]) => <Badge key={k} variant="outline">{k.replace("_", " ")}: {v}</Badge>)}</div>
                   <div className="flex flex-wrap gap-2">{Object.entries(s.engagements_by_stage).map(([k, v]) => <Badge key={k} variant="secondary">{k.replace("_", " ")}: {v}</Badge>)}</div>
                   <p className="text-muted-foreground">All-time revenue: {usd(s.revenue_cents.all_time)}</p>
+                  <p className="text-muted-foreground">Fees waived for early-access testers: {s.fees_waived ?? 0} (not counted as revenue)</p>
                 </CardContent>
               </Card>
             </div>

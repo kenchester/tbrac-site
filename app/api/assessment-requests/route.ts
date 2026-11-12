@@ -6,7 +6,7 @@ import { backendFetch } from "@/lib/server-api"
 
 interface Created {
   id: string; customer_id: string; contact_name: string; contact_title: string | null; contact_phone: string | null
-  project_description: string; relying_party: string | null; timeline: string | null; engagement_type: string
+  project_description: string; relying_party: string | null; timeline: string | null; engagement_type: string; early_access?: boolean
 }
 
 /**
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     `Relying party: ${r.relying_party ?? "—"}`,
     `Timeline: ${r.timeline ?? "—"}`,
     `Type: ${r.engagement_type}`,
+    ...(r.early_access ? ["Early access: made with a tester code, so the fee is waived"] : []),
   ].join("\n")
   await Promise.allSettled(evaluators.map((to) => sendEmail(to, `New comprehensive assessment request: ${company}`,
     `${details}\n\nOpen it in the evaluator portal: ${base}/evaluator/engagements`)))

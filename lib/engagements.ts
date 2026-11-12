@@ -46,7 +46,7 @@ export interface Rating {
   reasons: string[]; missing: string[]; methodology_version: string; error: string | null;
 }
 export interface FeePayment {
-  id: string; fee_type: string; description: string; amount_cents: number; currency: string; status: "requested" | "paid" | "canceled";
+  id: string; fee_type: string; description: string; amount_cents: number; currency: string; status: "requested" | "paid" | "waived" | "canceled";
   requested_at: string; paid_at: string | null; requested_by: string; canceled_reason: string | null;
 }
 export interface NotifyContact { name: string; organization?: string | null; email: string }
@@ -151,7 +151,7 @@ export const REQUEST_STATUS_CLASS: Record<RequestStatus, string> = {
   returned: "bg-amber-100 text-amber-800", refused: "bg-red-100 text-red-800", waived: "bg-slate-100 text-slate-500",
 };
 
-export type FeeStatus = "none" | "quoted" | "invoiced" | "escrowed" | "paid";
+export type FeeStatus = "none" | "quoted" | "invoiced" | "escrowed" | "paid" | "waived";
 export interface RelianceLetter { relying_party: string; signer?: string | null; countersigned_at?: string | null; ref?: string | null }
 export interface Declaration { evaluator: string; cleared: boolean; disclosure: string | null; statements: Record<string, boolean>; declared_at: string }
 export interface Signoff { id: string; kind: "second_review" | "counsel_review"; signed_by: string; counsel_name: string | null; note: string; signed_at: string; tier: string | null }

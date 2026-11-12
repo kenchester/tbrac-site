@@ -1,6 +1,7 @@
 "use client"
 
 import { FeeSchedule } from "@/components/fee-schedule"
+import { ComingSoonNotice } from "@/components/coming-soon-notice"
 import Link from "next/link"
 import { ArrowRight, Check, Lock, Scale, FileText, Eye, ShieldCheck, MessageSquareText } from "lucide-react"
 import { H2, MarketingShell, NAVY, SIGNUP } from "@/components/marketing-shell"
@@ -128,6 +129,7 @@ export default function ForCompaniesPage() {
   const c = C[language] ?? C.en
   return (
     <MarketingShell title={c.title} lead={c.lead} cta={{ href: SIGNUP, label: c.ctaFree }}>
+      <ComingSoonNotice />
       <section>
         <H2>{c.whyTitle}</H2>
         <ul className="mt-6 grid gap-4 md:grid-cols-2">

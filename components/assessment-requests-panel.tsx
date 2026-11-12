@@ -47,7 +47,8 @@ export function AssessmentRequestsPanel() {
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <p className="font-medium">{r.customer_name}
-                  {r.request_type === "reevaluation" && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">Re-evaluation of {r.prior_report_number}</span>}</p>
+                  {r.request_type === "reevaluation" && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900">Re-evaluation of {r.prior_report_number}</span>}
+                  {r.early_access && <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900">Early access: fee waived</span>}</p>
                 <p className="text-muted-foreground">
                   {r.contact_name}{r.contact_title ? `, ${r.contact_title}` : ""} · <a className="text-primary hover:underline" href={`mailto:${r.requester_email}`}>{r.requester_email}</a>
                   {r.contact_phone ? ` · ${r.contact_phone}` : ""}{r.language === "zh" ? " · prefers Chinese" : ""}

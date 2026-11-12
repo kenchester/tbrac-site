@@ -1396,9 +1396,10 @@ function FeePayments({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Eng
       <CardContent className="space-y-3 text-sm">
         {eng.payments.map((p) => (
           <p key={p.id}>{p.description} · <b>{usd(p.amount_cents)}</b> · {p.status === "paid" ? <span className="text-green-700">paid {p.paid_at ? new Date(p.paid_at).toLocaleDateString() : ""}</span>
+            : p.status === "waived" ? <span className="text-sky-800">waived: early-access tester, no payment</span>
             : p.status === "canceled" ? <span className="text-muted-foreground">canceled ({p.canceled_reason})</span> : <span className="text-amber-700">awaiting payment</span>}</p>
         ))}
-        {!open && !["paid", "escrowed"].includes(eng.fee_status) && (
+        {!open && !["paid", "escrowed", "waived"].includes(eng.fee_status) && (
           <Button size="sm" disabled={busy} onClick={() => run(() => engagementsApi.requestPayment(eng.id))}>Request the fee from the company</Button>
         )}
         {open && (
@@ -1414,7 +1415,7 @@ function FeePayments({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: Eng
 }
 
 // ------------------------------------------------------------------ acceptance (Stage 0)
-const FEE_STATUSES: FeeStatus[] = ["none", "quoted", "invoiced", "escrowed", "paid"];
+const FEE_STATUSES: FeeStatus[] = ["none", "quoted", "invoiced", "escrowed", "paid", "waived"];
 function Acceptance({ eng, onSaved }: { eng: EngagementDetail; onSaved: (e: EngagementDetail) => void }) {
   const [f, setF] = useState({
     letter: eng.engagement_letter_signed_at?.slice(0, 10) ?? "", ref: eng.engagement_letter_ref ?? "",

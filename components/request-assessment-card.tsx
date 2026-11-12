@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useApiToast } from "@/hooks/use-api-toast";
 import { assessmentRequestsApi, type AssessmentRequest, type AssessmentRequestIn } from "@/lib/assessment-requests";
+import { earlyAccessApi } from "@/lib/certifications";
+import { EarlyAccessBox } from "@/components/early-access-box";
 import { useLanguage } from "@/lib/language-context";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 
@@ -19,13 +21,26 @@ const RE = {
         project: "自上次评估以来有哪些变化（所有权、内部控制、供应商、文件）？" },
 };
 
-export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf, startOpen = false }:
-  { customerId: string; assessmentId?: string; reevaluationOf?: string; startOpen?: boolean }) {
+const SOON = {
+  en: { badge: "Coming soon",
+        text: "Comprehensive assessments open to all companies soon. Meanwhile, the free self-assessment shows where you stand.",
+        hint: "Taking part in early testing? Enter the code TBRAC gave you to request a comprehensive assessment now. The fee is waived.",
+        granted: "Early access confirmed: the fee for this assessment is waived." },
+  zh: { badge: "即将推出",
+        text: "全面评估即将向所有企业开放。在此之前，您可以通过免费自我评估了解自身情况。",
+        hint: "如您参与抢先测试，请输入 TBRAC 提供的体验码，即可立即申请全面评估，费用全免。",
+        granted: "已确认抢先体验资格：本次评估费用全免。" },
+};
+
+export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf, startOpen = false, comingSoon = false }:
+  { customerId: string; assessmentId?: string; reevaluationOf?: string; startOpen?: boolean; comingSoon?: boolean }) {
   const { t, language } = useLanguage();
   const { handleError, showSuccess } = useApiToast();
   const [latest, setLatest] = useState<AssessmentRequest | null | undefined>(undefined);
   const [open, setOpen] = useState(startOpen);
   const re = reevaluationOf ? RE[language as "en" | "zh"] ?? RE.en : null;
+  const soon = SOON[language as "en" | "zh"] ?? SOON.en;
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ contact_name: "", contact_title: "", contact_phone: "", project_description: "",
     relying_party: "", timeline: "", engagement_type: "unsure" as AssessmentRequestIn["engagement_type"] });
@@ -45,6 +60,7 @@ export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf
     setBusy(true);
     try {
       const r = await assessmentRequestsApi.create(customerId, { ...form, assessment_id: assessmentId, language,
+        ...(code ? { access_code: code } : {}),
         ...(reevaluationOf ? { request_type: "reevaluation" as const, prior_report_number: reevaluationOf } : {}) });
       setLatest(r); setOpen(false); showSuccess(t("arSent"));
     } catch (e) { handleError(e); } finally { setBusy(false); }
@@ -58,6 +74,9 @@ export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf
           <div>
             <CardTitle>{re ? re.title : t("arTitle")}</CardTitle>
             {!inProgress && <CardDescription className="mt-1">{re ? re.pitch : t("arPitch")}</CardDescription>}
+            {!inProgress && comingSoon && !code && (
+              <span className="mt-3 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">{soon.badge}</span>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -68,6 +87,11 @@ export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf
             {t(`arStatus_${latest.status}`)}
             <span className="text-xs text-muted-foreground">· {t("arRequestedOn")} {new Date(latest.created_at).toLocaleDateString()}</span>
           </p>
+        ) : comingSoon && !code ? (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-700">{soon.text}</p>
+            <EarlyAccessBox hint={soon.hint} check={(c) => earlyAccessApi.check(customerId, c)} onAccepted={(c) => { setCode(c); setOpen(true); }} />
+          </div>
         ) : !open ? (
           <>
             {latest?.status === "declined" && <p className="text-sm text-muted-foreground">{t("arStatus_declined")}</p>}
@@ -99,6 +123,7 @@ export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf
                 </select>
               </div>
             </div>
+            {code && <p className="flex items-center gap-2 text-sm font-medium text-emerald-800"><CheckCircle2 className="h-4 w-4" />{soon.granted}</p>}
             <p className="text-xs text-muted-foreground">{t("arNoCommit")}</p>
             <div className="flex gap-2">
               <Button disabled={busy || form.contact_name.trim().length < 2 || form.project_description.trim().length < 10} onClick={submit}>

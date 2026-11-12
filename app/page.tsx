@@ -4,6 +4,7 @@ import Link from "next/link";
 import { serif } from "@/lib/fonts"
 import { ArrowRight, Check, Minus, Scale, FileSearch, Users, MessageSquareText, ShieldCheck, BookOpen } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
+import { ComingSoonBadge } from "@/components/coming-soon-notice";
 import { HOME } from "@/lib/home-content";
 import { useLanguage } from "@/lib/language-context";
 
@@ -103,7 +104,7 @@ export default function HomePage() {
           {[{ s: c.step1, href: SIGNUP, primary: false }, { s: c.step2, href: SIGNUP, primary: true }].map(({ s, href, primary }, i) => (
             <div key={s.name} className={`flex flex-col rounded-lg border p-8 ${primary ? "border-slate-900 shadow-lg" : "border-slate-200"}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${primary ? "text-sky-800" : "text-slate-500"}`}>{s.tag}</p>
-              <h3 className={`${serif.className} mt-2 text-2xl font-semibold`}>{s.name}</h3>
+              <h3 className={`${serif.className} mt-2 text-2xl font-semibold`}>{s.name}{primary && <ComingSoonBadge className="ml-3 align-middle" />}</h3>
               <p className="text-sm text-slate-500">{s.who}</p>
               <ul className="mt-6 flex-1 space-y-3 text-[15px] text-slate-700">
                 {s.points.map((p) => (

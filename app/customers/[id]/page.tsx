@@ -13,6 +13,7 @@ import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { AssessmentProgress } from "@/components/assessment-progress";
 import { EngagementLetterCard } from "@/components/engagement-letter-card";
 import { CertificationsCard } from "@/components/certifications-card";
+import { earlyAccessApi } from "@/lib/certifications";
 import {
   useCustomer,
   useUpdateCustomer,
@@ -177,6 +178,9 @@ function CustomerDetailContent({ params }: PageProps) {
       setRequests({ total: all.length, open: all.filter(needsResponse).length });
     }).catch(() => setRequests(null));
   }, [resolvedParams.id]);
+  // Until launch, step 2 shows "coming soon" with an early-access code box, without waiting for the self-assessment.
+  const [comingSoon, setComingSoon] = useState(false);
+  useEffect(() => { earlyAccessApi.status().then((s) => setComingSoon(!s.open)); }, []);
   const [drafts, setDrafts] = useState(0);
   useEffect(() => {
     draftFindingsApi.list(resolvedParams.id).then((d) => setDrafts(d.filter((x) => x.open && !x.received_at).length)).catch(() => {});
@@ -407,8 +411,8 @@ function CustomerDetailContent({ params }: PageProps) {
               </div>
             </div>
 
-            {submitted ? (
-              <RequestAssessmentCard customerId={resolvedParams.id} assessmentId={submitted.id} />
+            {submitted || comingSoon ? (
+              <RequestAssessmentCard customerId={resolvedParams.id} assessmentId={submitted?.id} comingSoon={comingSoon} />
             ) : (
               <div className="flex flex-col rounded-lg border border-dashed border-slate-300 bg-white/60 p-6">
                 <p className="text-xs font-medium text-slate-500">{d.step2}</p>
