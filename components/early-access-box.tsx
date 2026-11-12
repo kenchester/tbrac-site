@@ -14,11 +14,11 @@ const T = {
 };
 
 /** Entry box for a tester's early-access code. `check` asks the API; the code itself never ships in the page. */
-export function EarlyAccessBox({ hint, check, onAccepted }:
-  { hint: string; check: (code: string) => Promise<unknown>; onAccepted: (code: string) => void }) {
+export function EarlyAccessBox({ hint, check, onAccepted, initial = "", cta }:
+  { hint: string; check: (code: string) => Promise<unknown>; onAccepted: (code: string) => void; initial?: string; cta?: string }) {
   const { language } = useLanguage();
   const t = T[language] ?? T.en;
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const submit = async (e: React.FormEvent) => {
@@ -41,7 +41,7 @@ export function EarlyAccessBox({ hint, check, onAccepted }:
       <div className="mt-3 flex flex-wrap gap-2">
         <Input id="early-access-code" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" inputMode="numeric"
                className="w-40 bg-white font-mono tracking-widest" maxLength={50} aria-invalid={!!error} aria-describedby={error ? "early-access-error" : undefined} />
-        <Button type="submit" variant="outline" disabled={busy || !code.trim()}>{busy ? t.checking : t.apply}</Button>
+        <Button type="submit" variant={cta ? "default" : "outline"} disabled={busy || !code.trim()}>{busy ? t.checking : cta ?? t.apply}</Button>
       </div>
       {error && <p id="early-access-error" role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
     </form>

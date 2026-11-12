@@ -101,7 +101,7 @@ export default function HomePage() {
       <section id="steps" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
         <SectionTitle title={c.stepsTitle} lead={c.stepsLead} />
         <div className="relative mt-10 grid gap-6 lg:grid-cols-2">
-          {[{ s: c.step1, href: SIGNUP, primary: false }, { s: c.step2, href: SIGNUP, primary: true }].map(({ s, href, primary }, i) => (
+          {[{ s: c.step1, href: SIGNUP, primary: false }, { s: c.step2, href: "/comprehensive", primary: true }].map(({ s, href, primary }, i) => (
             <div key={s.name} className={`flex flex-col rounded-lg border p-8 ${primary ? "border-slate-900 shadow-lg" : "border-slate-200"}`}>
               <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${primary ? "text-sky-800" : "text-slate-500"}`}>{s.tag}</p>
               <h3 className={`${serif.className} mt-2 text-2xl font-semibold`}>{s.name}{primary && <ComingSoonBadge className="ml-3 align-middle" />}</h3>

@@ -8,11 +8,11 @@ import { useLanguage } from "@/lib/language-context";
 
 const T = {
   en: { title: "Comprehensive assessments: coming soon",
-        text: "They open to all companies soon. If you are taking part in early testing, create an account or sign in, then enter your early-access code on your dashboard. Your progress is saved in your account, so you can stop and come back.",
-        signup: "Create an account", signin: "Sign in" },
+        text: "They open to all companies soon. If TBRAC invited you to take part in early testing, enter your code to start now.",
+        signup: "Enter your early-access code" },
   zh: { title: "全面评估：即将推出",
-        text: "全面评估即将向所有企业开放。如您参与抢先测试，请创建账户或登录，然后在概览页面输入抢先体验码。您的进度会保存在账户中，可随时中断后继续。",
-        signup: "创建账户", signin: "登录" },
+        text: "全面评估即将向所有企业开放。如您受 TBRAC 邀请参与抢先测试，请输入体验码立即开始。",
+        signup: "输入抢先体验码" },
 };
 
 /** Small "Coming soon" label for the comprehensive assessment, until it opens. */
@@ -36,8 +36,7 @@ export function ComingSoonNotice() {
       <h2 className="flex items-center gap-2 text-lg font-semibold text-amber-950"><KeyRound className="h-5 w-5" />{t.title}</h2>
       <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-amber-950/90">{t.text}</p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <Link href="/company/login?tab=signup" className="rounded-md bg-[#0b1f3a] px-4 py-2 text-sm font-semibold text-white">{t.signup}</Link>
-        <Link href="/company/login" className="rounded-md border border-amber-400 bg-white px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100">{t.signin}</Link>
+        <Link href="/comprehensive" className="rounded-md bg-[#0b1f3a] px-4 py-2 text-sm font-semibold text-white">{t.signup}</Link>
       </div>
     </section>
   );

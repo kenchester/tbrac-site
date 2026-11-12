@@ -24,10 +24,25 @@ export const companyApi = {
 /** Before launch, comprehensive assessments are "coming soon" except for testers with an early-access code. */
 export const earlyAccessApi = {
   status: (): Promise<{ open: boolean }> => fetch("/api/v1/public/comprehensive-status").then((r) => r.json()).catch(() => ({ open: false })),
+  /** Signed-out check on /comprehensive, before the tester registers. */
+  checkPublic: async (code: string) => {
+    const r = await fetch("/api/v1/public/early-access", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    if (!r.ok) throw Object.assign(new Error("invalid"), { status: r.status });
+    return r.json();
+  },
   check: (customerId: string, code: string) =>
     authenticatedRequest<{ ok: boolean }>(`/api/v1/customers/${customerId}/early-access`, { method: "POST", body: JSON.stringify({ code }) }),
   redeem: (paymentId: string, code: string) =>
     authenticatedRequest<Payment>(`/api/v1/payments/${paymentId}/redeem`, { method: "POST", body: JSON.stringify({ code }) }),
+};
+
+/** A code accepted on /comprehensive is remembered on this device until the request is sent, so the tester can
+ *  register or sign in and land on their dashboard with the request form open. The API checks it again. */
+const EARLY_KEY = "tbrac-early-access-code";
+export const savedEarlyCode = {
+  get: () => { try { return localStorage.getItem(EARLY_KEY) ?? ""; } catch { return ""; } },
+  set: (c: string) => { try { localStorage.setItem(EARLY_KEY, c); } catch {} },
+  clear: () => { try { localStorage.removeItem(EARLY_KEY); } catch {} },
 };
 
 /** Card checkout is switched on at launch (NEXT_PUBLIC_PAYMENTS_ENABLED=1); until then it shows "coming soon". */

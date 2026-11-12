@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useApiToast } from "@/hooks/use-api-toast";
 import { assessmentRequestsApi, type AssessmentRequest, type AssessmentRequestIn } from "@/lib/assessment-requests";
-import { earlyAccessApi } from "@/lib/certifications";
+import { earlyAccessApi, savedEarlyCode } from "@/lib/certifications";
 import { EarlyAccessBox } from "@/components/early-access-box";
 import { useLanguage } from "@/lib/language-context";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
@@ -51,6 +51,16 @@ export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf
     )).catch(() => setLatest(null));
   }, [customerId, reevaluationOf]);
 
+  // A code accepted on /comprehensive (before signing up) opens the form straight away.
+  useEffect(() => {
+    if (!comingSoon || reevaluationOf || latest === undefined || (latest && latest.status !== "declined")) return;
+    const saved = savedEarlyCode.get();
+    if (saved && !code) {
+      setCode(saved); setOpen(true);
+      setTimeout(() => document.getElementById("comprehensive")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+  }, [comingSoon, latest]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (latest === undefined) return null;
   const inProgress = latest && latest.status !== "declined";
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -62,12 +72,15 @@ export function RequestAssessmentCard({ customerId, assessmentId, reevaluationOf
       const r = await assessmentRequestsApi.create(customerId, { ...form, assessment_id: assessmentId, language,
         ...(code ? { access_code: code } : {}),
         ...(reevaluationOf ? { request_type: "reevaluation" as const, prior_report_number: reevaluationOf } : {}) });
-      setLatest(r); setOpen(false); showSuccess(t("arSent"));
-    } catch (e) { handleError(e); } finally { setBusy(false); }
+      setLatest(r); setOpen(false); showSuccess(t("arSent")); savedEarlyCode.clear();
+    } catch (e) {
+      if (/not valid/i.test(String((e as Error)?.message))) { savedEarlyCode.clear(); setCode(""); setOpen(false); }
+      handleError(e);
+    } finally { setBusy(false); }
   };
 
   return (
-    <Card className="border-2 border-primary/30">
+    <Card id="comprehensive" className="scroll-mt-24 border-2 border-primary/30">
       <CardHeader>
         <div className="flex items-start gap-3">
           <ShieldCheck className="h-6 w-6 text-primary shrink-0 mt-0.5" />

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { savedEarlyCode } from "@/lib/certifications";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -71,6 +72,8 @@ export default function CompanyLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState("login");
+  const [early, setEarly] = useState(false);
+  useEffect(() => { setEarly(!!savedEarlyCode.get()); }, []);
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("tab") === "signup") setTab("signup");
   }, []);
@@ -156,6 +159,12 @@ export default function CompanyLoginPage() {
               {tab === "signup" ? l.newTitle : t("loginWelcome")}
             </h1>
             <p className="text-muted-foreground">{tab === "signup" ? l.newLead : t("loginSubtitle")}</p>
+            {early && (
+              <p className="mx-auto mt-3 max-w-md rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                {language === "zh" ? "抢先体验码已确认。请创建账户（或登录）以继续，您的全面评估申请表将随即打开。"
+                  : "Early-access code accepted. Create your account (or sign in) to continue; your comprehensive assessment request opens next."}
+              </p>
+            )}
           </div>
 
           <Card>
